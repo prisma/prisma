@@ -8,16 +8,16 @@ import type {
   ContractWithDomain,
   CrossReference,
   JsonValue,
-  ValueObjectFieldType,
+  ValueObjectReference,
 } from '@internal/contract/types';
-import { valueObjectAt } from '@internal/contract/types';
+import { valueObjectsWithCoordinates } from '@internal/contract/types';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   type ImportSpecifierResolver,
   keepInternalSpecifiers,
   type TypesImportSpec,
 } from '@internal/framework-components/emission';
-import { elementCoordinates, entityAt } from '@internal/framework-components/ir';
+import { entityAt } from '@internal/framework-components/ir';
 import { type ImportRequirement, renderImports, tsStringLiteral } from '@internal/ts-render';
 import { blindCast } from '@internal/utils/casts';
 import { emitterError } from './emitter-errors';
@@ -83,7 +83,7 @@ export function generateRootsType(roots: Record<string, CrossReference> | undefi
   return `{ ${entries} }`;
 }
 
-function valueObjectFieldTypeText(type: ValueObjectFieldType): string {
+function valueObjectFieldTypeText(type: ValueObjectReference): string {
   return `{ readonly kind: "valueObject"; readonly plane: "storage"; readonly namespaceId: ${serializeValue(type.namespaceId)}; readonly entityKind: "valueObject"; readonly entityName: ${serializeValue(type.entityName)} }`;
 }
 
@@ -583,22 +583,6 @@ function resolveValueObjectFieldValueSet(
   return { encodedValues: valueSet.values, codecId: field.type.codecId };
 }
 
-/** Each value object in storage, with the storage namespace that holds it. */
-export function storageValueObjects(
-  storage: ContractWithDomain['storage'],
-): ReadonlyArray<readonly [namespaceId: string, name: string, valueObject: ContractValueObject]> {
-  return [...elementCoordinates(storage)].flatMap(({ namespaceId, entityKind, entityName }) => {
-    if (entityKind !== 'valueObject') return [];
-    const valueObject = valueObjectAt(storage, {
-      plane: 'storage',
-      namespaceId,
-      entityKind,
-      entityName,
-    });
-    return valueObject === undefined ? [] : [[namespaceId, entityName, valueObject] as const];
-  });
-}
-
 /** `FieldTypeOverrides`: per namespace, `models` (domain namespace) or `valueObjects` (storage namespace), owner and field, the type of each field its codec does not give. */
 export function generateFieldTypeOverridesMap(
   contract: ContractWithDomain,
@@ -622,8 +606,8 @@ export function generateFieldTypeOverridesMap(
       ),
     ),
   );
-  const valueObjectFields = storageValueObjects(contract.storage).flatMap(
-    ([nsId, valueObjectName, valueObject]) =>
+  const valueObjectFields = valueObjectsWithCoordinates(contract.storage).flatMap(
+    ({ coordinate: { namespaceId: nsId, entityName: valueObjectName }, valueObject }) =>
       Object.entries(valueObject.fields).map(
         ([fieldName, field]) =>
           [

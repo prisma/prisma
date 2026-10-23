@@ -1,4 +1,4 @@
-import type { ContractValueObjectAt, ValueObjectFieldType } from '@internal/contract/types';
+import type { ContractValueObjectAt, ValueObjectReference } from '@internal/contract/types';
 import type { MongoContract, MongoModelsMap, OwnStoredNameOf } from '@internal/mongo-contract';
 import type { DocField } from './types';
 
@@ -127,7 +127,7 @@ type TranslateField<TContract extends MongoContract, F, Entered extends string> 
 }
   ? FieldToLeaf<F>
   : F extends {
-        readonly type: infer Reference extends ValueObjectFieldType;
+        readonly type: infer Reference extends ValueObjectReference;
         readonly nullable: infer Null extends boolean;
       }
     ? ValueObjectKey<Reference> extends Entered
@@ -142,7 +142,7 @@ type TranslateField<TContract extends MongoContract, F, Entered extends string> 
       : DocField;
 
 /** A value object's storage coordinate as one string, so the value objects a path has entered form a union. */
-type ValueObjectKey<Reference extends ValueObjectFieldType> =
+type ValueObjectKey<Reference extends ValueObjectReference> =
   `${Reference['namespaceId']}.${Reference['entityName']}`;
 
 /**
@@ -155,7 +155,7 @@ type ValueObjectKey<Reference extends ValueObjectFieldType> =
  */
 type VONestedShape<
   TContract extends MongoContract,
-  Reference extends ValueObjectFieldType,
+  Reference extends ValueObjectReference,
   Entered extends string,
 > = [ContractValueObjectAt<TContract['storage'], Reference>] extends [
   infer VO extends { readonly fields: Record<string, unknown> },

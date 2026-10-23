@@ -25,6 +25,13 @@ changes:
       matches:
         - '\bValueObjectTypesFromDomain\b'
         - '\bFieldTypesFromDomain\s*<'
+  - id: value-object-reference-type
+    summary: |
+      In `@prisma/orm-framework/contract/types`, `ValueObjectFieldType` is renamed `ValueObjectReference`: the type of a field that refers to a value object, which is now the value object's storage coordinate. `ContractValueObjectField` stays the type of a value object's own field.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '\bValueObjectFieldType\b'
 ---
 
 # Value objects are storage entities
@@ -74,3 +81,21 @@ type ValueObjects = ValueObjectTypesFromStorage<Contract['storage']['namespaces'
 ```
 
 Pass the sixth argument whenever the contract has value objects. A model field's override stays at `[namespace]['models'][model][field]`. A value object field's override moves to the namespace the value object is stored in: on SQL that is usually the model's namespace, and on MongoDB it is `__unbound__`.
+
+## `value-object-reference-type`
+
+```ts
+// before
+import type { ValueObjectFieldType } from '@prisma/orm-framework/contract/types';
+const reference: ValueObjectFieldType = { kind: 'valueObject', name: 'Address' };
+
+// after
+import type { ValueObjectReference } from '@prisma/orm-framework/contract/types';
+const reference: ValueObjectReference = {
+  kind: 'valueObject',
+  plane: 'storage',
+  namespaceId: 'public',
+  entityKind: 'valueObject',
+  entityName: 'Address',
+};
+```

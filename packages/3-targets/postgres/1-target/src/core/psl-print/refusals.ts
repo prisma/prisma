@@ -13,7 +13,7 @@ import type {
   ContractField,
   ExecutionMutationDefaultValue,
   ScalarFieldType,
-  ValueObjectFieldType,
+  ValueObjectReference,
 } from '@internal/contract/types';
 import type { GeneratorPhase } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -302,7 +302,7 @@ export function refuseFieldColumnMismatch(input: {
 export function refuseUnwritableFieldShape(
   field: ContractField,
   coordinate: string,
-): asserts field is ContractField & { readonly type: ScalarFieldType | ValueObjectFieldType } {
+): asserts field is ContractField & { readonly type: ScalarFieldType | ValueObjectReference } {
   if (field.type.kind === 'union') {
     throw unsupported(
       `field ${coordinate} has a ${field.type.kind} type, which cannot be written in Prisma 8 PSL.`,

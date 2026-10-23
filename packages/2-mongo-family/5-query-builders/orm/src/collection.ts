@@ -5,7 +5,7 @@ import {
   type ContractReferenceRelation,
   type ContractValueObject,
   type PlanMeta,
-  type ValueObjectFieldType,
+  type ValueObjectReference,
   valueObjectAt,
 } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -1002,7 +1002,7 @@ class MongoCollectionImpl<
     return contractModelToMongoResultShape(model, { storage: this.#contract.storage });
   }
 
-  #valueObjectAt(reference: ValueObjectFieldType): ContractValueObject | undefined {
+  #valueObjectAt(reference: ValueObjectReference): ContractValueObject | undefined {
     return valueObjectAt(this.#contract.storage, reference);
   }
 

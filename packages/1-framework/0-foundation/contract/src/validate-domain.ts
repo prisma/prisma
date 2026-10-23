@@ -2,10 +2,9 @@ import { blindCast } from '@internal/utils/casts';
 import { ContractValidationError } from './contract-validation-error';
 import type { CrossReference } from './cross-reference';
 import type { ContractWithDomain } from './domain-envelope';
-import type { ContractValueObject } from './domain-types';
 import { isPlainRecord } from './is-plain-record';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
-import { valueObjectAt } from './storage-value-objects';
+import { valueObjectAt, valueObjectsWithCoordinates } from './storage-value-objects';
 
 export interface DomainRelationShape {
   readonly to: CrossReference;
@@ -77,27 +76,6 @@ export function removedDomainKeyProblems(contract: unknown): readonly string[] {
         ]
       : [],
   );
-}
-
-interface StorageValueObjectEntry {
-  readonly namespaceId: string;
-  readonly name: string;
-  readonly valueObject: ContractValueObject;
-}
-
-function storageValueObjects(contract: DomainContractShape): readonly StorageValueObjectEntry[] {
-  return Object.entries(contract.storage.namespaces).flatMap(([namespaceId, namespace]) => {
-    const slot = namespace.entries['valueObject'];
-    if (!isPlainRecord(slot)) return [];
-    return Object.entries(slot).map(([name, valueObject]) => ({
-      namespaceId,
-      name,
-      valueObject: blindCast<
-        ContractValueObject,
-        'the family validators check each storage valueObject entry against the value object schema'
-      >(valueObject),
-    }));
-  });
 }
 
 export function validateContractDomain(contract: DomainContractShape): void {
@@ -370,7 +348,10 @@ function validateValueObjectReferences(contract: DomainContractShape, errors: st
       }
     }
   }
-  for (const { namespaceId, name, valueObject } of storageValueObjects(contract)) {
+  for (const {
+    coordinate: { namespaceId, entityName: name },
+    valueObject,
+  } of valueObjectsWithCoordinates(contract.storage)) {
     for (const [fieldName, field] of Object.entries(valueObject.fields)) {
       const location = `Value object "${namespaceId}:${name}" field "${fieldName}"`;
       checkType(fieldLike(field)?.type, location);
@@ -430,7 +411,10 @@ function validateFieldModifiers(
       validateField(`Model "${namespaceId}:${modelName}" field "${fieldName}"`, field);
     }
   }
-  for (const { namespaceId, name, valueObject } of storageValueObjects(contract)) {
+  for (const {
+    coordinate: { namespaceId, entityName: name },
+    valueObject,
+  } of valueObjectsWithCoordinates(contract.storage)) {
     for (const [fieldName, field] of Object.entries(valueObject.fields)) {
       validateField(`Value object "${namespaceId}:${name}" field "${fieldName}"`, field);
     }

@@ -9,17 +9,17 @@ export type ScalarFieldType = {
   readonly typeParams?: Record<string, unknown>;
 };
 
-/** A field that holds a value object: the coordinate of its storage entity (ADR 309). */
-export interface ValueObjectFieldType extends EntityCoordinate<'storage', 'valueObject'> {
+/** The type of a field that refers to a value object: the coordinate of the value object in storage (ADR 309). Not to be confused with {@link ContractValueObjectField}, a field of a value object. */
+export interface ValueObjectReference extends EntityCoordinate<'storage', 'valueObject'> {
   readonly kind: 'valueObject';
 }
 
 export type UnionFieldType = {
   readonly kind: 'union';
-  readonly members: ReadonlyArray<ScalarFieldType | ValueObjectFieldType>;
+  readonly members: ReadonlyArray<ScalarFieldType | ValueObjectReference>;
 };
 
-export type ContractFieldType = ScalarFieldType | ValueObjectFieldType | UnionFieldType;
+export type ContractFieldType = ScalarFieldType | ValueObjectReference | UnionFieldType;
 
 export type ContractField = {
   readonly nullable: boolean;

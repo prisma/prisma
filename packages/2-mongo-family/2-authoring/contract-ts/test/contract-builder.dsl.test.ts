@@ -1,7 +1,7 @@
 import {
   crossRef,
   domainModelsAtDefaultNamespace,
-  storageValueObjectsAtDefaultNamespace,
+  valueObjectsWithCoordinates,
 } from '@internal/contract/types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
@@ -369,7 +369,16 @@ describe('mongo contract builder', () => {
       },
     });
     expect(
-      JSON.parse(JSON.stringify(storageValueObjectsAtDefaultNamespace(contract.storage))),
+      JSON.parse(
+        JSON.stringify(
+          Object.fromEntries(
+            valueObjectsWithCoordinates(contract.storage).map(({ coordinate, valueObject }) => [
+              coordinate.entityName,
+              valueObject,
+            ]),
+          ),
+        ),
+      ),
     ).toEqual({
       Address: {
         fields: {

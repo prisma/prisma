@@ -158,7 +158,7 @@ function enabledCapabilities(
 }
 
 /** The value objects of a definition as storage entities, all in the default namespace; `undefined` when it has none. */
-function storageValueObjects(
+function valueObjectsFromDefinition(
   definition: ContractDefinition,
   defaultNamespaceId: string,
 ): Record<string, ContractValueObject> | undefined {
@@ -360,7 +360,7 @@ export function buildSqlContractFromDefinition(
   // producer's) and flush once, threshold-batched by code.
   const authoringWarnings: AuthoringWarning[] = [...(definition.warnings ?? [])];
   const collectedColumnEntities: CollectedColumnEntities = {};
-  const valueObjects = storageValueObjects(definition, defaultNamespaceId);
+  const valueObjects = valueObjectsFromDefinition(definition, defaultNamespaceId);
   const renderCheckExpressions = resolveCheckExpressionRenderer(definition.target);
   const tableLoweringContext: TableLoweringContext = {
     lookups,

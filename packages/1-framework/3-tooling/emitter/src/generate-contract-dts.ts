@@ -1,4 +1,9 @@
-import type { Contract, ContractEnum, ContractModelBase } from '@internal/contract/types';
+import {
+  type Contract,
+  type ContractEnum,
+  type ContractModelBase,
+  valueObjectsWithCoordinates,
+} from '@internal/contract/types';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import {
   type EmissionSpi,
@@ -24,7 +29,6 @@ import {
   serializeExecutionType,
   serializeObjectKey,
   serializeValue,
-  storageValueObjects,
 } from './domain-type-generation';
 import { emitterError } from './emitter-errors';
 import { generateModelTypesBlock } from './model-types-emission';
@@ -111,7 +115,9 @@ export function generateContractDts(
   const rootsType = generateRootsType(contract.roots);
 
   const firstNamespaceOfValueObject = new Map<string, string>();
-  for (const [namespaceId, name] of storageValueObjects(contract.storage)) {
+  for (const {
+    coordinate: { namespaceId, entityName: name },
+  } of valueObjectsWithCoordinates(contract.storage)) {
     if (!firstNamespaceOfValueObject.has(name)) firstNamespaceOfValueObject.set(name, namespaceId);
   }
   const valueObjectNamespaces = [...firstNamespaceOfValueObject];

@@ -1,5 +1,4 @@
 import { blindCast } from '@internal/utils/casts';
-import { contractError } from './contract-errors';
 import type { ContractWithDomain } from './domain-envelope';
 import type { ContractValueObject } from './domain-types';
 import type { EntityCoordinate } from './entity-coordinate';
@@ -31,20 +30,15 @@ export function valueObjectAt(
     : undefined;
 }
 
-/**
- * The value objects of the storage's only namespace. Throws when storage does not declare exactly one namespace, since a bare value object name is then ambiguous.
- */
-export function storageValueObjectsAtDefaultNamespace(
-  storage: ContractWithDomain['storage'],
-): Readonly<Record<string, ContractValueObject>> {
-  const namespaceIds = Object.keys(storage.namespaces);
-  const [namespaceId] = namespaceIds;
-  if (namespaceId === undefined || namespaceIds.length > 1) {
-    throw contractError(
-      'CONTRACT.NAMESPACE_INVALID',
-      `bare-name resolution requires exactly one storage namespace, found ${namespaceIds.length} (${namespaceIds.join(', ')}); select a namespace explicitly`,
-      { meta: { reason: 'multiple-storage-namespaces', namespaceIds } },
-    );
-  }
-  return valueObjectsOf(storage, namespaceId);
+/** Each value object in storage, in every namespace, with its coordinate. */
+export function valueObjectsWithCoordinates(storage: ContractWithDomain['storage']): ReadonlyArray<{
+  readonly coordinate: EntityCoordinate<'storage', 'valueObject'>;
+  readonly valueObject: ContractValueObject;
+}> {
+  return Object.keys(storage.namespaces).flatMap((namespaceId) =>
+    Object.entries(valueObjectsOf(storage, namespaceId)).map(([entityName, valueObject]) => ({
+      coordinate: { plane: 'storage', namespaceId, entityKind: 'valueObject', entityName },
+      valueObject,
+    })),
+  );
 }

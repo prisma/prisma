@@ -54,21 +54,19 @@ export type CheckExpressionRenderer = (
   input: CheckExpressionInput,
 ) => ReadonlyArray<CheckExpressionCandidate>;
 
-type ValueObjectReference = EntityCoordinate<'storage', 'valueObject'>;
-
 /**
  * The value object a reference names, with nested value objects inlined and enum members' values read from their storage value sets.
  */
 export function resolveValueObject(
   storage: ContractWithDomain['storage'],
-  reference: ValueObjectReference,
+  reference: EntityCoordinate<'storage', 'valueObject'>,
 ): ResolvedValueObject {
   return resolveEntered(storage, reference, [referenceKey(reference)]);
 }
 
 function resolveEntered(
   storage: ContractWithDomain['storage'],
-  reference: ValueObjectReference,
+  reference: EntityCoordinate<'storage', 'valueObject'>,
   path: readonly string[],
 ): ResolvedValueObject {
   const valueObject = requiredValueObject(storage, reference);
@@ -113,11 +111,11 @@ function resolveFieldType(
  */
 function reachesAny(
   storage: ContractWithDomain['storage'],
-  from: ValueObjectReference,
+  from: EntityCoordinate<'storage', 'valueObject'>,
   targets: ReadonlySet<string>,
 ): boolean {
   const seen = new Set<string>();
-  const pending: ValueObjectReference[] = [from];
+  const pending: EntityCoordinate<'storage', 'valueObject'>[] = [from];
   for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
     const key = referenceKey(next);
     if (targets.has(key)) return true;
@@ -132,7 +130,7 @@ function reachesAny(
 
 function requiredValueObject(
   storage: ContractWithDomain['storage'],
-  reference: ValueObjectReference,
+  reference: EntityCoordinate<'storage', 'valueObject'>,
 ): ContractValueObject {
   const valueObject = valueObjectAt(storage, reference);
   invariant(
@@ -158,6 +156,6 @@ function valueSetValues(
   );
 }
 
-function referenceKey(reference: ValueObjectReference): string {
+function referenceKey(reference: EntityCoordinate<'storage', 'valueObject'>): string {
   return JSON.stringify([reference.namespaceId, reference.entityName]);
 }

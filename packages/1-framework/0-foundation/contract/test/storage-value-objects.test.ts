@@ -1,6 +1,6 @@
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
-import { storageValueObjectsAtDefaultNamespace, valueObjectAt } from '../src/storage-value-objects';
+import { valueObjectAt, valueObjectsWithCoordinates } from '../src/storage-value-objects';
 import type { StorageNamespace } from '../src/types';
 
 const address = {
@@ -66,29 +66,35 @@ describe('valueObjectAt with an unusual namespace', () => {
   });
 });
 
-describe('storageValueObjectsAtDefaultNamespace', () => {
-  it('reads the value objects of the only storage namespace', () => {
-    expect(storageValueObjectsAtDefaultNamespace(storage)).toEqual({ Address: address });
-  });
-
-  it('is empty when the namespace has no value objects', () => {
+describe('valueObjectsWithCoordinates', () => {
+  it('lists each value object in every storage namespace with its coordinate', () => {
     expect(
-      storageValueObjectsAtDefaultNamespace({
-        namespaces: { public: { id: 'public', entries: {} } },
-      }),
-    ).toEqual({});
-  });
-
-  it('refuses a storage with more than one namespace', () => {
-    expect(() =>
-      storageValueObjectsAtDefaultNamespace({
+      valueObjectsWithCoordinates({
         namespaces: {
-          public: { id: 'public', entries: {} },
-          billing: { id: 'billing', entries: {} },
+          public: { id: 'public', entries: { valueObject: { Address: address }, table: {} } },
+          billing: { id: 'billing', entries: { valueObject: { Address: address } } },
+          bare: blindCast<StorageNamespace, 'a namespace with no entries'>({ id: 'bare' }),
         },
       }),
-    ).toThrow(
-      'bare-name resolution requires exactly one storage namespace, found 2 (public, billing); select a namespace explicitly',
-    );
+    ).toEqual([
+      {
+        coordinate: {
+          plane: 'storage',
+          namespaceId: 'public',
+          entityKind: 'valueObject',
+          entityName: 'Address',
+        },
+        valueObject: address,
+      },
+      {
+        coordinate: {
+          plane: 'storage',
+          namespaceId: 'billing',
+          entityKind: 'valueObject',
+          entityName: 'Address',
+        },
+        valueObject: address,
+      },
+    ]);
   });
 });

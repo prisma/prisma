@@ -39,7 +39,7 @@ export type {
   ReferenceRelationKeys,
   ScalarFieldType,
   UnionFieldType,
-  ValueObjectFieldType,
+  ValueObjectReference,
 } from '../domain-types';
 export type { EntityCoordinate } from '../entity-coordinate';
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
@@ -59,10 +59,7 @@ export type {
 } from '../parameterized-output-types';
 export { type ResolvedDomainModel, resolveDomainModel } from '../resolve-domain-model';
 export { StorageValueObjectSchema } from '../storage-value-object-schema';
-export {
-  storageValueObjectsAtDefaultNamespace,
-  valueObjectAt,
-} from '../storage-value-objects';
+export { valueObjectAt, valueObjectsWithCoordinates } from '../storage-value-objects';
 export type {
   $,
   Brand,

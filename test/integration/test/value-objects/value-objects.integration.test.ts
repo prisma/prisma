@@ -3,8 +3,8 @@ import {
   type ContractField,
   type ContractValueObject,
   domainModelsAtDefaultNamespace,
-  storageValueObjectsAtDefaultNamespace,
   UNBOUND_DOMAIN_NAMESPACE_ID,
+  valueObjectsWithCoordinates,
 } from '@internal/contract/types';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
@@ -196,7 +196,12 @@ function modelsAtDefaultNamespace(contract: Contract) {
 }
 
 function valueObjectsAtDefaultNamespace(contract: Contract) {
-  return storageValueObjectsAtDefaultNamespace(contract.storage);
+  return Object.fromEntries(
+    valueObjectsWithCoordinates(contract.storage).map(({ coordinate, valueObject }) => [
+      coordinate.entityName,
+      valueObject,
+    ]),
+  );
 }
 
 function valueObjectRef(namespaceId: string, entityName: string) {

@@ -15,7 +15,7 @@ const ScalarFieldTypeSchema = type({
   'typeParams?': 'Record<string, unknown>',
 });
 
-const ValueObjectFieldTypeSchema = type({
+const ValueObjectReferenceSchema = type({
   '+': 'reject',
   kind: "'valueObject'",
   plane: "'storage'",
@@ -27,10 +27,10 @@ const ValueObjectFieldTypeSchema = type({
 const UnionFieldTypeSchema = type({
   '+': 'reject',
   kind: "'union'",
-  members: ScalarFieldTypeSchema.or(ValueObjectFieldTypeSchema).array(),
+  members: ScalarFieldTypeSchema.or(ValueObjectReferenceSchema).array(),
 });
 
-const FieldTypeSchema = ScalarFieldTypeSchema.or(ValueObjectFieldTypeSchema).or(
+const FieldTypeSchema = ScalarFieldTypeSchema.or(ValueObjectReferenceSchema).or(
   UnionFieldTypeSchema,
 );
 
