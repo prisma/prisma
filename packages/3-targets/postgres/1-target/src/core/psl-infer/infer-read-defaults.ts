@@ -10,18 +10,10 @@ import {
   type SqlPslBuildContext,
 } from '@internal/family-sql/control';
 import type { ColumnTypeOf } from '@internal/family-sql/psl-build';
-import { type Codec, codecForRef } from '@internal/framework-components/codec';
+import { type Codec, codecForRef, type DataTypeValue } from '@internal/framework-components/codec';
 import type { SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { isInternalError } from '@internal/utils/internal-error';
-import { isStructuredError } from '@internal/utils/structured-error';
-import {
-  pgJson,
-  pgJsonb,
-  pgTimestamp,
-  pgTimestampStoredText,
-  pgTimestamptz,
-  pgTimestamptzStoredText,
-} from '../data-types';
+import { pgJson, pgJsonb } from '../data-types';
 import { readPostgresDefault } from '../default-normalizer';
 import { inferredCodecRef } from './infer-default-codec';
 import { jsonKeepsEveryNumber } from './json-exact-numbers';
@@ -97,44 +89,31 @@ export async function readDefaultWithCodec(
   if (JSON_TYPES.has(codec.dataType.id) && !bodiesOf(reported.literal).every(jsonBodyIsExact)) {
     return rawExpression;
   }
-  const read = await readReportedDefault(codec, reported.literal, raw);
-  if (!('resolvedDefault' in read)) return rawExpression;
-  const storedText = TIMESTAMP_STORED_TEXT.get(codec.dataType.id);
-  if (
-    storedText !== undefined &&
-    !readsEveryDigit(storedText, reported.literal, read.resolvedDefault)
-  ) {
+  if (!bodiesOf(reported.literal).every((body) => codecHoldsExactly(codec, body))) {
     return rawExpression;
   }
-  return read.resolvedDefault;
+  const read = await readReportedDefault(codec, reported.literal, raw);
+  return 'resolvedDefault' in read ? read.resolvedDefault : rawExpression;
 }
 
-/** The value each timestamp type holds for the text PostgreSQL prints. A `Date` codec of these types reads only milliseconds. */
-const TIMESTAMP_STORED_TEXT: ReadonlyMap<string, (text: string) => string> = new Map([
-  [pgTimestamp.id, pgTimestampStoredText],
-  [pgTimestamptz.id, pgTimestamptzStoredText],
-]);
-
-/** Whether the codec read each body as the value the column holds, so a `Date` codec's millisecond reading of a microsecond default is printed as the raw expression instead. */
-function readsEveryDigit(
-  storedText: (text: string) => string,
-  literal: ReportedLiteralDefault,
-  read: ColumnDefault,
-): boolean {
-  const value = read.kind === 'literal' ? read.value : undefined;
-  const values = literal.kind === 'value' ? [value] : Array.isArray(value) ? value : [];
-  return bodiesOf(literal).every(
-    (body, index) => typeof body !== 'string' || storedTextOf(storedText, body) === values[index],
-  );
-}
-
-/** The value the column holds for `body`, or `undefined` when its type does not read it. */
-function storedTextOf(storedText: (text: string) => string, body: string): string | undefined {
+/**
+ * Whether the codec's application value holds `body` exactly, as `contract emit` asks of a written default: the codec's `fromDataTypeValue` refuses a value it cannot hold exactly, such as a `Date` codec a time with digits below a millisecond. A body the data type does not read as text is left to the codec's wire reading.
+ */
+function codecHoldsExactly(codec: Codec, body: ReportedBody | null): boolean {
+  if (typeof body !== 'string') return true;
+  let value: DataTypeValue;
   try {
-    return storedText(body);
+    value = codec.dataType.valueFrom(body, {});
   } catch (error) {
-    if (isStructuredError(error)) return undefined;
-    throw error;
+    if (isInternalError(error)) throw error;
+    return true;
+  }
+  try {
+    codec.fromDataTypeValue(value);
+    return true;
+  } catch (error) {
+    if (isInternalError(error)) throw error;
+    return false;
   }
 }
 

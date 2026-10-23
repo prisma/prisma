@@ -188,21 +188,22 @@ describe('printPsl writes each default as the literal the column data type takes
     });
   });
 
-  it('prints the raw expression when the column type does not read a body its codec read', async () => {
+  it('prints the raw expression when the codec refuses the value its data type reads from the body', async () => {
     const codec = {
-      id: 'test/lenient-timestamp@1',
+      id: 'test/strict-timestamp@1',
       dataType: pgTimestamp,
       fromWire: async () => new Date('2024-01-01T00:00:00Z'),
       toDataTypeValue: () => pgTimestamp.valueFrom('2024-01-01T00:00:00', {}),
-      fromDataTypeValue: () => new Date('2024-01-01T00:00:00Z'),
+      fromDataTypeValue: () => {
+        throw new Error('the application value cannot hold this instant exactly');
+      },
       toWire: async () => '',
     } as unknown as Codec;
-    expect(await readDefaultWithCodec("'soon'::timestamp without time zone", false, codec)).toEqual(
-      {
-        kind: 'function',
-        expression: "'soon'::timestamp without time zone",
-      },
-    );
+    const raw = "'2024-01-01 00:00:00'::timestamp without time zone";
+    expect(await readDefaultWithCodec(raw, false, codec)).toEqual({
+      kind: 'function',
+      expression: raw,
+    });
   });
 
   it('prints a timestamp default written with an offset as the instant, when a Date holds it', async () => {
