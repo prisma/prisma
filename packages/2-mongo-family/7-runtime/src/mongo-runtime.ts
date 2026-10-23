@@ -7,6 +7,7 @@ import {
   executeStatement,
   RuntimeCore,
   type RuntimeExecuteOptions,
+  type RuntimeMode,
   type RuntimeStatementStats,
   runtimeError,
   type StatementActivityRun,
@@ -75,7 +76,7 @@ export interface MongoRuntimeOptions {
   readonly context: MongoExecutionContext;
   readonly driver: MongoDriver;
   readonly middleware?: readonly MongoMiddleware[];
-  readonly mode?: 'strict' | 'permissive';
+  readonly mode?: RuntimeMode;
 }
 
 export interface MongoRuntime {

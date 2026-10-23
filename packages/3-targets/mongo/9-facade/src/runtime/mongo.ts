@@ -1,5 +1,5 @@
 import { MongoDriverImpl } from '@internal/driver-mongo';
-import { AsyncIterableResult } from '@internal/framework-components/runtime';
+import { AsyncIterableResult, type RuntimeMode } from '@internal/framework-components/runtime';
 import type {
   AnyMongoTypeMaps,
   MongoContract,
@@ -41,7 +41,7 @@ export interface MongoClient<
 }
 
 export interface MongoOptionsBase {
-  readonly mode?: 'strict' | 'permissive';
+  readonly mode?: RuntimeMode;
   /**
    * Optional middleware chain applied to every Mongo execution.
    */
