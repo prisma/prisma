@@ -98,7 +98,7 @@ class Leases {
   }
 }
 
-/** A pooled connection lent to one caller. `done` gives it back to the pool, or evicts it when it may be in an unknown state. */
+/** A pooled connection lent to one caller. `done` gives it back to the pool, closes it after raw SQL, or destroys it when it may be broken. */
 interface Lent {
   readonly connection: PoolConnection;
   /** What to do when the caller stops reading a stream early: evict a connection the pool lent for this one statement, or read and drop the rest of the result on a connection the caller holds, whose session must survive. */
@@ -274,7 +274,7 @@ class MysqlConnectionImpl extends MysqlQueryable implements SqlConnection {
   }
 
   async release(): Promise<void> {
-    if (this.#session.ranRawSql) this.#session.connection.destroy();
+    if (this.#session.ranRawSql) this.#session.connection.end();
     else this.#session.connection.release();
     this.#giveBack();
   }
@@ -342,7 +342,7 @@ type DriverState =
   | { readonly kind: 'closed' };
 
 /**
- * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement. A connection that ran raw SQL never goes back to the pool: the pool's own connection is destroyed after the statement, and a held one when the hold ends, after the setup has run again before each of the holder's statements that follows raw SQL. `close()` waits for every connection and stream it has handed out before it ends the pool.
+ * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement. A connection that ran raw SQL never goes back to the pool: the pool's own connection is closed after the statement, and a held one when the hold ends, after the setup has run again before each of the holder's statements that follows raw SQL. Such a connection is closed with mysql2's `gracefulEnd`, which removes it from the pool and tells the server it is quitting; a broken connection is destroyed. `close()` waits for every connection and stream it has handed out before it ends the pool.
  */
 export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
   readonly familyId = 'sql' as const;
@@ -366,6 +366,7 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
     const pool = createPool({
       ...mysqlConnectionOptions(binding.url),
       maxPreparedStatements: statementCacheSize,
+      gracefulEnd: true,
       ...ifDefined('connectionLimit', connectionLimit),
     });
     this.#state = { kind: 'connected', pool, poolTimeoutMs };
@@ -393,7 +394,8 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
           ranRawSql = true;
         },
         done: (evict) => {
-          if (evict || ranRawSql) connection.destroy();
+          if (evict) connection.destroy();
+          else if (ranRawSql) connection.end();
           else connection.release();
           giveBack();
         },

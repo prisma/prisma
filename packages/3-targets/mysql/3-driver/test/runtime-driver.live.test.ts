@@ -349,6 +349,33 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('closes a connection that ran raw SQL by telling the server, so the server counts no aborted client', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const admin = await mysqlControlDriver.create(url);
+      const abortedClients = async () => {
+        const { rows } = await admin.query<{ Value: string }>(
+          "SHOW GLOBAL STATUS LIKE 'Aborted_clients'",
+        );
+        return Number(rows[0]?.Value);
+      };
+      try {
+        const before = await abortedClients();
+        await withDriver(url, async (driver) => {
+          for (let statement = 0; statement < 5; statement += 1) {
+            await driver.execute({ containsRawSql: true, sql: "SET time_zone = '+05:00'" });
+          }
+          const held = await driver.acquireConnection();
+          await held.execute({ containsRawSql: true, sql: "SET time_zone = '+05:00'" });
+          await held.release();
+        });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        expect(await abortedClients()).toBe(before);
+      } finally {
+        await admin.close();
+      }
+    });
+  });
+
   describe('a setting raw SQL changes', () => {
     async function withOneConnection(
       test: Parameters<typeof withMysqlDatabase>[0],
