@@ -26,11 +26,13 @@ changes:
         - '\.noCheck\('
   - id: prisma7-lists-allow-null-elements
     summary: |
-      A contract read from a Prisma 7 `schema.prisma` now types the elements of every list as `T | null`, because Prisma 7 creates no check against null elements, and its storage hash changes. Run `stored-contracts-drop-nocheck` first. Otherwise, re-emit the contract and then run `prisma db sign` against every database. A database Prisma 7 built still matches the contract with no migration.
+      A contract read from a Prisma 7 `schema.prisma` now types the elements of every list as `T | null`, because Prisma 7 creates no check against null elements, and its storage hash changes. Run `stored-contracts-drop-nocheck` first. Otherwise, re-emit the contract and then run `prisma db sign` against every database. A database Prisma 7 built still matches the contract with no migration. The detection matches a Prisma 7 schema file, one without the `// use prisma-8` directive, with a list of a scalar type or of an enum the same file declares; check a list of an enum declared in another file of the schema yourself.
     detection:
-      glob: "**/prisma.config.{ts,mts,cts,js,mjs}"
+      glob: "**/*.prisma"
       matches:
-        - '\bprisma7Schema\('
+        - '^(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\n[ \t]*\w+[ \t]+(?:String|Int|BigInt|Float|Decimal|Boolean|DateTime|Json|Bytes)\[\]'
+        - '^(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\benum[ \t]+(\w+)[ \t]*\{[\s\S]*\n[ \t]*\w+[ \t]+\1\[\]'
+        - '^(?!\s*// *use +(?:prisma-8|prisma-next) *(?!\S))[\s\S]*\n[ \t]*\w+[ \t]+(\w+)\[\][\s\S]*\benum[ \t]+\1[ \t]*\{'
   - id: supabase-contract-lists-allow-null-elements
     summary: |
       The `@prisma/orm-extension-supabase` contract now declares its four `text[]` columns as lists whose elements may be null, so code that reads them gets `string | null` elements, and the Supabase space's storage hash changes. Run `prisma db sign` against every database after upgrading.
@@ -61,11 +63,17 @@ changes:
     script: ./scripts/remove-nocheck/remove-nocheck.ts
   - id: prisma7-datetime-default-finer-than-column
     summary: |
-      A project that reads a Prisma 7 schema: a `DateTime` default with more fraction digits than its column holds is now refused instead of rounded. Write the value PostgreSQL stores, which the message names.
+      A project that reads a Prisma 7 schema: a `DateTime` default with more fraction digits than its column holds is now refused instead of rounded. Write the value PostgreSQL stores, which the message names. The detection matches a quoted default with more fraction digits than the precision of its `@db.Timestamp`, `@db.Timestamptz`, `@db.Time` or `@db.Timetz` type, or with more than 3 on a field without a `@db` type.
     detection:
       glob: "**/*.prisma"
       matches:
-        - '@default\(\s*"\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}\.\d{4,}'
+        - '(?:^|\n)(?![^\n]*@db\.)[^\n]*@default\(\s*"\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}\.\d{4,}'
+        - '(?:^|\n)(?=[^\n]*@db\.(?:Timestamp|Timestamptz|Time|Timetz)\(\s*0\s*\))[^\n]*@default\(\s*"[^"\n]*:\d{2}\.\d{1,}'
+        - '(?:^|\n)(?=[^\n]*@db\.(?:Timestamp|Timestamptz|Time|Timetz)\(\s*1\s*\))[^\n]*@default\(\s*"[^"\n]*:\d{2}\.\d{2,}'
+        - '(?:^|\n)(?=[^\n]*@db\.(?:Timestamp|Timestamptz|Time|Timetz)\(\s*2\s*\))[^\n]*@default\(\s*"[^"\n]*:\d{2}\.\d{3,}'
+        - '(?:^|\n)(?=[^\n]*@db\.(?:Timestamp|Timestamptz|Time|Timetz)\(\s*3\s*\))[^\n]*@default\(\s*"[^"\n]*:\d{2}\.\d{4,}'
+        - '(?:^|\n)(?=[^\n]*@db\.(?:Timestamp|Timestamptz|Time|Timetz)\(\s*4\s*\))[^\n]*@default\(\s*"[^"\n]*:\d{2}\.\d{5,}'
+        - '(?:^|\n)(?=[^\n]*@db\.(?:Timestamp|Timestamptz|Time|Timetz)\(\s*5\s*\))[^\n]*@default\(\s*"[^"\n]*:\d{2}\.\d{6,}'
   - id: stored-values-a-column-type-does-not-hold
     summary: |
       Reading a value its column's type does not hold now throws `RUNTIME.DECODE_FAILED`, in a plain read and in an include alike: text or bytes in a SQLite INTEGER or REAL column, text or a number in a SQLite BLOB column, and a multi-dimensional array in a PostgreSQL `text[]` column read with `pg/text-array@1`.
@@ -97,7 +105,7 @@ changes:
       matches:
         - '\buuid\(\s*(?![47]\s*\))[^\s)]'
         - '\bcuid\(\s*(?!2\s*\))[^\s)]'
-        - '\bnanoid\(\s*(?:[01]\s*\)|\d{4,}|[3-9]\d\d|2[6-9]\d|25[6-9]|[^)]*[.:])'
+        - '\bnanoid\(\s*(?:[01]\s*\)|\d{4,}|[3-9]\d\d|2[6-9]\d|25[6-9]|[^)]*[.:]|[-"''])'
   - id: generator-function-argument-diagnostics
     summary: |
       In Prisma 8 PSL, an argument of `uuid`, `cuid` or `nanoid` the function does not take is reported with the code `PSL_INVALID_GENERATOR_ARGUMENT` instead of `PSL_INVALID_ATTRIBUTE_SYNTAX`, and with the function's message, such as `uuid: version must be 4 or 7, got 5`. A missing or extra argument names the callee `Generator function "<name>"` instead of `Attribute "<name>"`, and `Default function "<name>"` for `now` and `autoincrement` in `@default`.
@@ -222,12 +230,12 @@ changes:
         - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*\n[ \t]*(?:(?:public|private|protected|override|readonly|async|declare|static|accessor)[ \t]+)*(?:(?:(?:get|set)[ \t]+)?using[ \t]*[?!]?[ \t]*[(<]|using[ \t]*[?!]?[ \t]*=(?![=>])|using[ \t]*[?!]?[ \t]*:[^\n]*[^,\s][ \t]*(?:\n|$))'
   - id: orm-annotations-on-the-call
     summary: |
-      Every SQL ORM terminal method runs as one `orm-call` activity, and the annotations a `configure` callback records live on that activity. The statements the call sends carry none, so a middleware that reads an ORM annotation from a statement plan (`handle.read(plan)` or `plan.meta.annotations`) in `beforeEncode`, `intercept.onQuery`, `onRow` or `activityStarted` of a statement finds nothing. Read it from the call instead: in `activityStarted(activity)`, `if (activity.kind === 'orm-call') handle.read(activity)`.
+      Every SQL ORM terminal method runs as one `orm-call` activity, and the annotations a `configure` callback records live on that activity. The statements the call sends carry none, so a middleware that reads an ORM annotation from a statement plan (`handle.read(plan)` or `plan.meta.annotations`) in `beforeEncode`, `intercept.onQuery`, `onRow` or `activityStarted` of a statement finds nothing. Read it from the call instead: in `activityStarted(activity)`, `if (activity.kind === 'orm-call') handle.read(activity)`. The detection matches a file with a middleware hook, not a MongoDB one, that reads an annotation from something other than the activity, or reads `meta.annotations`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\.read\(\s*(?:plan|exec|draft)\b'
-        - 'meta\.annotations\b'
+        - '(?<![\s\S])(?![\s\S]*(?:familyId:\s*[''"]mongo[''"]|\bMongoMiddleware\b))(?=[\s\S]*\b(?:beforeEncode|beforeCompile|onQuery|onExecute|onRow|activityStarted)\b)[\s\S]*\.read\(\s*(?!activity\b)[\w$]+(?:\.[\w$]+)*\s*\)'
+        - '(?<![\s\S])(?![\s\S]*(?:familyId:\s*[''"]mongo[''"]|\bMongoMiddleware\b))(?=[\s\S]*\b(?:beforeEncode|beforeCompile|onQuery|onExecute|onRow|activityStarted)\b)[\s\S]*\bmeta\.annotations\b'
   - id: cached-orm-reads-key-on-the-call
     summary: |
       The cache middleware caches an annotated ORM read as a whole: a hit sends no statement. Without a `key`, the read is keyed by the call's content hash, and the `deriveKey` option applies only to annotated SQL builder queries. Where a `deriveKey` added a prefix (for example a tenant) to ORM reads, pass that prefix in `cacheAnnotation({ key })` on those reads. If your `deriveKey` separates tenants or users, ORM reads are no longer separated: until each annotated ORM read has a tenant-prefixed `key`, one tenant's cached ORM read can be served to another. Statement middleware such as a slow-query log sees no statement for a cache hit of an ORM read.
@@ -315,14 +323,14 @@ changes:
         - 'enumAccessors'
   - id: emitted-contract-types-from-generics
     summary: |
-      `prisma contract emit` now writes the field and storage column type maps of a SQL contract (`FieldOutputTypes`, `FieldInputTypes`, `StorageColumnTypes`, `StorageColumnInputTypes`) as generics applied to the contract's own shape, the ones a contract built with `defineContract` uses, with only the types a codec computes at emit time written out (`FieldTypeOverrides`, `ColumnTypeOverrides`). A column with type parameters is typed through the pack's type function (`ParameterizedOutputTypeFunctions`) instead of a named type such as `Char<24>`; it resolves to the same type. `Models` members index `FieldOutputTypes`. The types do not change; re-emit to update the committed `contract.d.ts`. The extension metadata in `contract.json` changes too: a pack's codec types name their `parameterizedOutputTypes` instead of `typeImports` such as `Vector`. Migration snapshots keep the form they were written in and need no change. The detection matches a SQL `contract.d.ts` emitted before this change; Mongo contracts never have `StorageColumnTypes`.
+      `prisma contract emit` now writes the field and storage column type maps of a SQL contract (`FieldOutputTypes`, `FieldInputTypes`, `StorageColumnTypes`, `StorageColumnInputTypes`) as generics applied to the contract's own shape, the ones a contract built with `defineContract` uses, with only the types a codec computes at emit time written out (`FieldTypeOverrides`, `ColumnTypeOverrides`). A column with type parameters is typed through the pack's type function (`ParameterizedOutputTypeFunctions`) instead of a named type such as `Char<24>`; it resolves to the same type. `Models` members index `FieldOutputTypes`. The types do not change; re-emit to update the committed `contract.d.ts`. The extension metadata in `contract.json` changes too: a pack's codec types name their `parameterizedOutputTypes` instead of `typeImports` such as `Vector`. Migration snapshots keep the form they were written in and need no change. The detection matches a SQL `contract.d.ts` emitted before this change; Mongo contracts never have `StorageColumnTypes`. It also matches the `contract.d.ts` of each migration snapshot (`migrations/snapshots/<hash>/`); leave those as they are.
     detection:
       glob: "**/contract.d.ts"
       matches:
         - 'export type StorageColumnTypes = \{'
   - id: emitted-field-types-from-shared-generic
     summary: |
-      `prisma contract emit` now writes `FieldOutputTypes` and `FieldInputTypes` of every contract, Mongo and SQL, as `FieldTypesFromDomain` from the contract types entry (`@prisma/orm-mongo/contract/types`, `@prisma/orm-postgres/contract/types`, `@prisma/orm-sqlite/contract/types`) applied to the contract's own shape, and each `<Name>Output` and `<Name>Input` value object type as an entry of `ValueObjectTypesFromDomain`. A Mongo vector field with a length is typed through the target's type function instead of the written-out `Vector<N>`. The types do not change; re-emit every `contract.d.ts`. A SQL `contract.d.ts` written by a development build after 8.0.0-rc.18 imports `FieldTypesFromDomain` from the family contract types entry, which no longer exports it, so it does not compile until it is re-emitted. The detection matches a `contract.d.ts` that writes its field types out, as one emitted by 8.0.0-rc.18 does, and a SQL one that imports the generic from the family entry.
+      `prisma contract emit` now writes `FieldOutputTypes` and `FieldInputTypes` of every contract, Mongo and SQL, as `FieldTypesFromDomain` from the contract types entry (`@prisma/orm-mongo/contract/types`, `@prisma/orm-postgres/contract/types`, `@prisma/orm-sqlite/contract/types`) applied to the contract's own shape, and each `<Name>Output` and `<Name>Input` value object type as an entry of `ValueObjectTypesFromDomain`. A Mongo vector field with a length is typed through the target's type function instead of the written-out `Vector<N>`. The types do not change; re-emit every `contract.d.ts`. A SQL `contract.d.ts` written by a development build after 8.0.0-rc.18 imports `FieldTypesFromDomain` from the family contract types entry, which no longer exports it, so it does not compile until it is re-emitted. The detection matches a `contract.d.ts` that writes its field types out, as one emitted by 8.0.0-rc.18 does, and a SQL one that imports the generic from the family entry. It also matches the `contract.d.ts` of each migration snapshot (`migrations/snapshots/<hash>/`), which no command emits again; leave those as they are.
     detection:
       glob: "**/contract.d.ts"
       matches:
@@ -348,12 +356,14 @@ changes:
     script: ./scripts/mongo-field-storage-names/mongo-field-storage-names.ts
   - id: mongo-orm-uses-field-names
     summary: |
-      The MongoDB ORM names every field by its name in the schema: a field declared `id ObjectId @id @map("_id")` is `user.id` in rows and `where({ id })`, `select('id')`, `orderBy({ id: 1 })` and create, update and upsert data, where it was `_id`. Passing a stored name such as `_id` fails with `ORM.FIELD_UNKNOWN`, and a row no longer carries a key that no field stores. The pipeline builder (`db.query`) works on documents and keeps naming stored names (`_id`).
+      The MongoDB ORM names every field by its name in the schema: a field declared `id ObjectId @id @map("_id")` is `user.id` in rows and `where({ id })`, `select('id')`, `orderBy({ id: 1 })` and create, update and upsert data, where it was `_id`. Passing a stored name such as `_id` fails with `ORM.FIELD_UNKNOWN`, and a row no longer carries a key that no field stores. The pipeline builder (`db.query`) works on documents and keeps naming stored names (`_id`). This applies only to a project with a MongoDB contract; skip it otherwise. The detection matches code that reads or names `_id`, outside generated `contract.d.ts` files, contract sources and `migration.ts`; a match in pipeline code needs no change. It cannot find other fields with `@map`; the type checker finds them after you re-emit.
     detection:
       glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs}"
       matches:
-        - '\._id\b'
-        - '(?<![\w$])_id\s*:'
+        - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*\._id\b'
+        - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*(?<![\w$])_id\s*:'
+        - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*\.(?:select|orderBy|include|where|distinct)\([^)]*[''"]_id[''"]'
+        - '(?<![\s\S])(?![\s\S]*(?:GENERATED FILE - DO NOT EDIT|\bdefineContract\b|\bextends\s+Migration\b))[\s\S]*\b(?:Omit|Pick)<[^>]*[''"]_id[''"]'
   - id: mongo-statements-name-fields
     summary: |
       A MongoDB `--rename` or `--delete` statement names a field by its name in the schema, as on SQL: `id @map("_id")` is `User.id`, where it was `User._id`. A rename that keeps the stored name, such as `--rename User.name:User.title` with both stored as `display_name`, plans nothing; a field whose `@map` changes while its name stays is asked about as a removal, as a column is on SQL; to keep its values, write `renameField(...)` into the planned `migration.ts`.
@@ -417,9 +427,9 @@ changes:
     summary: |
       A failed migration apply reports the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED` or `MIGRATION.EXECUTION_FAILED`, instead of `MIGRATION.RUNNER_FAILED` with `meta.runnerErrorCode`. `MIGRATION.RUNNER_FAILED` no longer exists. The facts move into typed `meta` keys: a failed schema check lists its issues in `meta.schemaIssues` (was `meta.issues`), and a failed check is `meta.failedCheck` (`operationId`, `phase`, `description`; was `operationId`, `phase`, `stepDescription`).
     detection:
-      glob: "**/*"
+      glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs,sh}"
       matches:
-        - 'RUNNER_FAILED|runnerErrorCode'
+        - 'MIGRATION\.RUNNER_FAILED|\brunnerErrorCode\b'
   - id: setdefault-operation-class-derived
     summary: |
       On PostgreSQL, `this.setDefault` in `migration.ts` no longer takes `operationClass`. The operation is widening when the migration's start contract gives the column a default, and additive otherwise. `migration plan` no longer writes `operationClass` into the call. A `migration.ts` that passes it no longer type-checks; delete the option.
@@ -784,6 +794,8 @@ The cases are:
 - a time default with more fraction digits than its column's precision;
 - a date or time default in a spelling earlier releases stored: an instant with `.000Z` (`"2024-01-01T00:00:00.000Z"` is now `"2024-01-01T00:00:00Z"`), an offset such as `+01:00` on a `timestamptz` (now converted to `Z`), a time without seconds (`"12:34"` is now `"12:34:00"`), or a space instead of `T` between date and time.
 
+Migration snapshots store defaults too. `migration plan`, `migration check` and every other command that reads a snapshot refuse an old one the same way, and name it (`Predecessor contract at migrations/snapshots/<hash>/contract.json failed to deserialize: ...`). A snapshot cannot be emitted again, so `scripts/remove-nocheck/remove-nocheck.ts` rewrites it (`stored-contracts-drop-nocheck`). Run it after you upgrade the packages, because it reads each default with the data types of the project's installed `@prisma/orm-postgres`. It writes each default of every stored PostgreSQL contract in the spelling this release stores, renames each changed snapshot directory to its new storage hash, and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old hash. A snapshot rewritten this way has the storage hash `contract emit` gives the same schema, so `migration plan` plans nothing for this change. If a default is not a value of its column's type at all, for example a time with more fraction digits than its column holds, the script changes no file, names the file and column, and exits 1: write in that file the value the database stores, and run it again.
+
 Then run `prisma contract emit`, which writes the default in the new spelling, then `prisma db sign` (`sign-databases-after-data-type-values`). Two kinds of default in the schema need rewriting first, or `contract emit` refuses them:
 
 - a quoted date, time, interval or bytes default, which is written with its tag (`date-time-interval-and-bytes-defaults-use-tags`);
@@ -794,8 +806,6 @@ Then run `prisma contract emit`, which writes the default in the new spelling, t
   ```
 
   Write `timestamptz`2024-01-01T00:00:00.123Z``. A `Numeric(10, 2)` default of `1.234` is refused the same way (`pg/numeric JSON value must be a decimal string that numeric(10, 2) stores without rounding`); write `1.23`.
-Migration snapshots store defaults too. `migration plan`, `migration check` and every other command that reads a snapshot refuse an old one the same way, and name it (`Predecessor contract at migrations/snapshots/<hash>/contract.json failed to deserialize: ...`). A snapshot cannot be emitted again, so `scripts/remove-nocheck/remove-nocheck.ts` rewrites it (`stored-contracts-drop-nocheck`). Run it after you upgrade the packages, because it reads each default with the data types of the project's installed `@prisma/orm-postgres`. It writes each default of every stored PostgreSQL contract in the spelling this release stores, renames each changed snapshot directory to its new storage hash, and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old hash. A snapshot rewritten this way has the storage hash `contract emit` gives the same schema, so `migration plan` plans nothing for this change. If a default is not a value of its column's type at all, for example a time with more fraction digits than its column holds, the script changes no file, names the file and column, and exits 1: write in that file the value the database stores, and run it again.
-
 
 ### `prisma7-datetime-default-finer-than-column`
 
@@ -952,8 +962,8 @@ The messages are `uuid: version must be 4 or 7, got <n>`, `cuid: version must be
 
 ```prisma
 // Before: read as nanoid(8) and uuid(7)
-slug String @onCreate(nanoid(8.0))
-id   String @id @onCreate(uuid(7.0))
+slug String @default(nanoid(8.0))
+id   String @id @default(uuid(7.0))
 
 // After
 slug String @onCreate(nanoid(8))
@@ -964,7 +974,7 @@ id   String @id @onCreate(uuid(7))
 
 ```prisma
 // Before: emitted, then on Postgres every insert failed with "value too long"
-code Char(5) @onCreate(nanoid())
+code Char(5) @default(nanoid())
 
 // After
 code Char(21) @onCreate(nanoid())
@@ -1009,7 +1019,7 @@ await db.orm.public.Post.create({ title: 'Hello', publishedAt: new Date().toISOS
 
 A direct call of the codec's `encode` with a `Date` is now a type error as well.
 
-To work with `Date` values, you can change the column to `TimestamptzJsDate(p)` (`temporal.timestamptzJsDate(...)` as a preset). That changes the column type to `timestamptz`, so it needs a migration: plan and apply one with `prisma migration plan` and `prisma migration apply`, and check how existing `timestamp` values convert, because Postgres reads them in the session's time zone.
+To work with `Date` values, you can change the column to `TimestamptzJsDate(p)` (`temporal.timestamptzJsDate(...)` as a preset). That changes the column type to `timestamptz`, so it needs a migration: plan and apply one with `prisma migration plan` and `prisma db migrate`, and check how existing `timestamp` values convert, because Postgres reads them in the session's time zone.
 
 ## Type-constructor arguments are values of data types
 
@@ -1139,7 +1149,7 @@ A contract value is validated once, however many clients are built from it. A co
 Run `node <guide>/scripts/client-takes-contract-value/contract-from-json.ts <project root>`. The script reads source files with the TypeScript compiler from the project's `typescript` package; if the project has none, it changes nothing, says so and exits 1. It skips `node_modules`, `dist`, `build` and every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`; move a client in such a directory by hand. In each source file that passes `contractJson` to a client, static entry or `mongoQuery`, it:
 
 - adds `import { contractFromJson } from '<facade>/static';`, or adds `contractFromJson` to an existing import of that entry, in the file's quote, semicolon and line-ending style;
-- declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports. In a module with a default export, such as a Worker entry, it declares `const contract` without `export` and prints a note: a Worker treats every named export of its entry module as an entrypoint, so a module that needs the value gets it from a separate module (see step 2 below);
+- declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports. In a module with a default export, such as a Worker entry, it declares `const contract` without `export` and prints a note: a Worker treats every named export of its entry module as an entrypoint, so a module that needs the value gets it from a separate module (see step 3 below);
 - removes the type argument from the call and replaces the `contractJson` property with `contract`;
 - where the call's result is destructured with `contract` in it, as in a `migration.ts` (`const { sql: db, contract } = postgres<End>({ contractJson: endContract })`), removes `contract` from the destructuring, because the declared value is that contract: `const { sql: db } = postgres({ contract })`.
 
@@ -1159,19 +1169,7 @@ It prints each file it moved. It prints to stderr, with the reason, each file th
    const db = postgres({ contract, url });
    ```
 
-2. **`migration.ts` files.** A `migration.ts` that builds a client over a contract snapshot, such as `const { sql: db, contract } = postgres<End>({ contractJson: endContract })` for a data transform, passes the value inline and keeps what it destructures:
-
-   ```ts
-   // Before
-   const { sql: db, contract } = postgres<End>({ contractJson: endContract });
-
-   // After
-   import { contractFromJson } from '@prisma/orm-postgres/static';
-
-   const { sql: db, contract } = postgres({ contract: contractFromJson<End>(endContract) });
-   ```
-
-   Move every such file, so that `node migration.ts` still runs when you write its `ops.json` again (step 7 of the order above). `prisma db migrate` applies `ops.json` and does not load `migration.ts`, so an applied migration keeps working either way.
+2. **`migration.ts` files.** The script moves a `migration.ts` that builds a client over a contract snapshot, such as `const { sql: db, contract } = postgres<End>({ contractJson: endContract })` for a data transform. Move by hand only a `migration.ts` the script refuses, with the text its message gives. Move every such file, so that `node migration.ts` still runs when you write its `ops.json` again (step 7 of the order above). `prisma db migrate` applies `ops.json` and does not load `migration.ts`, so an applied migration keeps working either way.
 
 3. **Browser modules.** If a module that browser code imports (for example a file a `'use client'` component imports, to read `enums`) also needs the contract, it must not import the module that creates the client, because that module loads the database driver. Move the declaration into a module that imports no driver, and import it from both:
 
@@ -1465,7 +1463,7 @@ An `enumType` keeps its codec id as a literal type, as the emitted contract does
 
 This section covers `emitted-field-types-from-shared-generic`, `mongo-define-contract-readonly-rows`, `mongo-define-contract-factory-field-types`, `value-object-enum-fields-narrow` and `mongo-update-accessors-take-input-types`. Their summaries above say what changes for each.
 
-Re-emit every contract with `prisma contract emit`. The committed `contract.d.ts` changes form, not meaning: `FieldOutputTypes`, `FieldInputTypes` and the value object types are now applications of `FieldTypesFromDomain` and `ValueObjectTypesFromDomain`, with only the types a codec computes at emit time written out in `FieldTypeOverrides`. A SQL `contract.d.ts` written by a development build after 8.0.0-rc.18 imports `FieldTypesFromDomain` from the family contract types entry, which no longer exports it; it fails to compile until you re-emit it. This is the same re-emit as `emitted-contract-types-from-generics`.
+Re-emit every contract with `prisma contract emit`, and leave the `contract.d.ts` files in migration snapshots as they are. The committed `contract.d.ts` changes form, not meaning: `FieldOutputTypes`, `FieldInputTypes` and the value object types are now applications of `FieldTypesFromDomain` and `ValueObjectTypesFromDomain`, with only the types a codec computes at emit time written out in `FieldTypeOverrides`. A SQL `contract.d.ts` written by a development build after 8.0.0-rc.18 imports `FieldTypesFromDomain` from the family contract types entry, which no longer exports it; it fails to compile until you re-emit it. This is the same re-emit as `emitted-contract-types-from-generics`.
 
 For a Mongo contract written with `defineContract`, rows now have the types an emitted contract gives:
 
@@ -1709,13 +1707,14 @@ This section covers `control-client-apply-takes-invocation` and `runner-failures
 
 ```ts
 // Before
-await control.dbUpdate({ contract, mode: 'apply', migrationsDir: 'migrations' });
+await control.dbUpdate({ contract, mode: 'apply', migrationsDir: 'migrations', answerQuestions });
 
 // After
 await control.dbUpdate({
   contract,
   mode: 'apply',
   migrationsDir: 'migrations',
+  answerQuestions,
   invocation: { cwd: process.cwd(), configPath: undefined, dbGiven: false },
 });
 ```
@@ -1731,7 +1730,7 @@ The failure's fields change too:
 | `failure.summary` | `failure.message` |
 | `failure.code === 'PLANNING_FAILED'`, `failure.conflicts` | `failure.code === 'MIGRATION.PLANNING_FAILED'`, `failure.meta.conflicts` |
 | `failure.warnings` on a failed `dbInit` or `dbUpdate`, and `value.warnings` on a successful one | the `onPlannerWarnings(warnings)` option, called once per run when planning raised warnings, whether the apply then succeeds or fails |
-| `failure.schemaIssues`, `failure.rowsWithoutValue`, `failure.failedTypeChange`, `failure.failedPrecheck` | the runner's facts in `failure.meta`: `schemaIssues`, `rowsWithoutValue`, `failedTypeChange`, `failedCheck`. A field in them is a subject object, not text such as `"User.age"` |
+| `failure.rowsWithoutValue`, `failure.failedTypeChange` | the runner's facts in `failure.meta`: `rowsWithoutValue` and `failedTypeChange`, and `schemaIssues` and `failedCheck` when the runner found them. A field in them is a subject object, not text such as `"User.age"` |
 | `failure.failedMigration`, `failure.databaseStorageHash` | removed; the advice in `failure.fix` names the migration directory and the `--from` hash |
 
 In `--json` output, `db init` and `db update` print the planner's warnings of a failed apply as `warn` messages before the error, instead of in the error's `meta.plannerWarnings`.

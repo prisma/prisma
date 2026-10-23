@@ -78,6 +78,36 @@ describe('app detection', () => {
       'a String @default(nanoid())',
     ],
     [
+      'prisma7-default-function-arguments-checked',
+      'a String @default(nanoid(-1))',
+      'a String @default(nanoid(21))',
+    ],
+    [
+      'prisma7-default-function-arguments-checked',
+      'a String @default(nanoid("8"))',
+      'a String @default(nanoid(255))',
+    ],
+    [
+      'prisma7-datetime-default-finer-than-column',
+      'at DateTime @db.Timestamptz(0) @default("2024-01-02T03:04:05.5Z")',
+      'at DateTime @db.Timestamptz(3) @default("2024-01-02T03:04:05.123Z")',
+    ],
+    [
+      'prisma7-datetime-default-finer-than-column',
+      'at DateTime @default("2024-01-02T03:04:05.12Z") @db.Timestamp(1)',
+      'at DateTime @db.Timestamp(6) @default("2024-01-02T03:04:05.1234Z")',
+    ],
+    [
+      'prisma7-lists-allow-null-elements',
+      'model Post {\n  id   Int      @id\n  tags String[]\n}',
+      'model Post {\n  id    Int    @id\n  posts Post[]\n}',
+    ],
+    [
+      'prisma7-lists-allow-null-elements',
+      'enum Role {\n  A\n}\n\nmodel User {\n  roles Role[]\n}',
+      '// use prisma-8\n\nmodel Post {\n  tags String[]\n}',
+    ],
+    [
       'generator-function-argument-with-fraction',
       'a String @default(nanoid(8.0))',
       'a String @default(nanoid(8))',
@@ -136,8 +166,8 @@ describe('extension detection', () => {
   it.each([
     [
       'sql-target-declares-integer-argument-generators',
-      'generatorFunctions: [...idGeneratorFunctionBindings({ text: [MY_TEXT_CODEC_ID] })],',
-      'generatorFunctions: [...sqlIntegerArgumentGeneratorFunctions({ integer: myInt4.id }), ...idGeneratorFunctionBindings({ text: [MY_TEXT_CODEC_ID] })],',
+      "export const myTargetMeta = { kind: 'target', familyId: 'sql', targetId: 'my' } as const;",
+      "export const myTargetMeta = {\n  kind: 'target',\n  familyId: 'sql',\n  generatorFunctions: [...sqlIntegerArgumentGeneratorFunctions({ integer: myInt4.id })],\n} as const;",
     ],
     [
       'generator-signature-from-data-types',
@@ -146,13 +176,8 @@ describe('extension detection', () => {
     ],
     [
       'generator-signature-from-data-types',
+      'const entry = stack.defaultFunctionRegistry.get(name);\nconst sig = entry?.signature;',
       'for (const fn of pack.generatorFunctions) arms.push(funcCall(fn.name, fn.signature as FuncCallSig));',
-      'for (const { name, signature } of pack.generatorFunctions) arms.push(generatorFunctionCall(name, signature, dataTypes));',
-    ],
-    [
-      'generator-function-field-length',
-      'const resolution = generatorFunctions.resolve(call, { codecId, typeParams });',
-      'const resolution = registry.lookup(call.name);',
     ],
     [
       'build-contract-definition-takes-lookups',

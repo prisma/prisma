@@ -28,17 +28,37 @@ describe.each(['app', 'extension'] as const)(
   '%s orm-annotations-on-the-call detection',
   (audience) => {
     it.each([
-      ['handle.read(plan)', 'const actor = auditAnnotation.read(plan);'],
-      ['handle.read(exec)', 'cacheAnnotation.read( exec )'],
-      ['plan.meta.annotations', "const stored = plan.meta.annotations?.['audit'];"],
+      [
+        'handle.read(plan) in beforeEncode',
+        'async beforeEncode(plan) {\n  const actor = auditAnnotation.read(plan);\n}',
+      ],
+      [
+        'handle.read(exec) in onQuery',
+        'intercept: { async onQuery(exec) { cacheAnnotation.read( exec ); } }',
+      ],
+      [
+        'another parameter name',
+        'async beforeEncode(statement, ctx) {\n  const actor = auditAnnotation.read(statement);\n}',
+      ],
+      [
+        'plan.meta.annotations',
+        "async onRow(row, plan) {\n  const stored = plan.meta.annotations?.['audit'];\n}",
+      ],
     ])('finds %s', (_name, content) => {
       expect(detects(audience, 'orm-annotations-on-the-call', content)).toBe(true);
     });
 
     it.each([
-      ['handle.read(planner)', 'auditAnnotation.read(planner)'],
-      ['handle.read(activity)', 'auditAnnotation.read(activity)'],
-      ['meta.annotationsList', 'meta.annotationsList'],
+      [
+        'handle.read(activity)',
+        'async activityStarted(activity) {\n  auditAnnotation.read(activity);\n}',
+      ],
+      ['meta.annotationsList', 'async beforeEncode(plan) { meta.annotationsList; }'],
+      ['a read outside a middleware', 'const actor = auditAnnotation.read(plan);'],
+      [
+        'a Mongo middleware',
+        "const m = { familyId: 'mongo', async beforeEncode(plan) { cacheAnnotation.read(plan); } };",
+      ],
     ])('skips %s', (_name, content) => {
       expect(detects(audience, 'orm-annotations-on-the-call', content)).toBe(false);
     });

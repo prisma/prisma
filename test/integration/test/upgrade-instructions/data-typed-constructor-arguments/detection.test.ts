@@ -56,6 +56,15 @@ describe('app detection of type-constructor arguments that are now refused', () 
 describe('extension detection', () => {
   it.each([
     [
+      'data-types-own-parameter-limits',
+      "export const acmeMoney = mongoDataType('acme/money', {\n  bsonTypes: ['long'],\n});",
+    ],
+    ['data-types-own-parameter-limits', "const myType = dataType('my/type', { params });"],
+    [
+      'data-types-own-parameter-limits',
+      "export const postgisGeometry = sqlDataType('postgis/geometry', { params, texts });",
+    ],
+    [
       'value-arguments-name-a-data-type',
       "args: [{ kind: 'number', name: 'length', integer: true, minimum: 1 }]",
     ],
@@ -85,6 +94,10 @@ describe('extension detection', () => {
     ],
     ['psl-and-print-helpers-take-data-types', 'const args = parsePslPositionalArgs(call);'],
     [
+      'psl-and-print-helpers-take-data-types',
+      'const args = mapPslHelperArgs({ args: call.args, descriptors, helperLabel });',
+    ],
+    [
       'composed-helpers-take-no-data-type-lookup',
       'createComposedAuthoringHelpers({ family, target, codecLookup, dataTypeLookup })',
     ],
@@ -99,6 +112,18 @@ describe('extension detection', () => {
   });
 
   it.each([
+    [
+      'psl-and-print-helpers-take-data-types',
+      'const args = mapPslHelperArgs({ args: call.args, descriptors, helperLabel, dataTypes });',
+    ],
+    [
+      'data-types-own-parameter-limits',
+      "export const acmeMoney = mongoDataType('acme/money', {\n  bsonTypes: ['long'],\n  read: readMoney,\n});",
+    ],
+    [
+      'data-types-own-parameter-limits',
+      "export const postgisGeometry = sqlDataType('postgis/geometry', { params, texts, read: readGeometry });",
+    ],
     [
       'value-arguments-name-a-data-type',
       "args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }]",

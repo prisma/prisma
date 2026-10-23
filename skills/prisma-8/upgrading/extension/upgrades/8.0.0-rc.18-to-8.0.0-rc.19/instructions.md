@@ -85,12 +85,12 @@ changes:
         - '\bormBuilder\s*\(|\borm\s*\(\s*\{\s*runtime\s*:'
   - id: orm-annotations-on-the-call
     summary: |
-      Every SQL ORM terminal method runs as one `orm-call` client activity, and the annotations a `configure` callback records live on that activity. The statements the call sends carry only the reserved keys the ORM sets, so a middleware that reads an ORM annotation from a statement plan (`handle.read(plan)` or `plan.meta.annotations`) finds nothing. Read it from the call: in `activityStarted(activity)` or `intercept.onActivity(activity)`, `if (activity.kind === 'orm-call') handle.read(activity)`. A middleware can answer the call through `intercept.onActivity`; the value must have the shape the terminal returns, or the ORM rejects with `ORM.INTERCEPTED_RESULT_INVALID`.
+      Every SQL ORM terminal method runs as one `orm-call` client activity, and the annotations a `configure` callback records live on that activity. The statements the call sends carry only the reserved keys the ORM sets, so a middleware that reads an ORM annotation from a statement plan (`handle.read(plan)` or `plan.meta.annotations`) finds nothing. Read it from the call: in `activityStarted(activity)` or `intercept.onActivity(activity)`, `if (activity.kind === 'orm-call') handle.read(activity)`. A middleware can answer the call through `intercept.onActivity`; the value must have the shape the terminal returns, or the ORM rejects with `ORM.INTERCEPTED_RESULT_INVALID`. The detection matches a file with a middleware hook, not a MongoDB one, that reads an annotation from something other than the activity, or reads `meta.annotations`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\.read\(\s*(?:plan|exec|draft)\b'
-        - 'meta\.annotations\b'
+        - '(?<![\s\S])(?![\s\S]*(?:familyId:\s*[''"]mongo[''"]|\bMongoMiddleware\b))(?=[\s\S]*\b(?:beforeEncode|beforeCompile|onQuery|onExecute|onRow|activityStarted)\b)[\s\S]*\.read\(\s*(?!activity\b)[\w$]+(?:\.[\w$]+)*\s*\)'
+        - '(?<![\s\S])(?![\s\S]*(?:familyId:\s*[''"]mongo[''"]|\bMongoMiddleware\b))(?=[\s\S]*\b(?:beforeEncode|beforeCompile|onQuery|onExecute|onRow|activityStarted)\b)[\s\S]*\bmeta\.annotations\b'
   - id: cache-store-holds-cached-values
     summary: |
       A cache store for `@internal/middleware-cache` holds `CachedValue`, `{ kind: 'statement-rows', rows } | { kind: 'call-result', result }`, not `CachedRows`; `CacheStore` and `CacheEntry` default their value type to `CachedValue`, and `createCacheMiddleware` accepts only a `CacheStore<TMeta, CachedValue>`. Type a custom store with `CachedValue`, and make `get` give back a value equivalent to the one `set` was given, `kind` included. An ORM call's result holds decoded values such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds them; JSON does not. `createInMemoryCacheStore` takes only the meta type now and always holds `CachedValue`: drop its second type argument. The detection matches a file that names `CachedRows`, or imports from the cache package and names `CacheStore` or `CacheEntry` but not `CachedValue`, or passes `createInMemoryCacheStore` a second type argument.
@@ -126,12 +126,13 @@ changes:
         - '\b(?:encodeJson|decodeJson)\s*:'
   - id: data-types-own-parameter-limits
     summary: |
-      Every data type declares a `read` function, which reads and checks each stored value under the column's parameters. It replaces the `toCanonicalForm` hook of a data type or codec descriptor, and limits a parameter sets, such as a vector's length or a geometry's SRID, move from the codec to the data type.
+      Every data type declares a `read` function, which reads and checks each stored value under the column's parameters. It replaces the `toCanonicalForm` hook of a data type or codec descriptor, and limits a parameter sets, such as a vector's length or a geometry's SRID, move from the codec to the data type. The detection matches `toCanonicalForm`, and a `sqlDataType`, `mongoDataType` or `dataType` call whose options have no `read` or are passed as a variable.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '\btoCanonicalForm\b'
-        - '\bsqlDataType\('
+        - '(?<![\w$.])(?:sqlDataType|mongoDataType|dataType)\(\s*[^,()]+,\s*\{(?!(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\bread\b)'
+        - '(?<![\w$.])(?:sqlDataType|mongoDataType|dataType)\(\s*[^,()]+,\s*(?!\{)[\w$]+\s*\)'
   - id: json-helpers-renamed
     summary: |
       The JSON helpers in `@prisma/orm-framework/components/codec` are renamed from `decodeJson*` to `readJson*` (`readJsonString`, `readJsonMatching`, `readJsonInteger`, `readJsonIntegerText`, `readJsonFloat`, `readJsonBoolean`), and `encodeJsonFloat` to `floatToJson`. `ToCanonicalForm` and `canonicalFormOf` are removed.
@@ -255,11 +256,11 @@ changes:
       The TypeScript builder types a `value` argument through `__dataTypeArguments`, a map a pack declares in its type from each data type it registers to `{ argument, parameter }`: the TypeScript value an author passes, and the type parameter it gives. A pack that registers a data type its own type constructors take must declare it, or the argument types as `never`. The TypeScript builder reads value arguments only with the data types and authoring entries the composed packs register, so every data type an argument takes must be registered, with a writable `authoring.dataTypes` entry, by some pack in the stack: the family, the target or an extension. An extension whose arguments take a target's data type, such as `pg/int4`, registers nothing; registering it again is refused as a duplicate.
   - id: psl-and-print-helpers-take-data-types
     summary: |
-      `mapPslHelperArgs` and `instantiatePslFieldPreset` take the stack's `dataTypes`; `parsePslPositionalArgs` and `pslTypeArgumentText` are removed. `inferColumnTypes` takes `dataTypes`, and its `PslTypeCall` carries the argument `values`. `writtenTypeArguments` writes a call's arguments as literals of their data types. `sql.String` is no longer in the SQL family pack: a SQL target contributes it with `sqlTargetTypeConstructors({ sizeType })` from `family/pack`, and `temporalCodecPresetWithPrecision` takes `sizeType` too. `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` move from `family/control` to `family/pack`, so a target pack does not load the family's control entry point. `assembleAuthoringDataTypes` moves from `components/control` to `components/authoring`, beside `assembleDataTypeSupport`, which builds a `DataTypeSupport` from a list of components and checks their value arguments.
+      `mapPslHelperArgs` and `instantiatePslFieldPreset` take the stack's `dataTypes`, and `parsePslPositionalArgs` is removed. The new `writtenTypeArguments` writes a call's arguments as literals of their data types. `sql.String` is no longer in the SQL family pack: a SQL target contributes it with `sqlTargetTypeConstructors({ sizeType })` from `family/pack`, and `temporalCodecPresetWithPrecision` takes `sizeType` too. `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` move from `family/control` to `family/pack`, so a target pack does not load the family's control entry point. `assembleAuthoringDataTypes` moves from `components/control` to `components/authoring`, beside `assembleDataTypeSupport`, which builds a `DataTypeSupport` from a list of components and checks their value arguments.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - 'parsePslPositionalArgs|pslTypeArgumentText'
+        - '\bparsePslPositionalArgs\b|\b(?:mapPslHelperArgs|instantiatePslFieldPreset)\(\s*\{(?![^{}]*\bdataTypes\b)'
         - 'import\s*(?:type\s*)?\{[^}]*\b(?:assembleAuthoringDataTypes|temporalCodecPresetWithPrecision|temporalStringAuthoringPresets)\b[^}]*\}\s*from\s*[''"][^''"]*/(?:components|family|family-sql)/control[''"]'
   - id: composed-helpers-take-no-data-type-lookup
     summary: |
@@ -300,25 +301,21 @@ changes:
         - "\\{\\s*id:\\s*['\"](?:uuidv4|uuidv7|cuid2|ulid|nanoid|ksuid)['\"]\\s*\\}"
   - id: sql-target-declares-integer-argument-generators
     summary: |
-      The SQL family no longer declares the signatures of `uuid`, `cuid` and `nanoid`, because their arguments are now values of the target's integer data type, which only the target knows. A SQL target declares them by spreading `sqlIntegerArgumentGeneratorFunctions({ integer })` from `@prisma/orm-family-sql/family/pack` into its `generatorFunctions`, on both its pack ref and its control descriptor. Without it, composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID`: `"sql" binds generator function "uuid", which no component declares.` The detection matches files that bind the identifier generator functions.
+      A SQL target declares the generator functions its columns take, in `generatorFunctions` on both its pack ref and its control descriptor, which 8.0.0-rc.18 did not have. The arguments of `uuid`, `cuid` and `nanoid` are values of the target's integer data type, which only the target knows, so the target spreads `sqlIntegerArgumentGeneratorFunctions({ integer })` from `@prisma/orm-family-sql/family/pack`, and binds the identifier functions to its text codecs with `idGeneratorFunctionBindings`. Without the first, composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID`: `"sql" binds generator function "uuid", which no component declares.` The detection matches a SQL target descriptor that does not name `sqlIntegerArgumentGeneratorFunctions`; check the file that builds the target's `generatorFunctions`.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - '(?<![\s\S])(?![\s\S]*\bsqlIntegerArgumentGeneratorFunctions\b)[\s\S]*\bidGeneratorFunctionBindings\('
+        - '(?<![\s\S])(?![\s\S]*\bsqlIntegerArgumentGeneratorFunctions\b)(?=[\s\S]*\bfamilyId:\s*[''"]sql[''"])[\s\S]*\bkind:\s*[''"]target[''"]'
   - id: generator-signature-from-data-types
     summary: |
-      The `signature` of a `GeneratorFunctionContribution`, like that of a default function in a `defaultFunctionRegistry` entry, may now be a function of the stack's data types that returns the `FuncCallSig`. Code that reads a contribution's `signature` as a `FuncCallSig` builds the call with `generatorFunctionCall(name, signature, dataTypes)` from `@prisma/orm-framework/psl-parser`, and a default function's with `defaultFunctionCall(name, entry, dataTypes)` from `@prisma/orm-family-sql/contract-psl/attribute-specs`. A plain object still works.
+      The `signature` of a default function in a `defaultFunctionRegistry` entry may now be a function of the stack's data types that returns the `FuncCallSig`, as may the `signature` of a `GeneratorFunctionContribution`. Code that reads an entry's `signature` as a `FuncCallSig`, such as `funcCall(name, entry.signature as FuncCallSig)`, builds the call with `defaultFunctionCall(name, entry, dataTypes)` from `@prisma/orm-family-sql/contract-psl/attribute-specs` instead. A plain object still works. The detection matches a file that names `defaultFunctionRegistry` and reads a `signature`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*\b(?:defaultFunctionRegistry|generatorFunctions)\b)[\s\S]*\.signature\b'
+        - '(?<![\s\S])(?=[\s\S]*\bdefaultFunctionRegistry\b)[\s\S]*\.signature\b'
   - id: generator-function-field-length
     summary: |
-      The column a generator function binding resolves for, `GeneratorFunctionField` (`@prisma/orm-framework/components/components`), has a required `length` key: the column's length in its data type's normal form, so a bare `Char` gives 1, or `undefined` for a column with no length or one whose database does not limit it, such as SQLite's. Code that calls `resolve` or `callFor` on a generator function registry passes it; for a SQL column, `sqlCodecColumnLength(dataTypes, codecId, typeParams)` from `@prisma/orm-family-sql/contract/data-type` computes it. The built-in identifier bindings refuse a column shorter than what they write, and a binding of your own can read `length` to do the same. The detection matches files that call the registry's `resolve` or `callFor`.
-    detection:
-      glob: "**/*.{ts,mts,cts}"
-      matches:
-        - '\bgeneratorFunctions\.(?:resolve|callFor)\('
+      Nothing to change in code written against 8.0.0-rc.18, which has no generator function registry. A binding you write for `default-functions-lower-to-database-defaults-only` receives the column as `GeneratorFunctionField` (`@prisma/orm-framework/components/components`), whose `length` is the column's length in its data type's normal form, so a bare `Char` gives 1, or `undefined` for a column with no length or one whose database does not limit it, such as SQLite's. The built-in identifier bindings refuse a column shorter than what they write, and a binding of your own can read `length` to do the same. Code that calls `resolve` or `callFor` on a generator function registry passes it; for a SQL column, `sqlCodecColumnLength(dataTypes, codecId, typeParams)` from `@prisma/orm-family-sql/contract/data-type` computes it.
   - id: build-contract-definition-takes-lookups
     summary: |
       `buildContractDefinition` (`@prisma/orm-family-sql/contract-ts/contract-builder`) now requires `codecLookup` and `dataTypeLookup`, the same lookups `buildSqlContractFromDefinition` takes, so that each `.onCreate(...)` and `.onUpdate(...)` call is checked against its column's length. Pass them in the definition. The detection matches files that call `buildContractDefinition`.
@@ -368,18 +365,10 @@ changes:
         - 'interpretPslDocumentToSqlContract\('
   - id: field-types-expression-removed
     summary: |
-      The emitter now writes `FieldOutputTypes` and `FieldInputTypes` for every family as `FieldTypesFromDomain` applied to the emitted contract, so the `fieldTypesExpression` hook of `EmissionSpi` is removed. A family emitter that implemented it must delete it; the framework declares `FieldTypeOverrides` and `ParameterizedOutputTypeFunctions` itself. The detection matches implementations of the hook.
-    detection:
-      glob: "**/*.{ts,mts,cts}"
-      matches:
-        - '\bfieldTypesExpression\b'
+      Nothing to change in code written against 8.0.0-rc.18: the `fieldTypesExpression` hook of `EmissionSpi` was added and removed between 8.0.0-rc.18 and 8.0.0-rc.19. The emitter writes `FieldOutputTypes` and `FieldInputTypes` for every family as `FieldTypesFromDomain` applied to the emitted contract, and declares `FieldTypeOverrides` and `ParameterizedOutputTypeFunctions` itself.
   - id: field-types-generic-moved
     summary: |
-      `FieldTypesFromDomain` and `ValueTypeSide` moved from the SQL family contract types entry to `@prisma/orm-framework/contract/types`, and the generic now types value object and union fields itself, from the namespace's `valueObjects`. Its arguments are `FieldTypesFromDomain<DomainNamespaces, CodecTypes, ParameterizedOutputs, Overrides, Side>`, where `Overrides` is one map keyed like the domain, `[namespace]['models' | 'valueObjects'][owner][field]`, each entry `{ output?, input? }`; `ValueObjectTypesFromDomain` takes the same map. A storage type map can type one entry with `StoredValueType` from the same entry. `ColumnTypesFromStorage` stays in the SQL family. Update imports. The detection matches imports of the generic from the SQL family.
-    detection:
-      glob: "**/*.{ts,mts,cts}"
-      matches:
-        - 'import type \{[^}]*\b(FieldTypesFromDomain|ValueTypeSide)\b[^}]*\} from [''"][^''"]*(sql-contract|family-sql/contract|family-contract)/types[''"]'
+      Nothing to change in code written against 8.0.0-rc.18, which has no `FieldTypesFromDomain`. Code written against a development build after it imports `FieldTypesFromDomain` and `ValueTypeSide` from `@prisma/orm-framework/contract/types` instead of the SQL family contract types entry. The generic types value object and union fields itself, from the namespace's `valueObjects`. Its arguments are `FieldTypesFromDomain<DomainNamespaces, CodecTypes, ParameterizedOutputs, Overrides, Side>`, where `Overrides` is one map keyed like the domain, `[namespace]['models' | 'valueObjects'][owner][field]`, each entry `{ output?, input? }`; `ValueObjectTypesFromDomain` takes the same map. A storage type map can type one entry with `StoredValueType` from the same entry. `ColumnTypesFromStorage` stays in the SQL family.
   - id: resolve-field-value-set-renamed
     summary: |
       `EmissionSpi.resolveFieldValueSet` is renamed `resolveStorageValueSet`. The framework emitter now reads a field's value set itself when the field references a domain enum (`valueSet.plane` is `'domain'`), for model and value object fields alike, and no longer calls the hook for those fields. It calls `resolveStorageValueSet` only for other model fields, whose values the family keeps in its storage, such as a SQL column's value set. Rename the hook in a family emitter, and drop any handling of domain enum references from it. The detection matches implementations of the old hook.
@@ -629,9 +618,9 @@ changes:
     summary: |
       A failed migration apply reports the runner's own code, such as `MIGRATION.SCHEMA_VERIFY_FAILED`, `MIGRATION.PRECHECK_FAILED`, `MIGRATION.POSTCHECK_FAILED` or `MIGRATION.EXECUTION_FAILED`, instead of `MIGRATION.RUNNER_FAILED` with `meta.runnerErrorCode`. `MIGRATION.RUNNER_FAILED` no longer exists. The facts move into typed `meta` keys: a failed schema check lists its issues in `meta.schemaIssues` (was `meta.issues`), and a failed check is `meta.failedCheck` (`operationId`, `phase`, `description`; was `operationId`, `phase`, `stepDescription`).
     detection:
-      glob: "**/*"
+      glob: "**/*.{ts,tsx,mts,cts,js,mjs,cjs,sh}"
       matches:
-        - 'RUNNER_FAILED|runnerErrorCode'
+        - 'MIGRATION\.RUNNER_FAILED|\brunnerErrorCode\b'
 ---
 
 # 8.0.0-rc.18 → 8.0.0-rc.19 — Extension author upgrade instructions
@@ -1492,7 +1481,7 @@ To type a descriptor of a value argument on its own, use `AuthoringValueArgument
 
 ### `psl-and-print-helpers-take-data-types`
 
-Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built, and `pslTypeArgumentText` with `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its size data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`. Import `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` from `family/pack` too; `family/control` no longer exports them. The size type is the data type of a length or a precision: `pg/int4` on Postgres.
+Pass the stack's `DataTypeSupport` to `mapPslHelperArgs({ ..., dataTypes })` and `instantiatePslFieldPreset({ ..., dataTypes })`. Replace `parsePslPositionalArgs` with the values of the call you built; to write a call's arguments back as PSL text, use `writtenTypeArguments(descriptor, args, dataTypes)`. A SQL target spreads `sqlTargetTypeConstructors({ sizeType: '<its size data type>' })` from `@prisma/orm-family-sql/family/pack` into its type namespace, and passes the same `sizeType` to `temporalCodecPresetWithPrecision`. Import `temporalCodecPresetWithPrecision` and `temporalStringAuthoringPresets` from `family/pack` too; `family/control` no longer exports them. The size type is the data type of a length or a precision: `pg/int4` on Postgres.
 
 Import `assembleAuthoringDataTypes` from `components/authoring` instead of `components/control`. To build the data types a set of components reads values with, call `assembleDataTypeSupport(components, dataTypeOfCodec)`; it refuses a duplicate data type or entry, and a value argument whose data type is unregistered or that nothing writes.
 
@@ -1589,13 +1578,9 @@ A default function that lowers to a database default, such as one that writes a 
 
 ### `sql-target-declares-integer-argument-generators`
 
-```ts
-// Before
-generatorFunctions: [
-  ...idGeneratorFunctionBindings({ text: [MY_TEXT_CODEC_ID] }),
-],
+Add `generatorFunctions` to the target's pack ref and control descriptor, beside `authoring`:
 
-// After
+```ts
 import {
   idGeneratorFunctionBindings,
   sqlIntegerArgumentGeneratorFunctions,
@@ -1613,23 +1598,25 @@ generatorFunctions: [
 
 ```ts
 // Before
-const arm = funcCall(contribution.name, contribution.signature as FuncCallSig);
+const arms = [...defaultFunctionRegistry.entries()].map(([name, entry]) =>
+  funcCall(name, entry.signature as FuncCallSig),
+);
 
 // After
-import { generatorFunctionCall } from '@prisma/orm-framework/psl-parser';
+import { defaultFunctionCall } from '@prisma/orm-family-sql/contract-psl/attribute-specs';
 
-const arm = generatorFunctionCall(contribution.name, contribution.signature, dataTypes);
+const arms = [...defaultFunctionRegistry.entries()].map(([name, entry]) =>
+  defaultFunctionCall(name, entry, dataTypes),
+);
 ```
 
-A function you declare can keep a plain `FuncCallSig`. Write it as `(dataTypes) => FuncCallSig` when an argument is a value of a data type, read with `dataTypeValue(type, dataTypes)`.
+A generator function, new in this release (`default-functions-lower-to-database-defaults-only`), is read the same way with `generatorFunctionCall(contribution.name, contribution.signature, dataTypes)` from `@prisma/orm-framework/psl-parser`. A function you declare can keep a plain `FuncCallSig`. Write it as `(dataTypes) => FuncCallSig` when an argument is a value of a data type, read with `dataTypeValue(type, dataTypes)`.
 
 ### `generator-function-field-length`
 
-```ts
-// Before
-generatorFunctions.resolve(call, { codecId, typeParams });
+Code that calls the registry passes the column's length:
 
-// After
+```ts
 import { sqlCodecColumnLength } from '@prisma/orm-family-sql/contract/data-type';
 
 generatorFunctions.resolve(call, {
@@ -1704,7 +1691,7 @@ The emitted `contract.d.ts` of every family, and a contract built with `defineCo
 
 ### `field-types-expression-removed`
 
-Delete `fieldTypesExpression` from your family emitter's `EmissionSpi`. The framework declares `FieldTypeOverrides` and `ParameterizedOutputTypeFunctions` itself and writes:
+Code written against 8.0.0-rc.18 never had `fieldTypesExpression`, so there is nothing to delete. The framework declares `FieldTypeOverrides` and `ParameterizedOutputTypeFunctions` itself and writes:
 
 ```ts
 type FieldTypeOverrides = {
@@ -1718,7 +1705,7 @@ export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['name
 
 ### `field-types-generic-moved`
 
-Import `FieldTypesFromDomain` and `ValueTypeSide` from `@prisma/orm-framework/contract/types` instead of the SQL family's contract types entry. The generic now types value object and union fields itself, from the namespace's `valueObjects`. Its arguments are `FieldTypesFromDomain<DomainNamespaces, CodecTypes, ParameterizedOutputs, Overrides, Side>`, where `Overrides` is one map keyed like the domain, `[namespace]['models' | 'valueObjects'][owner][field]`, each entry `{ output?, input? }`; `ValueObjectTypesFromDomain` takes the same map. `ColumnTypesFromStorage` stays in the SQL family. For a storage map, apply `StoredValueType` from `@prisma/orm-framework/contract/types` to each entry, as `ColumnTypesFromStorage` does.
+8.0.0-rc.18 had no `FieldTypesFromDomain`, so code written against it needs no change. Code written against a development build after it imports `FieldTypesFromDomain` and `ValueTypeSide` from `@prisma/orm-framework/contract/types` instead of the SQL family's contract types entry. The generic now types value object and union fields itself, from the namespace's `valueObjects`. Its arguments are `FieldTypesFromDomain<DomainNamespaces, CodecTypes, ParameterizedOutputs, Overrides, Side>`, where `Overrides` is one map keyed like the domain, `[namespace]['models' | 'valueObjects'][owner][field]`, each entry `{ output?, input? }`; `ValueObjectTypesFromDomain` takes the same map. `ColumnTypesFromStorage` stays in the SQL family. For a storage map, apply `StoredValueType` from `@prisma/orm-framework/contract/types` to each entry, as `ColumnTypesFromStorage` does.
 
 ### `resolve-field-value-set-renamed`
 
@@ -2062,13 +2049,14 @@ A `recreateTable` written for an `autoincrement()` change has no text to detect;
 
 ```ts
 // Before
-await control.dbUpdate({ contract, mode: 'apply', migrationsDir: 'migrations' });
+await control.dbUpdate({ contract, mode: 'apply', migrationsDir: 'migrations', answerQuestions });
 
 // After
 await control.dbUpdate({
   contract,
   mode: 'apply',
   migrationsDir: 'migrations',
+  answerQuestions,
   invocation: { cwd: process.cwd(), configPath: undefined, dbGiven: false },
 });
 ```
@@ -2084,7 +2072,7 @@ The failure's fields change too:
 | `failure.summary` | `failure.message` |
 | `failure.code === 'PLANNING_FAILED'`, `failure.conflicts` | `failure.code === 'MIGRATION.PLANNING_FAILED'`, `failure.meta.conflicts` |
 | `failure.warnings` on a failed `dbInit` or `dbUpdate`, and `value.warnings` on a successful one | the `onPlannerWarnings(warnings)` option, called once per run when planning raised warnings, whether the apply then succeeds or fails |
-| `failure.schemaIssues`, `failure.rowsWithoutValue`, `failure.failedTypeChange`, `failure.failedPrecheck` | the runner's facts in `failure.meta`: `schemaIssues`, `rowsWithoutValue`, `failedTypeChange`, `failedCheck`. A field in them is a subject object, not text such as `"User.age"` |
+| `failure.rowsWithoutValue`, `failure.failedTypeChange` | the runner's facts in `failure.meta`: `rowsWithoutValue` and `failedTypeChange`, and `schemaIssues` and `failedCheck` when the runner found them. A field in them is a subject object, not text such as `"User.age"` |
 | `failure.failedMigration`, `failure.databaseStorageHash` | removed; the advice in `failure.fix` names the migration directory and the `--from` hash |
 
 In `--json` output, `db init` and `db update` print the planner's warnings of a failed apply as `warn` messages before the error, instead of in the error's `meta.plannerWarnings`.
