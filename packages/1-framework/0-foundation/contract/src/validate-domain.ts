@@ -2,7 +2,11 @@ import { blindCast } from '@internal/utils/casts';
 import { ContractValidationError } from './contract-validation-error';
 import type { CrossReference } from './cross-reference';
 import type { ContractWithDomain } from './domain-envelope';
+import type { ContractValueObject } from './domain-types';
+import { isPlainRecord } from './is-plain-record';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
+import { valueObjectAt } from './storage-value-objects';
+import type { StorageBase } from './types';
 
 export interface DomainRelationShape {
   readonly to: CrossReference;
@@ -22,6 +26,7 @@ export interface DomainModelShape {
 
 export interface DomainContractShape extends ContractWithDomain {
   readonly roots: Record<string, CrossReference>;
+  readonly storage: Pick<StorageBase, 'namespaces'>;
 }
 
 interface IndexedModel {
@@ -60,8 +65,45 @@ function* iterateIndexedModels(index: ModelIndex): IterableIterator<IndexedModel
   }
 }
 
+/**
+ * The keys an older contract stores in its domain plane that a contract no longer has: value objects, which are storage entities since ADR 278. A family's structural validation reports these before anything else, so an old contract is refused with a message that says to re-emit it.
+ */
+export function removedDomainKeyProblems(contract: unknown): readonly string[] {
+  if (!isPlainRecord(contract) || !isPlainRecord(contract['domain'])) return [];
+  const namespaces = contract['domain']['namespaces'];
+  if (!isPlainRecord(namespaces)) return [];
+  return Object.entries(namespaces).flatMap(([namespaceId, namespace]) =>
+    isPlainRecord(namespace) && Object.hasOwn(namespace, 'valueObjects')
+      ? [
+          `domain.namespaces.${namespaceId}.valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source`,
+        ]
+      : [],
+  );
+}
+
+interface StorageValueObjectEntry {
+  readonly namespaceId: string;
+  readonly name: string;
+  readonly valueObject: ContractValueObject;
+}
+
+function storageValueObjects(contract: DomainContractShape): readonly StorageValueObjectEntry[] {
+  return Object.entries(contract.storage.namespaces).flatMap(([namespaceId, namespace]) => {
+    const slot = namespace.entries['valueObject'];
+    if (!isPlainRecord(slot)) return [];
+    return Object.entries(slot).map(([name, valueObject]) => ({
+      namespaceId,
+      name,
+      valueObject: blindCast<
+        ContractValueObject,
+        'the family validators check each storage valueObject entry against the value object schema'
+      >(valueObject),
+    }));
+  });
+}
+
 export function validateContractDomain(contract: DomainContractShape): void {
-  const errors: string[] = [];
+  const errors: string[] = [...removedDomainKeyProblems(contract)];
   const modelIndex = indexDomainModels(contract);
 
   validateRoots(contract, modelIndex, errors);
@@ -260,7 +302,10 @@ function validateOwnership(
 
 interface FieldTypeLike {
   readonly kind?: string;
-  readonly name?: string;
+  readonly plane?: string;
+  readonly namespaceId?: string;
+  readonly entityKind?: string;
+  readonly entityName?: string;
   readonly members?: readonly FieldTypeLike[];
 }
 
@@ -271,28 +316,43 @@ interface FieldLike {
   readonly dict?: boolean;
 }
 
-function validateValueObjectReferences(contract: DomainContractShape, errors: string[]): void {
-  const voNamesByNamespace = new Map<NamespaceId, Set<string>>();
-  for (const [namespaceKey, namespace] of Object.entries(contract.domain.namespaces)) {
-    const namespaceId = asNamespaceId(namespaceKey);
-    voNamesByNamespace.set(namespaceId, new Set(Object.keys(namespace.valueObjects ?? {})));
-  }
+function fieldLike(field: unknown): FieldLike | undefined {
+  return blindCast<FieldLike | undefined, 'contract fields are runtime-validated shapes'>(field);
+}
 
-  function checkType(
-    type: FieldTypeLike | undefined,
-    location: string,
-    namespaceId: NamespaceId,
-  ): void {
+function valueObjectReferenceProblem(type: FieldTypeLike): string | undefined {
+  if (type.plane !== 'storage' || type.entityKind !== 'valueObject') {
+    return `refers to a value object with plane "${type.plane}" and entityKind "${type.entityKind}"; a value object reference has plane "storage" and entityKind "valueObject"`;
+  }
+  return undefined;
+}
+
+function validateValueObjectReferences(contract: DomainContractShape, errors: string[]): void {
+  function checkType(type: FieldTypeLike | undefined, location: string): void {
     if (!type) return;
-    const voNames = voNamesByNamespace.get(namespaceId) ?? new Set<string>();
-    if (type.kind === 'valueObject' && type.name && !voNames.has(type.name)) {
-      errors.push(
-        `${location} references value object "${namespaceId}:${type.name}" which does not exist in that namespace's valueObjects`,
-      );
+    if (type.kind === 'valueObject') {
+      const problem = valueObjectReferenceProblem(type);
+      if (problem !== undefined) {
+        errors.push(`${location} ${problem}`);
+        return;
+      }
+      const namespaceId = type.namespaceId ?? '';
+      const entityName = type.entityName ?? '';
+      const found = valueObjectAt(contract.storage, {
+        plane: 'storage',
+        namespaceId,
+        entityKind: 'valueObject',
+        entityName,
+      });
+      if (found === undefined) {
+        errors.push(
+          `${location} refers to value object "${entityName}" in storage namespace "${namespaceId}", which storage.namespaces.${namespaceId}.entries.valueObject does not have`,
+        );
+      }
       return;
     }
     if (type.kind === 'union') {
-      for (const member of type.members ?? []) checkType(member, location, namespaceId);
+      for (const member of type.members ?? []) checkType(member, location);
     }
   }
 
@@ -300,23 +360,19 @@ function validateValueObjectReferences(contract: DomainContractShape, errors: st
     const namespaceId = asNamespaceId(namespaceKey);
     for (const [modelName, model] of Object.entries(namespace.models)) {
       for (const [fieldName, field] of Object.entries(model.fields)) {
-        const f = blindCast<FieldLike | undefined, 'domain fields are runtime-validated shapes'>(
-          field,
+        checkType(
+          fieldLike(field)?.type,
+          `Model "${namespaceId}:${modelName}" field "${fieldName}"`,
         );
-        checkType(f?.type, `Model "${namespaceId}:${modelName}" field "${fieldName}"`, namespaceId);
       }
     }
-    for (const [voName, vo] of Object.entries(namespace.valueObjects ?? {})) {
-      for (const [fieldName, field] of Object.entries(vo.fields)) {
-        const f = blindCast<FieldLike | undefined, 'domain fields are runtime-validated shapes'>(
-          field,
-        );
-        checkType(
-          f?.type,
-          `Value object "${namespaceId}:${voName}" field "${fieldName}"`,
-          namespaceId,
-        );
-      }
+  }
+  for (const { namespaceId, name, valueObject } of storageValueObjects(contract)) {
+    for (const [fieldName, field] of Object.entries(valueObject.fields)) {
+      checkType(
+        fieldLike(field)?.type,
+        `Value object "${namespaceId}:${name}" field "${fieldName}"`,
+      );
     }
   }
 }
@@ -327,10 +383,7 @@ function validateFieldModifiers(
   errors: string[],
 ): void {
   function validateField(location: string, field: unknown): void {
-    const candidate = blindCast<
-      FieldLike | undefined,
-      'domain fields are runtime-validated shapes'
-    >(field);
+    const candidate = fieldLike(field);
     const many = candidate?.many;
     const isList =
       typeof many === 'object' &&
@@ -358,12 +411,9 @@ function validateFieldModifiers(
       validateField(`Model "${namespaceId}:${modelName}" field "${fieldName}"`, field);
     }
   }
-  for (const [namespaceKey, namespace] of Object.entries(contract.domain.namespaces)) {
-    const namespaceId = asNamespaceId(namespaceKey);
-    for (const [voName, vo] of Object.entries(namespace.valueObjects ?? {})) {
-      for (const [fieldName, field] of Object.entries(vo.fields)) {
-        validateField(`Value object "${namespaceId}:${voName}" field "${fieldName}"`, field);
-      }
+  for (const { namespaceId, name, valueObject } of storageValueObjects(contract)) {
+    for (const [fieldName, field] of Object.entries(valueObject.fields)) {
+      validateField(`Value object "${namespaceId}:${name}" field "${fieldName}"`, field);
     }
   }
 }

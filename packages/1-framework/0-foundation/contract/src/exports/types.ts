@@ -14,10 +14,7 @@ export type {
   ContractWithDomain,
 } from '../domain-envelope';
 export { UNBOUND_DOMAIN_NAMESPACE_ID } from '../domain-envelope';
-export {
-  domainModelsAtDefaultNamespace,
-  domainValueObjectsAtDefaultNamespace,
-} from '../domain-namespace-access';
+export { domainModelsAtDefaultNamespace } from '../domain-namespace-access';
 export type {
   ContractDiscriminator,
   ContractEmbedRelation,
@@ -42,6 +39,7 @@ export type {
   UnionFieldType,
   ValueObjectFieldType,
 } from '../domain-types';
+export type { EntityCoordinate } from '../entity-coordinate';
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
 export type {
   EnumMemberValueType,
@@ -58,6 +56,10 @@ export type {
   ParameterizedOutputTypesFunction,
 } from '../parameterized-output-types';
 export { type ResolvedDomainModel, resolveDomainModel } from '../resolve-domain-model';
+export {
+  storageValueObjectsAtDefaultNamespace,
+  valueObjectAt,
+} from '../storage-value-objects';
 export type {
   $,
   Brand,

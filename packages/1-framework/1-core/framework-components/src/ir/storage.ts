@@ -1,34 +1,11 @@
 import { isPlainRecord } from '@internal/contract/is-plain-record';
-import type { StorageBase } from '@internal/contract/types';
+import type { EntityCoordinate, StorageBase } from '@internal/contract/types';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import type { IRNode } from './ir-node';
 import type { Namespace } from './namespace';
 
 export { isPlainRecord };
-
-/**
- * Canonical address for a named entity in Contract IR / Schema IR.
- *
- * `plane` is `'domain' | 'storage'`: which top-level contract plane the
- * entity lives on. Domain-side walks yield `plane: 'domain'` via
- * {@link domainElementCoordinates}; {@link elementCoordinates} over storage
- * yields `plane: 'storage'`.
- *
- * Cross-plane references obey a directional invariant: domain → storage is
- * allowed; storage → domain is forbidden. That rule is enforced by a
- * separate validator, not by constraining this coordinate shape — the
- * coordinate carries the axis the validator checks.
- *
- * Iteration order over namespace properties follows `Object.entries` order;
- * consumers that depend on ordering must sort.
- */
-export interface EntityCoordinate {
-  readonly plane: 'domain' | 'storage';
-  readonly namespaceId: string;
-  readonly entityKind: string;
-  readonly entityName: string;
-}
 
 /**
  * Lazy walk over every named storage entity in a `Storage`-shaped

@@ -1,10 +1,9 @@
-import type { StorageBase } from '@internal/contract/types';
+import type { EntityCoordinate, StorageBase } from '@internal/contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import {
   changedElementCoordinates,
   coordinateKey,
-  type EntityCoordinate,
   elementCoordinates,
   entityAt,
 } from '../src/ir/storage';

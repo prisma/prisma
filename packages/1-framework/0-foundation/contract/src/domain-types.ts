@@ -1,4 +1,5 @@
 import type { CrossReference } from './cross-reference';
+import type { EntityCoordinate } from './entity-coordinate';
 import type { JsonValue } from './types';
 import type { ValueSetRef } from './value-set-ref';
 
@@ -8,10 +9,10 @@ export type ScalarFieldType = {
   readonly typeParams?: Record<string, unknown>;
 };
 
-export type ValueObjectFieldType = {
+/** A field that holds a value object: the coordinate of its storage entity (ADR 278). */
+export interface ValueObjectFieldType extends EntityCoordinate<'storage', 'valueObject'> {
   readonly kind: 'valueObject';
-  readonly name: string;
-};
+}
 
 export type UnionFieldType = {
   readonly kind: 'union';

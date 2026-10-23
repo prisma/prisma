@@ -4,7 +4,7 @@
 
 import { readFile } from 'node:fs/promises';
 import type { PrismaNextConfig } from '@internal/config/config-types';
-import type { Contract, ContractWithDomain } from '@internal/contract/types';
+import type { Contract, ContractWithDomain, EntityCoordinate } from '@internal/contract/types';
 import {
   createControlStack,
   hasOperationPreview,
@@ -16,11 +16,7 @@ import {
   type ResolvedMigrationStatement,
   type SchemaOwnership,
 } from '@internal/framework-components/control';
-import {
-  changedElementCoordinates,
-  type EntityCoordinate,
-  UNBOUND_NAMESPACE_ID,
-} from '@internal/framework-components/ir';
+import { changedElementCoordinates, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,

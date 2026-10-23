@@ -1,0 +1,69 @@
+import { describe, expect, it } from 'vitest';
+import { storageValueObjectsAtDefaultNamespace, valueObjectAt } from '../src/storage-value-objects';
+
+const address = {
+  fields: { street: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } } },
+} as const;
+
+const storage = {
+  namespaces: {
+    public: { id: 'public', entries: { valueObject: { Address: address } } },
+  },
+};
+
+describe('valueObjectAt', () => {
+  it('reads the value object a reference names', () => {
+    expect(
+      valueObjectAt(storage, {
+        plane: 'storage',
+        namespaceId: 'public',
+        entityKind: 'valueObject',
+        entityName: 'Address',
+      }),
+    ).toEqual(address);
+  });
+
+  it('is undefined for a name or a namespace storage does not have', () => {
+    expect({
+      name: valueObjectAt(storage, {
+        plane: 'storage',
+        namespaceId: 'public',
+        entityKind: 'valueObject',
+        entityName: 'Missing',
+      }),
+      namespace: valueObjectAt(storage, {
+        plane: 'storage',
+        namespaceId: 'billing',
+        entityKind: 'valueObject',
+        entityName: 'Address',
+      }),
+    }).toEqual({ name: undefined, namespace: undefined });
+  });
+});
+
+describe('storageValueObjectsAtDefaultNamespace', () => {
+  it('reads the value objects of the only storage namespace', () => {
+    expect(storageValueObjectsAtDefaultNamespace(storage)).toEqual({ Address: address });
+  });
+
+  it('is empty when the namespace has no value objects', () => {
+    expect(
+      storageValueObjectsAtDefaultNamespace({
+        namespaces: { public: { id: 'public', entries: {} } },
+      }),
+    ).toEqual({});
+  });
+
+  it('refuses a storage with more than one namespace', () => {
+    expect(() =>
+      storageValueObjectsAtDefaultNamespace({
+        namespaces: {
+          public: { id: 'public', entries: {} },
+          billing: { id: 'billing', entries: {} },
+        },
+      }),
+    ).toThrow(
+      'bare-name resolution requires exactly one storage namespace, found 2 (public, billing); select a namespace explicitly',
+    );
+  });
+});
