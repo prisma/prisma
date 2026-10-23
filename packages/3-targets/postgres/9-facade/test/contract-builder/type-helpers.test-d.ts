@@ -66,3 +66,18 @@ test('a type helper requires its required arguments and not its optional ones', 
     return { models: {} };
   });
 });
+
+test('type.Ulid and type.sql.Ulid store the column type.Char(26) stores, with no generator', () => {
+  defineContract({}, ({ type }) => {
+    const char26 = {
+      kind: 'codec-instance',
+      codecId: 'sql/char@1',
+      typeParams: { length: 26 },
+    } as const;
+    expectTypeOf(type.Ulid()).toEqualTypeOf<typeof char26>();
+    expectTypeOf(type.sql.Ulid()).toEqualTypeOf<typeof char26>();
+    expectTypeOf(type.UuidString().typeParams).toEqualTypeOf<{ readonly length: 36 }>();
+    expectTypeOf(type.Char(26).codecId).toEqualTypeOf<typeof char26.codecId>();
+    return { models: {} };
+  });
+});
