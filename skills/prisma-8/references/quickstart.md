@@ -261,7 +261,7 @@ A reference table — not a script to recite at the user. Commands surface in th
 |---|---|---|
 | Apply the current contract to the DB the first time | `prisma db init` | this skill |
 | Re-emit `contract.json` + `contract.d.ts` after editing the contract source | `prisma contract emit` | `references/contract.md` |
-| Quick dev-only schema sync (no migration history kept) | `prisma db update` | `references/migrations.md` |
+| Move a database whose history does not need to be kept to the contract (no migration written) | `prisma db update` | `references/migrations.md` |
 | Plan a migration from a contract diff | `prisma migration plan --name <slug>` | `references/migrations.md` |
 | Apply pending migrations | `prisma db migrate` | `references/migrations.md` |
 | Inspect the live database | `prisma db schema` | `references/debug.md` |

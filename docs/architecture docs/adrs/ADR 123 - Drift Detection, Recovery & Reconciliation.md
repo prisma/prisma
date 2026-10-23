@@ -1,5 +1,7 @@
 # ADR 123 — Drift Detection, Recovery & Reconciliation
 
+> **Amended 2026-10-23.** No recovery resets or drops a database. Every state can be moved: by `db update` (reconciliation) on a database whose migration history does not need to be kept, or by authored migrations on one that changes only through migrations. The reset options this record originally listed, and its "auto-reset" development policy, are removed.
+
 ## Context
 
 A database can diverge from the state expected by its Prisma Next contract in many ways:
@@ -63,7 +65,7 @@ These affect the actual database schema structure.
 - **Implications:** Contract and DB are out of sync; queries may fail or behave unexpectedly
 - **Recovery Options:**
   1. Plan corrective migration from current state to target
-  2. Reset database and reapply migrations
+  2. Reconcile the database to the target with `db update`, where its migration history does not need to be kept
   3. Manual reconciliation with schema review
 
 **schema/partial-apply**
@@ -313,11 +315,9 @@ Developers can manually run introspection:
    - Review for correctness
    - Apply via preflight
 
-2. **Reset and Reapply**
-   - Drop database or schema
-   - Reapply baseline + all migrations
-   - Verify marker
-   - Requires downtime
+2. **Reconcile**
+   - `db update` plans the operations that make the database satisfy the target contract and applies them, asking before any data loss
+   - Only for a database whose migration history does not need to be kept
 
 3. **Manual Reconciliation**
    - Review manual DDL changes
@@ -352,7 +352,7 @@ Developers can manually run introspection:
    - Options:
      a. Manually complete rolled-back operations
      b. Manually undo committed operations, then re-run
-     c. Reset database and start over
+     c. Reconcile the database to the target with `db update`, where its history does not need to be kept
 
 ### dag/orphan-database Recovery
 
@@ -463,7 +463,7 @@ Recovery:
 1. Manually drop failed changes
 2. Fix underlying issue
 3. Manually re-run individual failed operations
-4. Or: reset database entirely and replay
+4. Or: reconcile the database to the target with `db update`, where its history does not need to be kept
 
 ### Idempotency Classification (ADR 038 Integration)
 
@@ -520,7 +520,7 @@ Operations fall into three categories:
 
 **Recovery:** Aggressive
 - Automatic retry on idempotent operations
-- Auto-reset database if needed
+- Reconcile with `db update` when the database is off the migration graph
 - Fast iteration loop
 
 **Logging:** Detailed
