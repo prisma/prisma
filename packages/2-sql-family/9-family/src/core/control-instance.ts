@@ -644,19 +644,31 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       return [];
     }
     const controlAdapter = getControlAdapter();
-    return controlAdapter.withTransaction(driver, async () => {
-      await controlAdapter.lockMarker(driver);
+    const createMarkerTable = async () => {
       for (const query of controlAdapter.bootstrapSignMarkerQueries()) {
         const lowered = await controlAdapter.lowerToExecuteRequest(query, {
           contract: first.contract,
         });
         await driver.query(lowered.sql, lowered.params);
       }
+    };
+    const writeMarkers = async () => {
       const signatures: SpaceSignature[] = [];
       for (const space of spaces) {
         signatures.push(await signSpaceMarker(controlAdapter, driver, space));
       }
       return signatures;
+    };
+    if (controlAdapter.holdMarkerLock === undefined) {
+      return controlAdapter.withTransaction(driver, async () => {
+        await controlAdapter.lockMarker(driver);
+        await createMarkerTable();
+        return writeMarkers();
+      });
+    }
+    return controlAdapter.holdMarkerLock(driver, async () => {
+      await createMarkerTable();
+      return controlAdapter.withTransaction(driver, writeMarkers);
     });
   };
 
@@ -664,6 +676,10 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     familyId: 'sql',
     codecTypeImports,
     extensionIds,
+
+    get markerLocation(): string {
+      return getControlAdapter().markerLocation;
+    },
 
     deserializeContract(contractJson: unknown): Contract {
       return loadContract(contractJson);

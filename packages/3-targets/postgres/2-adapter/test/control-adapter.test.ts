@@ -58,6 +58,14 @@ function createMockDriver(
 }
 
 describe('PostgresControlAdapter', () => {
+  it('names its marker table', () => {
+    const adapter = createTestPostgresControlAdapter(
+      createPostgresBuiltinCodecLookup(),
+      createPostgresBuiltinDataTypeLookup(),
+    );
+    expect(adapter.markerLocation).toBe('prisma_contract.marker');
+  });
+
   describe('introspect', () => {
     it('introspects empty schema', async () => {
       const adapter = createTestPostgresControlAdapter(

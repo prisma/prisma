@@ -30,7 +30,7 @@ function runStepPlan(driver: TestDatabase['driver']) {
         label: 'Create lost table',
         summary: 'Creates a table while the connection fails',
         operationClass: 'additive',
-        target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'lost' } },
+        target: { id: 'sqlite', details: { objectType: 'table', name: 'lost' } },
         precheck: [],
         execute: [{ description: 'create lost table', sql: STEP_SQL }],
         postcheck: [],

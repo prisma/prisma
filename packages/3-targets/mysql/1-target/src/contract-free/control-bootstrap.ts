@@ -1,7 +1,7 @@
 import { APP_SPACE_ID } from '@internal/framework-components/control';
-import type { DdlNode } from '@internal/sql-relational-core/ast';
 import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
 import { LEDGER_TABLE_NAME, MARKER_TABLE_NAME } from '../core/control-tables';
+import type { MysqlDdlNode } from '../core/ddl/nodes';
 import { createTable } from './ddl';
 
 const NOW = fn('CURRENT_TIMESTAMP(3)');
@@ -42,11 +42,11 @@ const ledgerTable = createTable({
 });
 
 /** The DDL that creates the marker table `db sign` writes, when it does not exist. */
-export function buildSignMarkerBootstrapQueries(): readonly DdlNode[] {
+export function buildSignMarkerBootstrapQueries(): readonly MysqlDdlNode[] {
   return [markerTable];
 }
 
 /** The DDL that creates the marker and ledger tables the migration runner writes, when they do not exist. */
-export function buildControlTableBootstrapQueries(): readonly DdlNode[] {
+export function buildControlTableBootstrapQueries(): readonly MysqlDdlNode[] {
   return [markerTable, ledgerTable];
 }

@@ -68,15 +68,15 @@ The `returning` capability splits by statement (insert, update, delete), because
 
 **Rejected.** *Refuse every row-returning write on MySQL*, leaving only the `*AndCount` methods: keeps one statement per call but makes the ORM close to unusable.
 
-## 5. Migration atomicity is a target fact
+## 5. What a failed migration leaves is stated by the target's runner
 
 **Today.** `SqlMigrationRunner.execute` promises that a failure on any space rolls back every space's writes (`packages/2-sql/9-family/src/core/migrations/types.ts`), and the CLI and ADR 212 repeat it. `db sign` creates the marker table inside the transaction that writes markers.
 
-**Decision.** Whether a failed apply rolls back is a fact the target states. The MySQL runner applies and verifies one space at a time and writes each space's marker only after verification passes, like the Mongo runner. Re-running a failed apply resumes. Operations keep their postchecks, so a re-run skips what was applied.
+**Decision.** Whether a failed apply rolls back is stated by the target's runner, per run, in its failure (`databaseUnchanged`, `failingSpace`, and its message). The MySQL runner applies and verifies one space at a time and writes each space's marker only after verification passes, like the Mongo runner. Re-running a failed apply resumes. Operations keep their postchecks, so a re-run skips what was applied.
 
 **Why.** MySQL commits implicitly on every DDL statement. The promise cannot hold there; this is forced, not chosen. The Mongo family already documents and implements the same model.
 
-**Open in the build.** The marker lock: MySQL's `GET_LOCK` holds per session, not per transaction, so `lockMarker` needs a release.
+**Revised in slice 2b (2026-10-22).** A static `applyAtomicity: 'all-spaces' | 'per-space'` field on the migrations capability was built and then removed after review: its only reader repeated what the failure already says, and `'per-space'` wrongly suggested each space applies all or nothing (only the marker write is atomic; operations that ran stay applied). `db sign`'s order became the adapter's choice (`holdMarkerLock`), because moving the marker-table setup out of the lock for every target opened a race on Postgres. MySQL's `GET_LOCK` holds per session, so the adapter releases it explicitly, and a failed release never hides the error that ended the work.
 
 ## 6. Decided while shaping slice 2 (2026-10-22)
 

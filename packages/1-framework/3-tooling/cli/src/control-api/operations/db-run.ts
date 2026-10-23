@@ -175,9 +175,9 @@ export type ExecuteRunOptions<
  *    behaviour); every extension space walks its on-disk graph via
  *    `resolveRecordedPath`.
  * 4. **Apply** (when `mode === 'apply'`): every per-space `MigrationPlan`
- *    feeds into the runner's `execute` — one outer
- *    transaction across every space; failure on any space rolls back
- *    every space's writes.
+ *    feeds into the runner's `execute`. On a target whose DDL is
+ *    transactional a failure rolls back every space's writes; otherwise
+ *    the operations that already ran stay applied.
  */
 export async function executeRun<TFamilyId extends string, TTargetId extends string>(
   options: ExecuteRunOptions<TFamilyId, TTargetId>,
@@ -255,7 +255,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // run would do. Apply mode tells the user to clean up the orphan
   // before silently advancing the app's marker.
   if (mode === 'apply') {
-    const orphanMarkerError = detectOrphanMarkers(aggregate, markerRows);
+    const orphanMarkerError = detectOrphanMarkers(
+      aggregate,
+      markerRows,
+      familyInstance.markerLocation,
+    );
     if (orphanMarkerError !== null) {
       throw orphanMarkerError;
     }
@@ -624,7 +628,7 @@ function aggregatePlannerWarnings(
 }
 
 /**
- * Compare the live `_prisma_marker` rows against the aggregate's
+ * Compare the live marker rows, kept in `markerLocation`, against the aggregate's
  * declared contract spaces. Any marker row whose `space` is not a space of
  * the aggregate is an "orphan" — typically a marker left behind by
  * an extension that was removed from `extensions` without first
@@ -641,6 +645,7 @@ function aggregatePlannerWarnings(
 function detectOrphanMarkers(
   aggregate: ContractSpaceAggregate,
   markerRows: ReadonlyMap<string, unknown>,
+  markerLocation: string,
 ): CliStructuredError | null {
   const aggregateSpaceIds = new Set<string>([
     aggregate.app.spaceId,
@@ -659,12 +664,12 @@ function detectOrphanMarkers(
       ? `Orphan contract-space marker detected for "${orphans[0]}"`
       : `Orphan contract-space markers detected for ${orphans.length} spaces`;
   return new CliStructuredError('MIGRATION.CONTRACT_SPACE_VIOLATION', summary, {
-    why: `The database has \`_prisma_marker\` rows for spaces (${orphans
+    why: `The database has \`${markerLocation}\` rows for spaces (${orphans
       .map((s) => `"${s}"`)
       .join(
         ', ',
       )}) that are not declared in the project's \`extensions\`. The aggregate pipeline refuses to advance markers it cannot account for.`,
-    fix: 'Either re-declare the missing extension(s) in `extensions` (so the aggregate owns them again), or remove the orphan marker row(s) from `_prisma_marker` once you have confirmed the corresponding tables can be safely retired.',
+    fix: `Either re-declare the missing extension(s) in \`extensions\` (so the aggregate owns them again), or remove the orphan marker row(s) from \`${markerLocation}\` once you have confirmed the corresponding tables can be safely retired.`,
     docsUrl: 'https://pris.ly/contract-spaces',
     meta: {
       violations: orphans.map((spaceId) => ({ kind: 'orphanMarker', spaceId })),

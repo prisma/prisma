@@ -189,11 +189,11 @@ export type RunMigrationResult = Result<RunMigrationValue, MigrationRunnerFailur
  * plans (the planner-vs-replay distinction is owned by the caller) and
  * dispatches them to the runner in canonical order.
  *
- * Marker advancement is part of the runner's per-space transaction
- * (the SQL family runner writes the marker as the last step of each
- * space's transaction), so this primitive does not advance markers
- * separately — by the time `execute` returns ok, every
- * space's marker has been advanced to its plan's destination.
+ * The runner writes each space's marker as the last step of applying that
+ * space, so this primitive does not advance markers separately — by the time
+ * `execute` returns ok, every space's marker has been advanced to its plan's
+ * destination. A failure is returned as the runner reported it; its `why`
+ * says whether the database changed.
  *
  * Span emission (`spanStart 'apply'` / `spanEnd 'apply'`) is owned here
  * so callers don't have to duplicate it; the `action` field on each
@@ -276,7 +276,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
  *
  * `includeMarkers` is `true` for apply-mode (each space's marker is
  * the `destination.storageHash` of its plan, which the runner
- * advances as the last step of each space's transaction) and `false`
+ * advances as the last step of applying each space) and `false`
  * for plan-mode (no marker has been written yet).
  *
  * Exported alongside {@link runMigration} so plan-mode callers can

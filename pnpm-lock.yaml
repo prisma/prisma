@@ -3888,15 +3888,24 @@ importers:
 
   packages/3-targets/mysql/1-target:
     dependencies:
+      '@internal/cli':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../1-framework/3-tooling/cli
       '@internal/contract':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/0-foundation/contract
+      '@internal/errors':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../1-framework/1-core/errors
       '@internal/family-sql':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/9-family
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/1-core/framework-components
+      '@internal/migration-tools':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../1-framework/3-tooling/migration
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/contract
@@ -3906,6 +3915,9 @@ importers:
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/schema-ir
+      '@internal/ts-render':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../1-framework/1-core/ts-render
       '@internal/utils':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/0-foundation/utils
@@ -4072,6 +4084,9 @@ importers:
       '@internal/contract':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/0-foundation/contract
+      '@internal/migration-tools':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../1-framework/3-tooling/migration
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/schema-ir
@@ -5851,6 +5866,9 @@ importers:
       '@internal/mongo-wire':
         specifier: workspace:8.0.0-rc.20
         version: link:../../packages/2-mongo-family/6-transport/mongo-wire
+      '@internal/mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../packages/3-targets/mysql/9-facade
       '@internal/operations':
         specifier: workspace:8.0.0-rc.20
         version: link:../../packages/1-framework/1-core/operations
