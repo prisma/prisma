@@ -1,4 +1,4 @@
-# ADR 307 — Each generated identifier has a type alias for its column
+# ADR 309 — Each generated identifier has a type alias for its column
 
 **Status:** Proposed
 **Date:** 2026-10-23
