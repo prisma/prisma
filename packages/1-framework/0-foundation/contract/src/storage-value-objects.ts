@@ -11,7 +11,9 @@ function valueObjectsOf(
   storage: StorageNamespaces,
   namespaceId: string,
 ): Readonly<Record<string, ContractValueObject>> {
-  const slot = storage.namespaces[namespaceId]?.entries['valueObject'];
+  const slot = Object.hasOwn(storage.namespaces, namespaceId)
+    ? storage.namespaces[namespaceId]?.entries?.['valueObject']
+    : undefined;
   return isPlainRecord(slot)
     ? blindCast<
         Readonly<Record<string, ContractValueObject>>,

@@ -1,5 +1,7 @@
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { storageValueObjectsAtDefaultNamespace, valueObjectAt } from '../src/storage-value-objects';
+import type { StorageNamespace } from '../src/types';
 
 const address = {
   fields: { street: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } } },
@@ -38,6 +40,29 @@ describe('valueObjectAt', () => {
         entityName: 'Address',
       }),
     }).toEqual({ name: undefined, namespace: undefined });
+  });
+});
+
+describe('valueObjectAt with an unusual namespace', () => {
+  it('is undefined for a namespace id that names an Object.prototype property, or a namespace with no entries', () => {
+    const reference = (namespaceId: string) =>
+      ({
+        plane: 'storage',
+        namespaceId,
+        entityKind: 'valueObject',
+        entityName: 'Address',
+      }) as const;
+    expect({
+      proto: valueObjectAt(storage, reference('__proto__')),
+      noEntries: valueObjectAt(
+        {
+          namespaces: {
+            bare: blindCast<StorageNamespace, 'a namespace with no entries'>({ id: 'bare' }),
+          },
+        },
+        reference('bare'),
+      ),
+    }).toEqual({ proto: undefined, noEntries: undefined });
   });
 });
 
