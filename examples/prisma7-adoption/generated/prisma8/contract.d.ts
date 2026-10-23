@@ -25,7 +25,7 @@ import type {
 export type StorageHash =
   StorageHashBase<'9268d6eef6e976bf77ca87083b15cd8eb247c9bf7fe4d2929f56a23bfa36d9ec'>;
 export type ExecutionHash =
-  ExecutionHashBase<'c9a992ceb890a2d2efac06bbccfae061acd6f137268bd6d54afbd4f71a72ec45'>;
+  ExecutionHashBase<'5d2a944d02782b8bcf53d311c7dbe23d41a990f019100658761ce68af6aa0230'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -864,6 +864,14 @@ type ContractBase = Omit<
     readonly executionHash: ExecutionHash;
     readonly mutations: {
       readonly defaults: readonly [
+        {
+          readonly onCreate: { readonly id: 'timestampStringNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'User';
+            readonly field: 'createdAt';
+            readonly namespace: 'public';
+          };
+        },
         {
           readonly onCreate: { readonly id: 'timestampStringNow'; readonly kind: 'generator' };
           readonly onUpdate: { readonly id: 'timestampStringNow'; readonly kind: 'generator' };
