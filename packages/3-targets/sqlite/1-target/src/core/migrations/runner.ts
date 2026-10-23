@@ -15,6 +15,8 @@ import {
   convertedColumnOf,
   fieldOfColumn,
   requiredColumnsOfMigration,
+  rowsHoldingValueOf,
+  rowsHoldingValueSummary,
   rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
@@ -23,6 +25,7 @@ import {
 import type {
   FailedConversion,
   MigrationRunnerResult,
+  RowsHoldingValue,
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
@@ -45,6 +48,7 @@ import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
 import { affinityStorageClasses, conversionCopyOf, rebuiltTableName } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
+import { keepRowsEdit } from './stored-value-calls';
 
 const NOT_NULL_VIOLATION_SQLSTATE = '23502';
 
@@ -331,6 +335,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             operation.precheck,
             operation,
             'precheck',
+            { contract: options.destinationContract, operationIndex: ops.indexOf(operation) },
           );
           if (!precheckResult.ok) {
             return precheckResult;
@@ -400,6 +405,16 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           description: step.description,
           ...ifDefined('expectation', step.expectation),
         };
+        const holding =
+          phase === 'precheck' && plan !== undefined
+            ? await this.rowsHoldingValue(driver, step, operation, plan.operationIndex)
+            : undefined;
+        if (holding !== undefined) {
+          return runnerFailure(code, holding.summary, {
+            why: `Operation ${operation.id} failed during ${phase}: ${step.description}`,
+            meta: { failedCheck, rowsHoldingValue: holding.report },
+          });
+        }
         const unconverted =
           converted === undefined ? undefined : await this.unconvertedValueText(driver, converted);
         return runnerFailure(
@@ -439,6 +454,43 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       }
     }
     return okVoid();
+  }
+
+  /**
+   * Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta`
+   * marks the check. A count that fails leaves the failure without it.
+   */
+  private async rowsHoldingValue(
+    driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
+    step: SqlMigrationPlanOperationStep,
+    operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
+    operationIndex: number,
+  ): Promise<{ readonly summary: string; readonly report: RowsHoldingValue } | undefined> {
+    const mark = rowsHoldingValueOf(step);
+    const details = operation.target.details;
+    const stored = step.params?.[0];
+    if (mark === undefined || details?.table === undefined) return undefined;
+    if (typeof stored !== 'string' && typeof stored !== 'number') return undefined;
+    let rows: number;
+    try {
+      const counted = await driver.query<{ rows: number }>(
+        `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(details.table)} WHERE ${quoteIdentifier(details.name)} = ?`,
+        [stored],
+      );
+      rows = Number(counted.rows[0]?.rows ?? 0);
+    } catch {
+      return undefined;
+    }
+    return {
+      summary: rowsHoldingValueSummary(details.table, details.name, stored, rows),
+      report: {
+        enumValue: mark.enumValue,
+        value: stored,
+        rows,
+        operationIndex,
+        keepDataEdit: keepRowsEdit(details.table, details.name, mark),
+      },
+    };
   }
 
   /** Names the first value of a retyped column that kept a storage class its new type does not hold. */

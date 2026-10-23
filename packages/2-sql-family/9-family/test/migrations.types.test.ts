@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { APP_SPACE_ID, expectAbsent } from '@internal/framework-components/control';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
@@ -236,6 +237,19 @@ describe('planner helpers', () => {
     expect(Object.isFrozen(failure.conflicts)).toBe(true);
     expect(Object.isFrozen(failure.conflicts[0]!)).toBe(true);
     expect(failure.conflicts[0]?.location?.entityName).toBe('user');
+
+    const leaveOut = [
+      {
+        kind: 'rename' as const,
+        entity: 'namespace' as const,
+        from: asNamespaceId('app'),
+        to: asNamespaceId('crm'),
+      },
+    ];
+    expect(
+      plannerFailure([{ kind: 'statementRefused', summary: 'Cannot rename', leaveOut }])
+        .conflicts[0]?.leaveOut,
+    ).toEqual(leaveOut);
   });
 });
 

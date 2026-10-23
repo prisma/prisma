@@ -54,7 +54,7 @@ describe('raw-query sqlite lowering', () => {
 
     const lowered = lower(plan);
 
-    expect(lowered.sql).toBe('SELECT id, email FROM "user" WHERE id > ? AND email = ?');
+    expect(lowered.sql).toBe('SELECT id, email FROM "user" WHERE id > ?1 AND email = ?2');
     expect(lowered.params).toEqual([
       { kind: 'literal', value: 7 },
       { kind: 'literal', value: 'a@b.example' },
@@ -91,7 +91,7 @@ describe('raw-query sqlite lowering', () => {
     const lowered = lower(plan);
 
     expect(lowered.sql).toBe(
-      'WITH active AS (SELECT id FROM "user" WHERE id > ?) SELECT id FROM active WHERE id < ?',
+      'WITH active AS (SELECT id FROM "user" WHERE id > ?1) SELECT id FROM active WHERE id < ?2',
     );
     expect(lowered.params).toEqual([
       { kind: 'literal', value: 10 },
@@ -106,7 +106,7 @@ describe('raw-query sqlite lowering', () => {
 
     const lowered = lower(plan);
 
-    expect(lowered.sql).toBe('UPDATE "user" SET email = ? WHERE id = ?');
+    expect(lowered.sql).toBe('UPDATE "user" SET email = ?1 WHERE id = ?2');
     expect(lowered.params).toEqual([
       { kind: 'literal', value: 'new@b.example' },
       { kind: 'literal', value: 3 },

@@ -1,12 +1,20 @@
 #!/usr/bin/env node
 // Adds `storage.fields` to every MongoDB contract written before models recorded the stored name of each field.
 // Each field keeps its name and is recorded as stored under that name, which is what the old contract meant.
-// Usage: node mongo-field-storage-names.ts [<project root>]
+// Usage: node mongo-field-storage-names.ts [project-root]
 
-import { readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 
-const SKIPPED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'build']);
+const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build']);
 const TEMPORARY_SUFFIX = '.mongo-field-storage-names-tmp';
 
 type JsonObject = { [key: string]: unknown };
@@ -15,20 +23,57 @@ function isObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function walk(dir: string, found: string[]): void {
-  for (const entry of readdirSync(dir)) {
-    const path = join(dir, entry);
-    const stats = statSync(path);
-    if (stats.isDirectory()) {
-      if (!SKIPPED_DIRECTORIES.has(entry)) walk(path, found);
-      continue;
-    }
-    if (entry.endsWith(TEMPORARY_SUFFIX)) {
-      rmSync(path);
-      continue;
-    }
-    if (entry.endsWith('.json')) found.push(path);
+function isDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
   }
+}
+
+function isFile(path: string): boolean {
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
+/** The JSON files under `root`, each once, by the first path that reaches it. */
+function listJsonFiles(root: string): string[] {
+  const visited = new Set<string>();
+  const found = new Map<string, string>();
+  const visit = (dir: string): void => {
+    const realDir = realpathSync(dir);
+    if (visited.has(realDir)) return;
+    visited.add(realDir);
+    for (const entry of readdirSync(dir).sort()) {
+      const path = join(dir, entry);
+      if (entry.endsWith(TEMPORARY_SUFFIX)) {
+        rmSync(path, { force: true });
+        continue;
+      }
+      if (isDirectory(path)) {
+        if (!SKIPPED_DIRECTORIES.has(entry) && !entry.startsWith('.')) visit(path);
+        continue;
+      }
+      if (!entry.endsWith('.json') || !isFile(path)) continue;
+      const realFile = realpathSync(path);
+      if (!found.has(realFile)) found.set(realFile, path);
+    }
+  };
+  visit(root);
+  return [...found.values()];
+}
+
+function parseRoot(args: readonly string[]): { readonly root: string; readonly errors: string[] } {
+  const errors = args.filter((arg) => arg.startsWith('-')).map((arg) => `${arg}: unknown option`);
+  const positional = args.filter((arg) => !arg.startsWith('-'));
+  if (positional.length > 1) errors.push(`expected one project root, got ${positional.length}`);
+  const root = resolve(positional[0] ?? process.cwd());
+  if (errors.length === 0 && !isDirectory(root)) errors.push(`${root}: not a directory`);
+  if (errors.length > 0) errors.push('Usage: node mongo-field-storage-names.ts [project-root]');
+  return { root, errors };
 }
 
 function modelsOf(contract: JsonObject): [string, JsonObject][] {
@@ -178,15 +223,24 @@ function rewriteModelType(
 }
 
 function writeFile(path: string, content: string): void {
-  const temporary = `${path}${TEMPORARY_SUFFIX}`;
+  const target = realpathSync(path);
+  const temporary = `${target}${TEMPORARY_SUFFIX}`;
   writeFileSync(temporary, content);
-  renameSync(temporary, path);
+  renameSync(temporary, target);
 }
 
-function main(): number {
-  const root = resolve(process.argv[2] ?? '.');
-  const files: string[] = [];
-  walk(root, files);
+function main({
+  root,
+  errors,
+}: {
+  readonly root: string;
+  readonly errors: readonly string[];
+}): number {
+  if (errors.length > 0) {
+    process.stderr.write(`${errors.join('\n')}\n`);
+    return 1;
+  }
+  const files = listJsonFiles(root);
   const changed: string[] = [];
   const warnings: string[] = [];
   let mongoContracts = 0;
@@ -247,4 +301,4 @@ function main(): number {
   return warnings.length > 0 ? 1 : 0;
 }
 
-process.exitCode = main();
+process.exitCode = main(parseRoot(process.argv.slice(2)));

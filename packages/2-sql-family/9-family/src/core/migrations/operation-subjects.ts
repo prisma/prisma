@@ -1,5 +1,7 @@
 import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types';
 import type {
+  EnumValueCoordinate,
+  KeepDataEdit,
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationDataLossKind,
@@ -32,6 +34,8 @@ export interface SubjectStorage {
         readonly column: string | undefined;
       }
     | undefined;
+  /** The enum value the operation is about, when it rewrites one stored value of an enum. */
+  readonly enumValue?: EnumValueCoordinate;
 }
 
 /** What a codec hook's call is about: the column of the field event it was returned for. */
@@ -72,8 +76,11 @@ export interface CallSubjects {
   readonly operationCount: number;
   /** The call's label, which names its operation before the plan's slots are filled. */
   readonly label: string;
-  /** What the call's operation loses, one entry per model, field or storage name, and how. */
-  readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
+  /** What the call's operation loses, one entry per model, field or storage name, how, and how to keep it. */
+  readonly dataLoss: readonly (SubjectStorage & {
+    readonly loss: MigrationDataLossKind;
+    readonly keepDataEdit?: KeepDataEdit;
+  })[];
   /** What the call's operation changes access to, and whether it widens it. */
   readonly accessChanges: readonly (SubjectStorage & { readonly widens: boolean })[];
   /** The new required columns the call's operation gives a temporary value in existing rows, and the value. */
@@ -124,6 +131,7 @@ function modelsStoring(
 }
 
 function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSubject {
+  if (target.enumValue !== undefined) return { kind: 'enumValue', ...target.enumValue };
   const storage: MigrationSubject = { kind: 'storage', name: target.storageName };
   const { fromContract } = context;
   if (target.table === undefined || fromContract === null) return storage;
@@ -199,6 +207,7 @@ export function subjectsOfCalls(
         loss: target.loss,
         label: call.label,
         ...ifDefined('keepDataAdvice', keepTableAdvice(target, subject, context)),
+        ...ifDefined('keepDataEdit', target.keepDataEdit),
       });
     }
     for (const target of call.accessChanges) {

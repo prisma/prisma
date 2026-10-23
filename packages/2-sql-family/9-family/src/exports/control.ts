@@ -39,6 +39,17 @@ export {
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';
 export type {
+  StoredEnumValue,
+  StoredValueCodec,
+  StoredValueReplacement,
+  StoredValueRewrite,
+} from '../core/migrations/enum-value-planning';
+export {
+  encodeStoredValue,
+  planEnumValueRewrites,
+  withEnumValueOperations,
+} from '../core/migrations/enum-value-planning';
+export type {
   FieldEventCall,
   PlanFieldEventOperationsOptions,
 } from '../core/migrations/field-event-planner';
@@ -90,6 +101,12 @@ export {
   resolveTableRenameAgainst,
   unmatchedTableRename,
 } from '../core/migrations/resolve-table-rename';
+export type { RowsHoldingValueMark } from '../core/migrations/rows-holding-value';
+export {
+  rowsHoldingValueMeta,
+  rowsHoldingValueOf,
+  rowsHoldingValueSummary,
+} from '../core/migrations/rows-holding-value';
 export type {
   SqlSchemaDiffFn,
   SqlSchemaDiffInput,

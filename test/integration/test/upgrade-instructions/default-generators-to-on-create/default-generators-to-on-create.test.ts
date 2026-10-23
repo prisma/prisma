@@ -7,6 +7,8 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 const SCRIPT_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/default-generators-to-on-create/rewrite-default-generators.mjs',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/default-generators-to-on-create/rewrite-default-generators.mjs',
 } as const;
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -120,5 +122,11 @@ describe('rewrite-default-generators', () => {
         stderr: 'missing.prisma: cannot be read; no file was changed.\n',
       },
     });
+  });
+
+  it('ships the same script for extensions', () => {
+    expect(readFileSync(join(repoRoot, SCRIPT_PATHS.extension), 'utf8')).toBe(
+      readFileSync(script, 'utf8'),
+    );
   });
 });

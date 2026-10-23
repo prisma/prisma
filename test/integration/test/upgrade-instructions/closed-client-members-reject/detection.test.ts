@@ -1,27 +1,17 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { detectionPatterns } from '../guide-detections';
 
 const GUIDE_PATHS = {
   app: 'upgrade-instructions/pending/closed-client-members-reject/app/instructions.md',
   extension: 'upgrade-instructions/pending/closed-client-members-reject/extension/instructions.md',
 } as const;
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 const id = 'client-members-reject-instead-of-throwing';
 const ormPackage = ['@prisma', 'orm-postgres'].join('/');
 const importsOrm = `import { postgres } from '${ormPackage}/runtime';\n`;
 
 function detects(audience: keyof typeof GUIDE_PATHS, content: string): boolean {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-  const entry = guide.split(/\n {2}- id: /).find((block) => block.startsWith(`${id}\n`));
-  if (entry === undefined) throw new Error(`The ${audience} guide has no change ${id}`);
-  const patterns = [...entry.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-  );
-  if (patterns.length === 0) throw new Error(`The ${audience} change ${id} has no detection`);
-  return patterns.some((pattern) => pattern.test(content));
+  return detectionPatterns(GUIDE_PATHS[audience], id).some((pattern) => pattern.test(content));
 }
 
 describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {

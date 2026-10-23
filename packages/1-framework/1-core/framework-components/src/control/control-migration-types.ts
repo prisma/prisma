@@ -24,6 +24,8 @@ import type {
 import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
+  EnumValueCoordinateJson,
+  KeepDataEdit,
   MigrationPlanNamespaces,
   MigrationPlanSubjects,
   MigrationSubject,
@@ -310,6 +312,11 @@ export interface MigrationPlannerConflict {
    * on this field, not on the conflict's kind, which each family names.
    */
   readonly refusedStatement?: ResolvedMigrationStatement;
+  /**
+   * Set when the change can be written by hand instead: the statements to leave out of a plan, whose
+   * `migration.ts` the user then adds the operations the conflict's `why` names to.
+   */
+  readonly leaveOut?: readonly ResolvedMigrationStatement[];
 }
 
 /**
@@ -413,6 +420,8 @@ export interface MigrationRunnerFailureMeta {
    * step fail: first the field of the failed step, then the others of the same migration.
    */
   readonly rowsWithoutValue?: readonly RowsWithoutValue[];
+  /** The data that still holds a stored enum value whose removal its storage cannot take, when that made a check fail. */
+  readonly rowsHoldingValue?: RowsHoldingValue;
   /** The objects in the database that kept the failed operation from running, such as a view on a table to drop. */
   readonly blockingObjects?: readonly BlockingObject[];
   /** The differences the schema check after apply found, when that check failed. */
@@ -483,6 +492,20 @@ export function withDatabaseUnchanged<TCode extends MigrationRunnerFailure['code
   });
   if (failure.stack !== undefined) attributed.stack = failure.stack;
   return attributed;
+}
+
+/** The data that still holds the stored value of an enum value a plan removes from storage that cannot do without it. */
+export interface RowsHoldingValue {
+  /** The enum value, in the JSON form statements report, which leaves out the unbound namespace. */
+  readonly enumValue: EnumValueCoordinateJson;
+  /** The stored value, as the database stores it. */
+  readonly value: string | number;
+  /** How many rows hold it. */
+  readonly rows: number;
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
+  /** The edit to the migration's `migration.ts` that keeps the data, when the target can say it. */
+  readonly keepDataEdit?: KeepDataEdit;
 }
 
 /** A field that is to become required while existing rows have no value for it. */

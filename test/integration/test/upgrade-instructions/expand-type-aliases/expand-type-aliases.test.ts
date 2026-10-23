@@ -326,6 +326,24 @@ describe('expand-type-aliases', () => {
     });
   });
 
+  it('refuses an option or a project root that is not a directory, and changes nothing', () => {
+    const root = copyFixture('before');
+    const missing = join(root, 'missing');
+    const usage = 'Usage: node expand-type-aliases.ts [project-root]\n';
+    const runs = [runScript('--help'), runScript(missing)].map(({ status, stdout, stderr }) => ({
+      status,
+      stdout,
+      stderr,
+    }));
+    expect({ runs, tree: readTree(root) }).toEqual({
+      runs: [
+        { status: 1, stdout: '', stderr: `--help: unknown option\n${usage}` },
+        { status: 1, stdout: '', stderr: `${missing}: not a directory\n${usage}` },
+      ],
+      tree: fixtureTree('before'),
+    });
+  });
+
   it('ships the same script for extensions', () => {
     expect(readFileSync(extensionScript, 'utf8')).toBe(readFileSync(appScript, 'utf8'));
   });

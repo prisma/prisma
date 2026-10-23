@@ -17,6 +17,7 @@ import type {
   FailedCast,
   FailedConversion,
   FailedTypeChange,
+  KeepDataEdit,
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationOperationSubject,
@@ -526,8 +527,24 @@ export interface RunnerFailureFacts {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The check that failed before its operation ran. */
   readonly failedPrecheck?: FailedPrecheckReport;
+  /** The data that still holds a stored enum value whose removal its storage cannot take. */
+  readonly rowsHoldingValue?: RowsHoldingValueReport;
   /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
+}
+
+/** The data that still holds the stored value of an enum value the plan removes from storage that cannot do without it. */
+export interface RowsHoldingValueReport {
+  /** The enum value, as a statement names it, such as `Status.ARCHIVED`. */
+  readonly enumValue: string;
+  /** The enum, as a statement names it, such as `Status`. */
+  readonly enumName: string;
+  /** The stored value, as the database stores it. */
+  readonly value: string | number;
+  /** How many rows hold it. */
+  readonly rows: number;
+  /** The edit to the migration.ts that keeps the data, when the target gives one. */
+  readonly keepDataEdit?: KeepDataEdit;
 }
 
 /** A field that was to become required while rows had no value for it, as the advice names it. */

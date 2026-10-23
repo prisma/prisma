@@ -240,6 +240,7 @@ jobs:
       # container, because GitHub Actions service containers can't override
       # the postgres CMD to enable shared_preload_libraries=pg_stat_statements).
       WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: postgres://postgres:postgres@127.0.0.1:5433/prisma_8_cloudflare_worker
+      MYSQL_URL: mysql://root:root@127.0.0.1:3306/mysql
     services:
       postgres:
         image: postgres:15
@@ -254,6 +255,17 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

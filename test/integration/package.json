@@ -91,6 +91,7 @@
     "@types/pg": "catalog:",
     "cli-journeys": "workspace:8.0.0-rc.20",
     "commander": "^15.0.0",
+    "gray-matter": "catalog:",
     "mongodb": "catalog:",
     "mongodb-memory-server": "catalog:",
     "pathe": "^2.0.3",

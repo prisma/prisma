@@ -14,16 +14,21 @@ import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlExpressionText,
   createSqlTextSources,
+  encodeStoredValue,
   isUnfilledSlot,
   type MigrationOperationClass,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
+  type StoredValueCodec,
   slotSource,
   sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
-import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
+import type {
+  EnumValueCoordinateJson,
+  OpFactoryCall as FrameworkOpFactoryCall,
+} from '@internal/framework-components/control';
 import { expectAbsent, expectPresent } from '@internal/framework-components/control';
 import type {
   AnyDdlColumnDefault,
@@ -51,6 +56,7 @@ import { quoteIdentifier, SQLITE_QUOTING } from '../sql-utils';
 import { addColumn, dropColumnExecuteSql, renameColumn } from './operations/columns';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
 import { INLINE_AUTOINCREMENT_PRIMARY_KEY, step } from './operations/shared';
+import { removeStoredValue, replaceStoredValue, storedValueText } from './operations/stored-values';
 import {
   type ColumnShape,
   indexDefinitionCheck,
@@ -1089,6 +1095,163 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
 }
 
 // ============================================================================
+// Stored values
+// ============================================================================
+
+function replaceStoredValueSource(
+  tableName: string,
+  columnName: string,
+  from: string,
+  to: string,
+  codec: StoredValueCodec | undefined,
+): string {
+  const opts = [
+    `table: ${jsonToTsSource(tableName)}`,
+    `column: ${jsonToTsSource(columnName)}`,
+    `from: ${from}`,
+    `to: ${to}`,
+    ...codecRefSource(codec),
+  ];
+  return `this.replaceStoredValue({ ${opts.join(', ')} })`;
+}
+
+function codecRefSource(codec: StoredValueCodec | undefined): readonly string[] {
+  return codec === undefined ? [] : [`codecRef: ${jsonToTsSource(codec.codecRef)}`];
+}
+
+function requireStoredValue(
+  value: string | number,
+  factory: string,
+  tableName: string,
+  columnName: string,
+  argument: string,
+): string | number {
+  if (typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))) {
+    return value;
+  }
+  const got: unknown = value;
+  throw sqliteError(
+    'CONTRACT.ARGUMENT_INVALID',
+    `${factory}({ table: ${jsonToTsSource(tableName)}, column: ${jsonToTsSource(columnName)} }): ${argument} must be a string or a number; got ${typeof got === 'number' || got === undefined ? String(got) : JSON.stringify(got)}`,
+    { meta: { what: `${factory} ${argument}` } },
+  );
+}
+
+/** Changes one stored value of a column to another, in every row that holds it. */
+export class ReplaceStoredValueCall extends SqliteOpFactoryCallNode {
+  readonly factoryName = 'replaceStoredValue' as const;
+  readonly operationClass = 'widening' as const;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly from: string | number;
+  readonly to: string | number;
+  /** The column's codec, which writes `from` and `to` as the database stores them. */
+  readonly codec: StoredValueCodec | undefined;
+  readonly label: string;
+
+  constructor(
+    tableName: string,
+    columnName: string,
+    from: string | number,
+    to: string | number,
+    codec?: StoredValueCodec,
+  ) {
+    super();
+    this.codec = codec;
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.from = requireStoredValue(from, this.factoryName, tableName, columnName, 'from');
+    this.to = requireStoredValue(to, this.factoryName, tableName, columnName, 'to');
+    this.label = `Replace value ${storedValueText(from)} with ${storedValueText(to)} in column "${columnName}" of "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(): Promise<Op> {
+    return replaceStoredValue(
+      this.tableName,
+      this.columnName,
+      await encodeStoredValue(this.from, this.codec),
+      await encodeStoredValue(this.to, this.codec),
+    );
+  }
+
+  renderTypeScript(): string {
+    return replaceStoredValueSource(
+      this.tableName,
+      this.columnName,
+      jsonToTsSource(this.from),
+      jsonToTsSource(this.to),
+      this.codec,
+    );
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+/** Removes one stored value of a column by setting it to NULL in every row that holds it. */
+export class RemoveStoredValueCall extends SqliteOpFactoryCallNode {
+  readonly factoryName = 'removeStoredValue' as const;
+  readonly operationClass = 'destructive' as const;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly value: string | number;
+  /** The column's codec, which writes `value` as the database stores it. */
+  readonly codec: StoredValueCodec | undefined;
+  /** The enum value whose stored value is removed, which the check that fails while rows of a required column hold it names. */
+  readonly enumValue: EnumValueCoordinateJson | undefined;
+  readonly label: string;
+
+  constructor(
+    tableName: string,
+    columnName: string,
+    value: string | number,
+    codec?: StoredValueCodec,
+    enumValue?: EnumValueCoordinateJson,
+  ) {
+    super();
+    this.codec = codec;
+    this.enumValue = enumValue;
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.value = requireStoredValue(value, this.factoryName, tableName, columnName, 'value');
+    this.label = `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(): Promise<Op> {
+    return removeStoredValue(
+      this.tableName,
+      this.columnName,
+      await encodeStoredValue(this.value, this.codec),
+      this.enumValue === undefined
+        ? undefined
+        : {
+            enumValue: this.enumValue,
+            value: this.value,
+            ...(this.codec === undefined ? {} : { codecRef: this.codec.codecRef }),
+          },
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts = [
+      `table: ${jsonToTsSource(this.tableName)}`,
+      `column: ${jsonToTsSource(this.columnName)}`,
+      `value: ${jsonToTsSource(this.value)}`,
+      ...codecRefSource(this.codec),
+      ...(this.enumValue === undefined ? [] : [`enumValue: ${jsonToTsSource(this.enumValue)}`]),
+    ];
+    return `this.removeStoredValue({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+// ============================================================================
 // Data transform
 // ============================================================================
 
@@ -1199,6 +1362,8 @@ export type SqliteOpFactoryCall =
   | DropColumnCall
   | CreateIndexCall
   | DropIndexCall
+  | ReplaceStoredValueCall
+  | RemoveStoredValueCall
   | DataTransformCall
   | RawSqlCall;
 
