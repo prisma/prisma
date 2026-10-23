@@ -135,6 +135,7 @@ export function buildMongoContractFromDefinition(
       ]),
     ),
     valueSets: storageValueSets,
+    valueObjects: builtValueObjects,
   });
   // Contracts carry no capabilities when built; emit adds the stack's. The profile hash fingerprints this empty set.
   const capabilities: Record<string, Record<string, boolean>> = {};
@@ -154,9 +155,6 @@ export function buildMongoContractFromDefinition(
         namespaces: {
           [namespaceId]: {
             models: builtModels,
-            ...(Object.keys(builtValueObjects).length > 0
-              ? { valueObjects: builtValueObjects }
-              : {}),
             ...(Object.keys(builtEnums).length > 0 ? { enum: builtEnums } : {}),
           },
         },

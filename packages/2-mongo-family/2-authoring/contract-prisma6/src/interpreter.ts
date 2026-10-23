@@ -803,7 +803,13 @@ function resolveFieldType(
   if (ctx.compositeTypeNames.has(field.typeName)) {
     if (nativeType !== undefined) return nativeTypeUnsupported(nativeType);
     return {
-      type: { kind: 'valueObject', name: field.typeName },
+      type: {
+        kind: 'valueObject',
+        plane: 'storage',
+        namespaceId: ctx.namespaceId,
+        entityKind: 'valueObject',
+        entityName: field.typeName,
+      },
       nullable: field.optional,
       ...many,
     };

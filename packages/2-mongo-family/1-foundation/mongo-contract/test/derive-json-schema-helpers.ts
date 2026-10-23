@@ -45,6 +45,21 @@ export function arrayEnumField(
   };
 }
 
+/** A value object member typed by an enum: it refers to the enum's storage value set, as a storage entity's field does. */
+export function memberEnumField(codecId: string, enumName: string): ContractField {
+  return {
+    type: { kind: 'scalar', codecId },
+    nullable: false,
+    many: false,
+    valueSet: {
+      plane: 'storage',
+      entityKind: 'valueSet',
+      namespaceId: '__unbound__',
+      entityName: enumName,
+    },
+  };
+}
+
 function valueObjectType(entityName: string): ContractField['type'] {
   return {
     kind: 'valueObject',

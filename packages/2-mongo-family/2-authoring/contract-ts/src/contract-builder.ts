@@ -50,7 +50,7 @@ import {
   type TargetPackRef,
 } from '@internal/framework-components/components';
 import { extractCodecLookup } from '@internal/framework-components/control';
-import type { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type {
   MongoCollection,
   MongoCollectionOptionsAuthoringInput,
@@ -1287,12 +1287,18 @@ export const field = {
       type: blindCast<
         {
           readonly kind: 'valueObject';
-          readonly name: NormalizeValueObjectName<ValueObject>;
+          readonly plane: 'storage';
+          readonly namespaceId: typeof UNBOUND_NAMESPACE_ID;
+          readonly entityKind: 'valueObject';
+          readonly entityName: NormalizeValueObjectName<ValueObject>;
         },
         'resolveValueObjectName returns the normalized name the type computes'
       >({
         kind: 'valueObject',
-        name: resolveValueObjectName(valueObjectName),
+        plane: 'storage',
+        namespaceId: UNBOUND_NAMESPACE_ID,
+        entityKind: 'valueObject',
+        entityName: resolveValueObjectName(valueObjectName),
       }),
       nullable: false,
       many: false,

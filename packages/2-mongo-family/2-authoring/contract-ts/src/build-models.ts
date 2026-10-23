@@ -38,11 +38,23 @@ export function storedFieldNameIn(fields: readonly FieldNode[], fieldName: strin
   return field === undefined ? fieldName : storedNameOf(field);
 }
 
-function buildContractField(field: FieldNode, namespaceId: string): ContractField {
+/**
+ * A field as the contract holds it. A model field refers to its enum in the domain plane; a value object member is a storage entity's field, and storage never refers to the domain, so it refers to the enum's storage value set.
+ */
+function buildContractField(
+  field: FieldNode,
+  namespaceId: string,
+  plane: 'domain' | 'storage',
+): ContractField {
   const valueSet: ValueSetRef | undefined =
     field.enumName === undefined
       ? undefined
-      : { plane: 'domain', entityKind: 'enum', namespaceId, entityName: field.enumName };
+      : {
+          plane,
+          entityKind: plane === 'domain' ? 'enum' : 'valueSet',
+          namespaceId,
+          entityName: field.enumName,
+        };
 
   return {
     type: field.type,
@@ -55,9 +67,10 @@ function buildContractField(field: FieldNode, namespaceId: string): ContractFiel
 function buildFields(
   fields: readonly FieldNode[],
   namespaceId: string,
+  plane: 'domain' | 'storage' = 'domain',
 ): Record<string, ContractField> {
   return Object.fromEntries(
-    fields.map((field) => [field.fieldName, buildContractField(field, namespaceId)]),
+    fields.map((field) => [field.fieldName, buildContractField(field, namespaceId, plane)]),
   );
 }
 
@@ -165,7 +178,9 @@ export function buildValueObjects(
         });
       }
     }
-    builtValueObjects[valueObject.name] = { fields: buildFields(valueObject.fields, namespaceId) };
+    builtValueObjects[valueObject.name] = {
+      fields: buildFields(valueObject.fields, namespaceId, 'storage'),
+    };
   }
 
   return builtValueObjects;

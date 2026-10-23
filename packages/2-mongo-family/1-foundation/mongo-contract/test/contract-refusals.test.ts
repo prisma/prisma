@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { mongoContractRefusalsOf } from '../src/contract-refusals';
 import type { MongoModelStorage } from '../src/contract-types';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
-import { arrayField, enumField, scalarField, voField } from './derive-json-schema-helpers';
+import {
+  arrayField,
+  enumField,
+  memberEnumField,
+  scalarField,
+  voField,
+} from './derive-json-schema-helpers';
 
 function model(
   fields: ContractModel<MongoModelStorage>['fields'],
@@ -164,6 +170,28 @@ describe('mongoContractRefusalsOf', () => {
         },
       }),
     ).toEqual([expect.objectContaining({ kind: 'enumNotListable', enumName: 'Big' })]);
+  });
+
+  it('refuses an enum a validator cannot list, used by a value object member through its storage value set', () => {
+    expect(
+      refusals({
+        enums: unlistableEnums,
+        valueObjects: {
+          Sizing: {
+            fields: {
+              size: memberEnumField('mongo/int64@1', 'Big'),
+              ratio: memberEnumField('mongo/double@1', 'Ratio'),
+            },
+          },
+        },
+        models: {
+          Job: model({ sizing: voField('Sizing') }, { storage: { collection: 'jobs' } }),
+        },
+      }),
+    ).toEqual([
+      expect.objectContaining({ kind: 'enumNotListable', enumName: 'Big' }),
+      expect.objectContaining({ kind: 'enumMemberNotListable', enumName: 'Ratio' }),
+    ]);
   });
 
   it('refuses an enum a validator cannot list, and a member it cannot list', () => {
