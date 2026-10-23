@@ -293,8 +293,34 @@ function renderSubquery(expr: SubqueryExpr, ctx: RenderContext): string {
   return `(${renderSelect(expr.query, ctx)})`;
 }
 
+/** Whether an operand must be parenthesised before an operator is written after it. A new expression kind fails to compile here until someone decides. */
 function needsGrouping(expr: AnyExpression): boolean {
-  return expr.kind === 'operation' || expr.kind === 'subquery';
+  switch (expr.kind) {
+    case 'operation':
+    case 'subquery':
+      return true;
+    case 'column-ref':
+    case 'identifier-ref':
+    case 'aggregate':
+    case 'window-func':
+    case 'function-call':
+    case 'cast':
+    case 'case':
+    case 'json-object':
+    case 'json-array-agg':
+    case 'binary':
+    case 'and':
+    case 'or':
+    case 'exists':
+    case 'null-check':
+    case 'not':
+    case 'param-ref':
+    case 'prepared-param-ref':
+    case 'literal':
+    case 'list':
+    case 'raw-expr':
+      return false;
+  }
 }
 
 function grouped(expr: AnyExpression, ctx: RenderContext): string {
