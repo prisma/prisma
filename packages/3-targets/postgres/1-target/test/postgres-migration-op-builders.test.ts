@@ -22,7 +22,9 @@ import { alterColumnTypeAction, alterTable } from '../src/contract-free/ddl';
 import { postgresDataTypes } from '../src/core/data-types';
 import {
   DropSchemaCall,
+  RemoveStoredValueCall,
   RenameSchemaCall,
+  ReplaceStoredValueCall,
   SetTableSchemaCall,
 } from '../src/core/migrations/op-factory-call';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
@@ -175,6 +177,27 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
 
   callDropSchema(options: { readonly schema: string }): Promise<Op> {
     return this.dropSchema(options);
+  }
+
+  callReplaceStoredValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly from: string | number;
+    readonly to: string | number;
+    readonly many?: boolean;
+  }): Promise<Op> {
+    return this.replaceStoredValue(options);
+  }
+
+  callRemoveStoredValue(options: {
+    readonly schema?: string;
+    readonly table: string;
+    readonly column: string;
+    readonly value: string | number;
+    readonly many?: boolean;
+  }): Promise<Op> {
+    return this.removeStoredValue(options);
   }
 
   callDropColumn(options: {
@@ -598,6 +621,31 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     );
     expect(await fresh().callDropSchema({ schema: 'billing' })).toEqual(
       await new DropSchemaCall('billing').toOp(countingLowerer()),
+    );
+  });
+
+  it('replaceStoredValue gives the operation its call gives, with no control stack', async () => {
+    expect(
+      await new ExposedMigration().callReplaceStoredValue({
+        schema: 'app',
+        table: 'task',
+        column: 'labels',
+        from: 'a',
+        to: 'b',
+        many: true,
+      }),
+    ).toEqual(await new ReplaceStoredValueCall('app', 'task', 'labels', 'a', 'b', true).toOp());
+  });
+
+  it('removeStoredValue gives the operation its call gives, with no control stack', async () => {
+    expect(
+      await new ExposedMigration().callRemoveStoredValue({
+        table: 'task',
+        column: 'rank',
+        value: 3,
+      }),
+    ).toEqual(
+      await new RemoveStoredValueCall(UNBOUND_NAMESPACE_ID, 'task', 'rank', 3, false).toOp(),
     );
   });
 

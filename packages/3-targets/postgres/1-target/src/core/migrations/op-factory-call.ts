@@ -25,16 +25,19 @@ import {
   checkSqlDefaultText,
   checkSqlExpressionText,
   createSqlTextSources,
+  encodeStoredValue,
   isUnfilledSlot,
   type SqlMigrationPlanOperation,
   type SqlSlot,
   type SqlTextSources,
+  type StoredValueCodec,
   slotSource,
   sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { DataType } from '@internal/framework-components/codec';
 import type {
+  EnumValueCoordinateJson,
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
 } from '@internal/framework-components/control';
@@ -122,6 +125,7 @@ import {
 import { dropSchema, renameSchema, setTableSchema } from './operations/schemas';
 import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
+import { removeStoredValue, replaceStoredValue, storedValueText } from './operations/stored-values';
 import { dropTable, renameTable } from './operations/tables';
 import { buildAddNotNullColumnWithTemporaryDefaultOperation } from './planner-recipes';
 import {
@@ -2225,6 +2229,184 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
 }
 
 // ============================================================================
+// Stored values
+// ============================================================================
+
+function replaceStoredValueSource(
+  location: readonly string[],
+  from: string,
+  to: string,
+  many: boolean,
+  codec: StoredValueCodec | undefined,
+): string {
+  const opts = [
+    ...location,
+    `from: ${from}`,
+    `to: ${to}`,
+    ...(many ? ['many: true'] : []),
+    ...codecRefSource(codec),
+  ];
+  return `this.replaceStoredValue({ ${opts.join(', ')} })`;
+}
+
+function codecRefSource(codec: StoredValueCodec | undefined): readonly string[] {
+  return codec === undefined ? [] : [`codecRef: ${jsonToTsSource(codec.codecRef)}`];
+}
+
+function requireStoredValue(
+  value: string | number,
+  factory: string,
+  location: readonly string[],
+  argument: string,
+): string | number {
+  if (typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))) {
+    return value;
+  }
+  const got: unknown = value;
+  throw postgresError(
+    'CONTRACT.ARGUMENT_INVALID',
+    `${factory}({ ${location.join(', ')} }): ${argument} must be a string or a number; got ${typeof got === 'number' || got === undefined ? String(got) : JSON.stringify(got)}`,
+    { meta: { what: `${factory} ${argument}` } },
+  );
+}
+
+/** Changes one stored value of a column to another, in every row, or in every list of a list column. */
+export class ReplaceStoredValueCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'replaceStoredValue' as const;
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly from: string | number;
+  readonly to: string | number;
+  readonly many: boolean;
+  /** The column's codec, which writes `from` and `to` as the database stores them. */
+  readonly codec: StoredValueCodec | undefined;
+  readonly label: string;
+
+  constructor(
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    from: string | number,
+    to: string | number,
+    many: boolean,
+    codec?: StoredValueCodec,
+  ) {
+    super();
+    const location = columnCallLocation(schemaName, tableName, columnName);
+    this.codec = codec;
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.from = requireStoredValue(from, this.factoryName, location, 'from');
+    this.to = requireStoredValue(to, this.factoryName, location, 'to');
+    this.many = many;
+    this.label = `Replace value ${storedValueText(from)} with ${storedValueText(to)} in column "${columnName}" of "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(): Promise<Op> {
+    return replaceStoredValue(
+      this.schemaName,
+      this.tableName,
+      this.columnName,
+      await encodeStoredValue(this.from, this.codec),
+      await encodeStoredValue(this.to, this.codec),
+      this.many,
+    );
+  }
+
+  renderTypeScript(): string {
+    return replaceStoredValueSource(
+      columnCallLocation(this.schemaName, this.tableName, this.columnName),
+      jsonToTsSource(this.from),
+      jsonToTsSource(this.to),
+      this.many,
+      this.codec,
+    );
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+/** Removes one stored value of a column: sets it to NULL, or takes it out of every list of a list column. */
+export class RemoveStoredValueCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'removeStoredValue' as const;
+  readonly operationClass = 'destructive' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly value: string | number;
+  readonly many: boolean;
+  /** The column's codec, which writes `value` as the database stores it. */
+  readonly codec: StoredValueCodec | undefined;
+  /** The enum value whose stored value is removed, which the check that fails while rows of a required column hold it names. */
+  readonly enumValue: EnumValueCoordinateJson | undefined;
+  readonly label: string;
+
+  constructor(
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    value: string | number,
+    many: boolean,
+    codec?: StoredValueCodec,
+    enumValue?: EnumValueCoordinateJson,
+  ) {
+    super();
+    this.codec = codec;
+    this.enumValue = enumValue;
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.value = requireStoredValue(
+      value,
+      this.factoryName,
+      columnCallLocation(schemaName, tableName, columnName),
+      'value',
+    );
+    this.many = many;
+    this.label = `Remove value ${storedValueText(value)} from column "${columnName}" of "${tableName}"`;
+    this.freeze();
+  }
+
+  async toOp(): Promise<Op> {
+    return removeStoredValue(
+      this.schemaName,
+      this.tableName,
+      this.columnName,
+      await encodeStoredValue(this.value, this.codec),
+      this.many,
+      this.enumValue === undefined
+        ? undefined
+        : {
+            enumValue: this.enumValue,
+            value: this.value,
+            ...(this.codec === undefined ? {} : { codecRef: this.codec.codecRef }),
+          },
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts = [
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
+      `value: ${jsonToTsSource(this.value)}`,
+      ...(this.many ? ['many: true'] : []),
+      ...codecRefSource(this.codec),
+      ...(this.enumValue === undefined ? [] : [`enumValue: ${jsonToTsSource(this.enumValue)}`]),
+    ];
+    return `this.removeStoredValue({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+// ============================================================================
 // Data transform
 // ============================================================================
 
@@ -2541,6 +2723,8 @@ export type PostgresOpFactoryCall =
   | CreateNativeEnumTypeCall
   | DropNativeEnumTypeCall
   | AddNativeEnumValueCall
+  | ReplaceStoredValueCall
+  | RemoveStoredValueCall
   | CreatePostgresRlsPolicyCall
   | DropPostgresRlsPolicyCall
   | EnableRowLevelSecurityCall

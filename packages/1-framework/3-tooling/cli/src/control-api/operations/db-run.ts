@@ -44,7 +44,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { join } from 'pathe';
-import { CliStructuredError, errorMigrationPlanningFailed } from '../../utils/cli-errors';
+import { CliStructuredError } from '../../utils/cli-errors';
 import { dbInitPlanningFailedError, dbInitRunnerFailureError } from '../../utils/db-init-failure';
 import { dbUpdateRunnerFailureError } from '../../utils/db-update-failure';
 import {
@@ -52,11 +52,14 @@ import {
   errorExtensionPathUnreachable,
   type UnplannableExtensionSpace,
 } from '../../utils/extension-path-failure';
+import { dbUpdateKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
+import { planningRefusedError } from '../../utils/planning-refused-error';
 import type { CliInvocation } from '../../utils/printed-command';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
   type ConsentedSubject,
+  givenConsents,
   type PlannedQuestions,
   refuseUnusedConsents,
   removedNamespaceOf,
@@ -245,7 +248,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     }
     return resolved.value;
   };
-  const statements = resolveRenames(statementTexts);
+  const consentTexts = statementTexts.filter((statement) => !isPlannedStatement(statement));
+  const firstResolved = resolveRenames(statementTexts);
 
   // 2a. Orphan-marker pre-flight: refuse to *apply* when a marker row
   // exists for a space that is not declared in the aggregate. Plan mode
@@ -281,6 +285,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // (today's `db init` / `db update` daily-driver behaviour); extensions
   // walk their on-disk migration graphs via resolveRecordedPath.
   const plan = async (
+    texts: readonly StatementText[],
     resolved: readonly ResolvedMigrationStatement[],
   ): Promise<Result<PlannedRun, PlanningRefused>> => {
     onProgress?.({
@@ -308,6 +313,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           aggregate,
           markerRows,
           invocation: options.invocation,
+          statements: texts,
+          resolved,
         }),
       });
     }
@@ -337,7 +344,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     });
   };
 
-  const first = await plan(statements);
+  const first = await plan(statementTexts, firstResolved);
   if (!first.ok) {
     return notOk(first.failure.refused);
   }
@@ -353,13 +360,17 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       askAccess: true,
       canConvert: false,
       statements: plannedTexts,
-      preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
+      preAnswers: consentTexts,
       consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       destination: contract,
       answer: options.answerQuestions,
-      replan: (planned) => plan(resolveRenames(planned)),
+      keepDataEditAdvice: dbUpdateKeepDataEditAdvice(
+        options.invocation,
+        recordedDatabaseContract(aggregate, markerRows),
+      ),
+      replan: (planned) => plan([...consentTexts, ...planned], resolveRenames(planned)),
     });
     if (!answered.ok) {
       if (CliStructuredError.is(answered.failure)) {
@@ -384,6 +395,16 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     if (!refused.ok) {
       throw refused.failure;
     }
+    consented = givenConsents({
+      plan: run,
+      statements: statementTexts,
+      consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
+      contracts: {
+        origin: fromContract ?? EMPTY_ORIGIN,
+        destination: contract,
+        statements: plannedTexts,
+      },
+    });
   }
   const { planned, orderedResolutions } = run;
   const plannerWarnings = aggregatePlannerWarnings(orderedResolutions);
@@ -684,12 +705,20 @@ function mapPlannerError(
     readonly aggregate: ContractSpaceAggregate;
     readonly markerRows: ReadonlyMap<string, { readonly storageHash: string }>;
     readonly invocation: CliInvocation;
+    readonly statements: readonly StatementText[];
+    readonly resolved: readonly ResolvedMigrationStatement[];
   },
 ): CliStructuredError {
   if (error.kind === 'planFromDiffFailed') {
     return context.action === 'dbInit'
       ? dbInitPlanningFailedError(error.conflicts)
-      : errorMigrationPlanningFailed({ conflicts: error.conflicts });
+      : planningRefusedError(error.conflicts, {
+          invocation: context.invocation,
+          from: recordedDatabaseContract(context.aggregate, context.markerRows),
+          to: undefined,
+          statements: context.statements,
+          resolved: context.resolved,
+        });
   }
   if (error.kind === 'policyConflict') {
     throw new InternalError(

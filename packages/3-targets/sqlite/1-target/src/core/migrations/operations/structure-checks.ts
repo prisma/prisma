@@ -1,5 +1,5 @@
 import type { SqlMigrationPlanOperationStep } from '@internal/family-sql/control';
-import { escapeLiteral } from '../../sql-utils';
+import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
 
 /**
  * A column as `pragma_table_info` reports it. SQLite keeps a column's declared type as written, so
@@ -43,6 +43,20 @@ export function columnShapeCheck(
   return {
     description: `verify column "${column.name}" on "${tableName}" has type ${column.typeSql} and ${column.notNull ? 'is required' : 'is optional'}`,
     sql: `SELECT COUNT(*) > 0 FROM pragma_table_info(${text(tableName)}) WHERE name = ${text(column.name)} AND LOWER(type) = ${text(column.typeSql.toLowerCase())} AND "notnull" = ${column.notNull ? 1 : 0}`,
+  };
+}
+
+/** Checks that the column takes NULL, or that no row holds `value` in it. */
+export function columnTakesNullOrValueAbsentCheck(
+  tableName: string,
+  columnName: string,
+  value: string | number,
+  description: string,
+): SqlMigrationPlanOperationStep {
+  return {
+    description,
+    sql: `SELECT (SELECT COUNT(*) > 0 FROM pragma_table_info(${text(tableName)}) WHERE name = ${text(columnName)} AND "notnull" = 0) OR NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE ${quoteIdentifier(columnName)} = ?1) AS result`,
+    params: [value],
   };
 }
 
