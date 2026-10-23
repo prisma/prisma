@@ -10,17 +10,9 @@ import { type Connection, createConnection } from 'mysql2/promise';
 import { mysqlConnectionOptions } from '../connection-options';
 import { mysqlDriverDescriptorMeta } from '../descriptor-meta';
 import { formatMysqlQuery } from '../format-query';
-import { isFatal, normalizeMysqlError } from '../normalize-error';
+import { connectionLost, isFatal, normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
 import { SESSION_SETUP } from '../session-setup';
-
-function connectionLost(cause: Error) {
-  return errorRuntime('DRIVER.NOT_CONNECTED', 'MySQL connection lost or closed', {
-    why: cause.message,
-    fix: 'Create a new driver to connect again.',
-    cause,
-  });
-}
 
 /**
  * A MySQL connection for the control plane. It runs each statement through mysql2's text protocol, `query()`, which escapes parameters on the client; `multipleStatements` stays off whatever the URL says, so a parameter can never end the statement it is in.

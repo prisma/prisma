@@ -1,6 +1,7 @@
 import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
+import mysqlControlDriver from '../src/core/migrations/control-driver';
 import mysqlRuntimeDriver from '../src/core/runtime/runtime-driver';
 
 async function collect<Row>(rows: AsyncIterable<Row>): Promise<Row[]> {
@@ -20,6 +21,13 @@ async function withDriver<T>(
   } finally {
     await driver.close();
   }
+}
+
+const slowRows =
+  "WITH RECURSIVE s(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM s WHERE n < 200) SELECT CONNECTION_ID() AS cid, n, SLEEP(0.05) AS z, REPEAT('x', 40000) AS pad FROM s";
+
+async function drain(rows: AsyncIterator<unknown>): Promise<void> {
+  while (!(await rows.next()).done) {}
 }
 
 const numbers =
@@ -160,6 +168,44 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         closedBeforeRelease: false,
         closed: true,
       });
+    });
+  });
+
+  it('ends a stream whose connection is lost with DRIVER.NOT_CONNECTED, and close() still finishes', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const admin = await mysqlControlDriver.create(url);
+      const driver = mysqlRuntimeDriver.create();
+      await driver.connect({ kind: 'url', url });
+      try {
+        const rows = driver.query<{ cid: string }>({ sql: slowRows })[Symbol.asyncIterator]();
+        const first = await rows.next();
+        await admin.query(`KILL ${first.done ? '' : first.value.cid}`);
+        await expect(drain(rows)).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
+        await driver.close();
+        expect(driver.state).toBe('closed');
+      } finally {
+        await admin.close();
+      }
+    });
+  });
+
+  it('stops reading a held connection that is lost after the caller broke out of its stream', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const admin = await mysqlControlDriver.create(url);
+      const driver = mysqlRuntimeDriver.create();
+      await driver.connect({ kind: 'url', url });
+      try {
+        const connection = await driver.acquireConnection();
+        for await (const row of connection.query<{ cid: string }>({ sql: slowRows })) {
+          await admin.query(`KILL ${row.cid}`);
+          break;
+        }
+        await connection.destroy();
+        await driver.close();
+        expect(driver.state).toBe('closed');
+      } finally {
+        await admin.close();
+      }
     });
   });
 

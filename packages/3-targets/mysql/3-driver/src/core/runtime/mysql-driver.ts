@@ -13,7 +13,7 @@ import { blindCast } from '@internal/utils/casts';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
 import { mysqlConnectionOptions } from '../connection-options';
 import { formatMysqlQuery } from '../format-query';
-import { isFatal, normalizeMysqlError } from '../normalize-error';
+import { connectionLost, isFatal, normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
 import { SESSION_SETUP } from '../session-setup';
 
@@ -74,16 +74,33 @@ interface Lent {
   done(evict: boolean): void;
 }
 
+/** What a stream reports back to whoever lent its connection. */
+interface StreamOutcome {
+  evict: boolean;
+}
+
 /**
- * Streams the rows of `request` on `connection` as the text MySQL sends. A caller that stops reading early leaves the rest of the result unread; the connection reads and drops it before the stream finishes, so the connection stays usable.
+ * Streams the rows of `request` on `connection` as the text MySQL sends. A caller that stops reading early leaves the rest of the result unread; the connection reads and drops it before the stream finishes, so the connection stays usable. mysql2 tells a streaming query nothing when its connection is lost, so the stream listens to the connection and ends with `DRIVER.NOT_CONNECTED`. A lost connection, or a fatal error, sets `outcome.evict`.
  */
 async function* streamRows<Row>(
   connection: PoolConnection,
   request: SqlExecuteRequest,
+  outcome: StreamOutcome,
 ): AsyncGenerator<Row> {
   const command = connection.query({ sql: formatted(request), typeCast: serverText });
-  const finished = new Promise<void>((resolve) => command.once('end', () => resolve()));
+  let settle: () => void = () => {};
+  const finished = new Promise<void>((resolve) => {
+    settle = resolve;
+    command.once('end', () => resolve());
+  });
   const stream = command.stream();
+  const onLost = (cause?: unknown) => {
+    outcome.evict = true;
+    stream.destroy(connectionLost(cause));
+    settle();
+  };
+  connection.once('end', onLost);
+  connection.once('error', onLost);
   let completed = false;
   let failed = false;
   try {
@@ -95,10 +112,13 @@ async function* streamRows<Row>(
     completed = true;
   } catch (error) {
     failed = true;
+    if (isFatal(error)) outcome.evict = true;
     throw normalizeMysqlError(error);
   } finally {
-    if (!completed && !failed) connection.resume();
+    if (!completed && !failed && !outcome.evict) connection.resume();
     if (!failed) await finished;
+    connection.off('end', onLost);
+    connection.off('error', onLost);
   }
 }
 
@@ -107,14 +127,11 @@ abstract class MysqlQueryable implements SqlQueryable {
 
   async *query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     const lent = await this.lend();
-    let evict = false;
+    const outcome: StreamOutcome = { evict: false };
     try {
-      yield* streamRows<Row>(lent.connection, request);
-    } catch (error) {
-      evict = isFatal(error);
-      throw error;
+      yield* streamRows<Row>(lent.connection, request, outcome);
     } finally {
-      lent.done(evict);
+      lent.done(outcome.evict);
     }
   }
 
