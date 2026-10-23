@@ -18,7 +18,7 @@ type Op = SqlMigrationPlanOperation<SqlitePlanTargetDetails>;
 
 const target = {
   id: 'sqlite',
-  details: { schema: 'main', objectType: 'column', name: 'state', table: 'task' },
+  details: { objectType: 'column', name: 'state', table: 'task' },
 };
 
 describe('replaceStoredValue', () => {
