@@ -468,6 +468,8 @@ pnpm prisma db sign --db $DATABASE_URL
 
 **Never reset or drop the database.** It can always be moved. Pick the recovery by what kind of database it is.
 
+When the error names an extension's contract space (`meta.spaceId` is not `app`), that space's migrations come with the extension package: install a version of the extension whose migrations include the database's contract (`prisma migration list --space <space>` lists them), or ask its maintainers. The recoveries below are for the application space.
+
 ### When the database's history does not need to be kept (local, development, staging, preview)
 
 Reconcile it to the target with `db update`:

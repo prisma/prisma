@@ -49,7 +49,9 @@ An empty database (no marker) is never case 1.
   3. `run-command`, label `Reconcile the database`: `{bin} db update --db <url> --to <target hash>`
   4. `user-choice`: `Then deploy again.`
   5. `user-choice`: `If this database changes only through migrations, as production should: author a migration from <last graph hash> to the database's current contract, then one from there to <target hash>, commit them, and deploy again.` When there is no last graph hash, say `from the nearest contract in the migration graph` instead.
-- **meta:** `spaceId`, `markerHash`, `targetHash`, `lastGraphHash` (or absent), `missingMigrations` (array of names, possibly empty).
+- **meta:** `spaceId`, `markerHash`, `targetHash`, `lastGraphHash` (or absent), `missingMigrations` (array of names, possibly empty; absent when the ledger cannot be read).
+
+Ledger rows written by `db update` or `db init` carry no migration name; the `why` says such a command moved the database outside the graph instead of naming a migration. Each list in the `why` shows at most five names. For an extension space, whose migrations come with the extension, the next actions send the user to a version of the extension whose migrations include the database's contract, since `db update` walks extension graphs and fails the same way. An extension space that ships no migrations is never refused, as before.
 
 Commands print through `cliCommand` (`utils/printed-command.ts`), like every other printed command: arguments first, then the `--config` and `--db <url>` the caller was given, with hashes in full. A caller that is not the CLI, such as Composer, passes `invocation.dbGiven: true`, so the commands it shows name `--db <url>` and are not run against a developer's configured database by mistake. Composer sets it in slice 2.
 
