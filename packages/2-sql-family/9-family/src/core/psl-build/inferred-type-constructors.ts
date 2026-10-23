@@ -127,6 +127,11 @@ export interface WrittenPslTypeCall {
   readonly args: readonly PslTypeArgument[];
 }
 
+/** A type choice call as PSL writes it, and the type constructor call it becomes. */
+export interface WrittenTypeChoiceCall extends WrittenPslTypeCall {
+  readonly becomes: AuthoringTypeConstructorCall;
+}
+
 /**
  * Whether two outputs have the same codec and the same parameters in the normal form of `dataType`, which the codecs represent: how `db verify` and the planner compare a column with the database.
  */
@@ -150,7 +155,7 @@ export function writtenTypeChoiceCall(input: {
     produced: AuthoringTypeConstructorOutput,
     wanted: AuthoringTypeConstructorOutput,
   ) => boolean;
-}): WrittenPslTypeCall | undefined {
+}): WrittenTypeChoiceCall | undefined {
   const found = findAuthoringTypeChoiceCall({
     namespace: input.authoringTypes,
     call: input.call,
@@ -176,5 +181,5 @@ export function writtenTypeChoiceCall(input: {
     if (text === undefined) return undefined;
     args.push({ name, text });
   }
-  return { path: found.path, args };
+  return { path: found.path, args, becomes: found.becomes };
 }

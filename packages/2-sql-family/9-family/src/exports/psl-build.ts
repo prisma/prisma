@@ -33,6 +33,7 @@ export {
   type PslTypeArgument,
   sameInNormalForm,
   type WrittenPslTypeCall,
+  type WrittenTypeChoiceCall,
   writtenTypeArguments,
   writtenTypeChoiceCall,
 } from '../core/psl-build/inferred-type-constructors';

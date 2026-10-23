@@ -2,6 +2,7 @@ import { isInternalError } from '@internal/utils/internal-error';
 import {
   type AuthoringTypeChoiceDescriptor,
   isAuthoringTypeChoiceOption,
+  resolveAuthoringTypeChoice,
   typeConstructorLookup,
 } from './authoring-type-choice';
 import {
@@ -27,6 +28,8 @@ export interface AuthoringTypeChoiceCallArgument {
 export interface AuthoringTypeChoiceCall {
   readonly path: readonly string[];
   readonly args: readonly AuthoringTypeChoiceCallArgument[];
+  /** The type constructor call the type choice call becomes. */
+  readonly becomes: AuthoringTypeConstructorCall;
 }
 
 function namespaceLevel(
@@ -108,10 +111,19 @@ export function findAuthoringTypeChoiceCall(input: {
     if (args[index] !== undefined && reproduces(without)) args[index] = undefined;
   }
 
+  const chosen = resolveAuthoringTypeChoice({
+    helperPath: choice.name,
+    descriptor: choice.descriptor,
+    args,
+    constructorNamed: typeConstructorLookup(level),
+  });
+  const chosenArgs = [...chosen.args];
+  while (chosenArgs.length > 0 && chosenArgs.at(-1) === undefined) chosenArgs.pop();
   return {
     path: [...prefix, choice.name],
     args: choice.descriptor.args.flatMap((argument, index) =>
       args[index] === undefined ? [] : [{ name: argument.name, value: args[index] }],
     ),
+    becomes: { path: [...prefix, chosen.type], args: chosenArgs },
   };
 }

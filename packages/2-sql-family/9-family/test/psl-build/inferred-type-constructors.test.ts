@@ -52,6 +52,16 @@ const stamp = sqlDataType('t/stamp', {
   normalize: (params) => (params.precision === undefined ? { ...params, precision: 6 } : params),
 });
 
+const clock = sqlDataType('t/clock', {
+  read: (json) => json,
+  params: type({ 'precision?': 'number.integer >= 0 & number.integer <= 6' }),
+  texts: [
+    { text: 'clock', written: true, catalog: true },
+    { text: 'clock({precision})', written: true, catalog: true },
+  ],
+  normalize: (params) => (params.precision === undefined ? { ...params, precision: 6 } : params),
+});
+
 const labelled = sqlDataType('t/labelled', {
   read: (json) => json,
   params: type({ label: 'string' }),
@@ -99,6 +109,20 @@ const authoringTypes = {
       { when: { value: 'text' }, type: 'StampText' },
     ],
   },
+  ClockText: {
+    kind: 'typeConstructor',
+    inferred: true,
+    args: [{ kind: 'value', dataType: 't/int', name: 'precision', optional: true }],
+    output: { codecId: 't/clock-text@1', typeParams: { precision: { kind: 'arg', index: 0 } } },
+  },
+  Clock: {
+    kind: 'typeChoice',
+    args: [
+      { kind: 'option', name: 'value', values: ['text'], default: 'text', optional: true },
+      { kind: 'value', dataType: 't/int', name: 'precision', optional: true },
+    ],
+    choices: [{ when: { value: 'text' }, type: 'ClockText' }],
+  },
   ext: {
     Labelled: {
       kind: 'typeConstructor',
@@ -115,6 +139,7 @@ const dataTypeOfCodec: Record<string, string> = {
   't/labelled@1': 't/labelled',
   't/stamp-date@1': 't/stamp',
   't/stamp-text@1': 't/stamp',
+  't/clock-text@1': 't/clock',
 };
 
 const constructors = inferredTypeConstructors({
@@ -125,7 +150,7 @@ const constructors = inferredTypeConstructors({
         ? undefined
         : ({ dataType: dataTypeOfCodec[codecId] } as unknown as AnyCodecDescriptor),
   },
-  dataTypeLookup: createDataTypeLookup([numeric, text, labelled, stamp]),
+  dataTypeLookup: createDataTypeLookup([numeric, text, labelled, stamp, clock]),
 });
 
 const dataTypes: DataTypeSupport = {
@@ -147,7 +172,7 @@ const dataTypes: DataTypeSupport = {
       documentation: 'Text.',
     },
   },
-  lookup: createDataTypeLookup([int, numeric, text, labelled, stamp]),
+  lookup: createDataTypeLookup([int, numeric, text, labelled, stamp, clock]),
   dataTypeOfCodec: () => undefined,
 };
 
@@ -159,6 +184,7 @@ describe('inferredTypeConstructors', () => {
       't/text': ['Text'],
       't/numeric': ['Numeric'],
       't/stamp': ['StampDate'],
+      't/clock': ['ClockText'],
       't/labelled': ['ext', 'Labelled'],
     });
   });
@@ -208,15 +234,20 @@ describe('writtenTypeChoiceCall', () => {
       write(['StampText'], [2]),
       write(['StampText'], []),
     ]).toEqual([
-      { path: ['Stamp'], args: [] },
+      { path: ['Stamp'], args: [], becomes: { path: ['StampDate'], args: [3] } },
       {
         path: ['Stamp'],
         args: [
           { name: 'value', text: 'text' },
           { name: 'precision', text: '2' },
         ],
+        becomes: { path: ['StampText'], args: [2] },
       },
-      { path: ['Stamp'], args: [{ name: 'value', text: 'text' }] },
+      {
+        path: ['Stamp'],
+        args: [{ name: 'value', text: 'text' }],
+        becomes: { path: ['StampText'], args: [] },
+      },
     ]);
   });
 
@@ -298,6 +329,17 @@ describe('inferColumnTypes', () => {
         explicit: { path: ['StampDate'], values: [6] },
       },
       paid: { path: ['Stamp'], args: [], explicit: { path: ['StampDate'], values: [3] } },
+    });
+  });
+
+  it('records the explicit call the written type choice call becomes, not the column parameters in normal form', () => {
+    const typeOf = infer([
+      { schemaName: 'public', tableName: 'shop', columns: [column('opens', catalog('clock'))] },
+    ]);
+    expect(typeOf('shop', 'opens')).toEqual({
+      path: ['Clock'],
+      args: [],
+      explicit: { path: ['ClockText'], values: [] },
     });
   });
 

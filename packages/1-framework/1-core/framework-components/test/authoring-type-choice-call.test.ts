@@ -65,7 +65,11 @@ const find = (
 
 describe('findAuthoringTypeChoiceCall', () => {
   it('writes the default row bare when its parameter is the row default', () => {
-    expect(find(['WideDate'], [3])).toEqual({ path: ['Moment'], args: [] });
+    expect(find(['WideDate'], [3])).toEqual({
+      path: ['Moment'],
+      args: [],
+      becomes: { path: ['WideDate'], args: [3] },
+    });
   });
 
   it('writes only the arguments that differ from the defaults, by name', () => {
@@ -75,6 +79,7 @@ describe('findAuthoringTypeChoiceCall', () => {
         { name: 'value', value: 'text' },
         { name: 'precision', value: 2 },
       ],
+      becomes: { path: ['WideText'], args: [2] },
     });
   });
 
@@ -82,6 +87,7 @@ describe('findAuthoringTypeChoiceCall', () => {
     expect(find(['WideDate'], [6])).toEqual({
       path: ['Moment'],
       args: [{ name: 'precision', value: 6 }],
+      becomes: { path: ['WideDate'], args: [6] },
     });
   });
 
@@ -89,6 +95,7 @@ describe('findAuthoringTypeChoiceCall', () => {
     expect(find(['NarrowDate'], [])).toEqual({
       path: ['Moment'],
       args: [{ name: 'column', value: 'narrow' }],
+      becomes: { path: ['NarrowDate'], args: [] },
     });
   });
 
@@ -117,14 +124,22 @@ describe('findAuthoringTypeChoiceCall', () => {
         call: { path: ['WideText'], args: [6] },
         sameOutput: omittedPrecisionIsSix,
       }),
-    ).toEqual({ path: ['Moment'], args: [{ name: 'value', value: 'text' }] });
+    ).toEqual({
+      path: ['Moment'],
+      args: [{ name: 'value', value: 'text' }],
+      becomes: { path: ['WideText'], args: [] },
+    });
     expect(
       findAuthoringTypeChoiceCall({
         namespace,
         call: { path: ['WideDate'], args: [6] },
         sameOutput: omittedPrecisionIsSix,
       }),
-    ).toEqual({ path: ['Moment'], args: [{ name: 'precision', value: 6 }] });
+    ).toEqual({
+      path: ['Moment'],
+      args: [{ name: 'precision', value: 6 }],
+      becomes: { path: ['WideDate'], args: [6] },
+    });
   });
 
   it('takes the first type choice in namespace order that names the constructor', () => {
@@ -135,6 +150,7 @@ describe('findAuthoringTypeChoiceCall', () => {
     expect(find(['WideDate'], [3], { ...constructors, Moment: moment, Other: second })).toEqual({
       path: ['Moment'],
       args: [],
+      becomes: { path: ['WideDate'], args: [3] },
     });
   });
 
@@ -142,6 +158,7 @@ describe('findAuthoringTypeChoiceCall', () => {
     expect(find(['pg', 'NarrowDate'], [], { pg: namespace })).toEqual({
       path: ['pg', 'Moment'],
       args: [{ name: 'column', value: 'narrow' }],
+      becomes: { path: ['pg', 'NarrowDate'], args: [] },
     });
   });
 });

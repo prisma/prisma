@@ -45,7 +45,7 @@ function reportedTypeOf(column: SqlColumnIR, tableName: string): ReportedSqlType
   return column.reportedType;
 }
 
-/** The call to the type choice that becomes `marked` with every parameter in `params`, compared in the normal form, as `db verify` compares the column. */
+/** The call to the type choice that becomes `marked` with every parameter in `params`, compared in the normal form, as `db verify` compares the column, with the explicit call it becomes. */
 function convenienceCall(
   marked: InferredTypeConstructor,
   params: Readonly<Record<string, unknown>>,
@@ -64,7 +64,13 @@ function convenienceCall(
       dataTypes: support,
       sameOutput: sameInNormalForm(marked.dataType),
     });
-  return values && written && { ...written, explicit: { path: marked.path, values } };
+  return (
+    written && {
+      path: written.path,
+      args: written.args,
+      explicit: { path: written.becomes.path, values: written.becomes.args },
+    }
+  );
 }
 
 function writtenCall(
