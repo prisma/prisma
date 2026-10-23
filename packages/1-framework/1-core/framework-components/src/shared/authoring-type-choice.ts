@@ -79,6 +79,16 @@ function isArgumentObject(value: unknown): value is Readonly<Record<string, unkn
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Why `subject`, a call of the type choice `descriptor`, cannot take the argument `name`, naming the arguments it takes. */
+export function unknownTypeChoiceArgumentMessage(
+  subject: string,
+  descriptor: AuthoringTypeChoiceDescriptor,
+  name: string,
+): string {
+  const names = descriptor.args.map((argument) => argument.name);
+  return `${subject} has no argument "${name}"; its arguments are ${listedNames(names)}.`;
+}
+
 /**
  * The values of a type choice call that writes its arguments as one object, by the choice's argument positions, as {@link resolveAuthoringTypeChoice} reads them. `written` is the call's arguments: none, or one object keyed by argument name. Anything else, and a key the choice has no argument for, is refused with `CONTRACT.ARGUMENT_INVALID`.
  */
@@ -103,7 +113,7 @@ export function typeChoiceArgumentsFromObject(
   if (unknown !== undefined) {
     throw runtimeError(
       'CONTRACT.ARGUMENT_INVALID',
-      `${helperPath} has no argument "${unknown}"; its arguments are ${listedNames(names)}.`,
+      unknownTypeChoiceArgumentMessage(helperPath, descriptor, unknown),
       { helperPath },
     );
   }

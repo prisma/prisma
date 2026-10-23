@@ -78,7 +78,7 @@ describe('a MongoDB field typed by a type choice', () => {
     [
       'an unknown named argument',
       'Moment(bogus: date)',
-      'Field "Doc.at" type "Moment" received unknown named argument "bogus".',
+      'Field "Doc.at" type "Moment" has no argument "bogus"; its arguments are as and label.',
     ],
     [
       'a value the option does not list',

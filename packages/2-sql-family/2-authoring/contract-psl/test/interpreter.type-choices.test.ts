@@ -192,6 +192,19 @@ describe('a type choice in a field type', () => {
     ]);
   });
 
+  it('refuses an argument the choice does not declare, naming the arguments it does', () => {
+    const line = 'at Moment(value: 3)';
+    const start = '  '.length + line.indexOf('value');
+    expect(diagnostics(model(line))).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message:
+          'Field "T.at" type "Moment" has no argument "value"; its arguments are as, storage and precision.',
+        columns: [start + 1, start + 1 + 'value: 3'.length],
+      },
+    ]);
+  });
+
   it('refuses a precision the chosen type’s codec refuses, naming the argument of the choice', () => {
     const line = 'at Moment(as: temporal, storage: local, precision: 7)';
     const start = '  '.length + line.indexOf('precision');

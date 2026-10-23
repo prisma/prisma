@@ -115,9 +115,9 @@ model Order {
     );
   });
 
-  it('refuses a precision the type it becomes does not take', async () => {
+  it('refuses a precision the type it becomes does not take, naming the arguments it takes', async () => {
     await expect(readPsl(model('at Date(precision: 3)'))).rejects.toThrow(
-      'received unknown named argument \\"precision\\"',
+      'Field \\"Order.at\\" type \\"Date\\" has no argument \\"precision\\"; its arguments are as and storage.',
     );
   });
 });

@@ -13,6 +13,7 @@ export {
   typeChoiceArgumentsFromObject,
   typeChoiceCombinationText,
   typeConstructorLookup,
+  unknownTypeChoiceArgumentMessage,
 } from '../shared/authoring-type-choice';
 export type {
   AuthoringTypeChoiceCall,

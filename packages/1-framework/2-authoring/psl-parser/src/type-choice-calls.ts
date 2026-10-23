@@ -4,6 +4,7 @@ import {
   instantiateAuthoringTypeConstructor,
   resolveAuthoringTypeChoice,
   type ScalarTypeConstructorOutput,
+  unknownTypeChoiceArgumentMessage,
   validateAuthoringTypeChoiceParams,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
@@ -55,6 +56,18 @@ export function instantiatePslTypeChoice(input: {
   const helperPath = symbol.path.join('.');
   const call = input.call ?? { path: symbol.path, args: [], span: input.span };
   const subject = `${input.entityLabel} type "${helperPath}"`;
+  const unknown = call.args.find(
+    (arg) =>
+      arg.kind === 'named' && !descriptor.args.some((declared) => declared.name === arg.name),
+  );
+  if (unknown?.name !== undefined) {
+    input.diagnostics.push({
+      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      message: unknownTypeChoiceArgumentMessage(subject, descriptor, unknown.name),
+      ...input.source.at(unknown.span),
+    });
+    return undefined;
+  }
   const args = mapPslHelperArgs({
     args: call.args,
     descriptors: descriptor.args,
