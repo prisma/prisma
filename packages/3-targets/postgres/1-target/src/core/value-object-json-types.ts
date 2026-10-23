@@ -10,6 +10,8 @@ import {
   PG_INT2_CODEC_ID,
   PG_INT4_CODEC_ID,
   PG_INT8_NUMBER_CODEC_ID,
+  PG_JSON_CODEC_ID,
+  PG_JSONB_CODEC_ID,
   PG_TEXT_CODEC_ID,
   PG_TIME_STRING_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,
@@ -30,7 +32,7 @@ import {
 type JsonType = 'string' | 'number' | 'boolean';
 
 /**
- * The JSON type a value object member of each codec has in the JSON the SQL ORM writes: the type its JavaScript value serializes to. JSON members hold any value, and a codec missing here is checked for presence only.
+ * The JSON type a value object member of each codec has in the JSON the SQL ORM writes: the type its JavaScript value serializes to. JSON members hold any value, and a member of a codec missing here is checked only for being present and, when required, not JSON null.
  */
 const JSON_TYPE_OF_CODEC: Readonly<Record<string, JsonType>> = {
   [PG_TEXT_CODEC_ID]: 'string',
@@ -63,4 +65,10 @@ const JSON_TYPE_OF_CODEC: Readonly<Record<string, JsonType>> = {
 
 export function valueObjectJsonTypeOfCodec(codecId: string): JsonType | undefined {
   return Object.hasOwn(JSON_TYPE_OF_CODEC, codecId) ? JSON_TYPE_OF_CODEC[codecId] : undefined;
+}
+
+const JSON_CODECS: ReadonlySet<string> = new Set([PG_JSON_CODEC_ID, PG_JSONB_CODEC_ID]);
+
+export function valueObjectMemberHoldsAnyJson(codecId: string): boolean {
+  return JSON_CODECS.has(codecId);
 }

@@ -135,7 +135,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     ]);
   });
 
-  it('checks only the presence of a member whose codec has no known JSON type, and of a JSON member', () => {
+  it('refuses JSON null for a required member whose codec has no known JSON type, and checks only the presence of a JSON member', () => {
     const bytes = member(scalar('pg/bytea@1'));
     const data = member(scalar('pg/jsonb@1'));
     const notes = member(scalar('pg/jsonb@1'), { nullable: true });
@@ -143,7 +143,7 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     expect(render(member(holding({ fields: { blobs, bytes, data, notes } })))).toEqual([
       {
         kind: 'valueObject',
-        expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "blobs" && (@.value.type() == "array" && !exists(@.value[*] ? (@.type() == "null"))))) && exists($.keyvalue() ? (@.key == "bytes")) && exists($.keyvalue() ? (@.key == "data")) && !exists($.keyvalue() ? (@.key != "blobs" && @.key != "bytes" && @.key != "data" && @.key != "notes"))') IS TRUE`,
+        expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "blobs" && (@.value.type() == "array" && !exists(@.value[*] ? (@.type() == "null"))))) && exists($.keyvalue() ? (@.key == "bytes" && (@.value.type() != "null"))) && exists($.keyvalue() ? (@.key == "data")) && !exists($.keyvalue() ? (@.key != "blobs" && @.key != "bytes" && @.key != "data" && @.key != "notes"))') IS TRUE`,
       },
     ]);
   });

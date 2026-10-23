@@ -7,7 +7,10 @@ import type {
 } from '@internal/sql-contract/check-expressions';
 import { invariant } from '@internal/utils/assertions';
 import { escapeLiteral, quoteIdentifier } from './sql-utils';
-import { valueObjectJsonTypeOfCodec } from './value-object-json-types';
+import {
+  valueObjectJsonTypeOfCodec,
+  valueObjectMemberHoldsAnyJson,
+} from './value-object-json-types';
 
 /**
  * Renders the checks a Postgres column needs, as opaque predicate text.
@@ -133,7 +136,7 @@ function objectPredicate(valueObject: ResolvedValueObject, path: string): string
     const field = valueObject.fields[name];
     invariant(field !== undefined, `value object member "${name}" is missing`);
     const isMember = `@.key == ${jsonPathLiteral(name)}`;
-    const predicate = fieldPredicate(field, '@.value');
+    const predicate = requiredMemberPredicate(field, fieldPredicate(field, '@.value'));
     if (!field.nullable) {
       return [
         predicate === undefined
@@ -152,6 +155,14 @@ function objectPredicate(valueObject: ResolvedValueObject, path: string): string
       ? `!exists(${path}.keyvalue())`
       : `!exists(${path}.keyvalue() ? (${names.map((name) => `@.key != ${jsonPathLiteral(name)}`).join(' && ')}))`;
   return [`${path}.type() == "object"`, ...members, otherKey].join(' && ');
+}
+
+function requiredMemberPredicate(
+  field: ResolvedValueObjectField,
+  predicate: string | undefined,
+): string | undefined {
+  if (predicate !== undefined || field.nullable || field.type.kind !== 'scalar') return predicate;
+  return valueObjectMemberHoldsAnyJson(field.type.codecId) ? undefined : '@.value.type() != "null"';
 }
 
 function jsonPathLiteral(value: string | number): string {
