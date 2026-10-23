@@ -1,4 +1,8 @@
-import { printTaggedLiteral } from '@internal/framework-components/authoring';
+import {
+  type AuthoringTypeNamespace,
+  isAuthoringTypeDescriptor,
+  printTaggedLiteral,
+} from '@internal/framework-components/authoring';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import type { DescribeUnresolvedType } from '@internal/psl-parser';
 import { describeRemovedFieldPreset } from '@internal/psl-parser/interpret';
@@ -6,15 +10,34 @@ import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import { parseQuotedStringLiteral } from './psl-attribute-parsing';
 import { removedSqlFieldPresets } from './removed-field-presets';
 
+/** The default message for a bare type name, followed by the types of that name in a contributed namespace, such as `sql.Ulid` for `Ulid`, or `undefined` when no namespace has one. */
+function suggestNamespacedTypes(
+  written: string,
+  types: AuthoringTypeNamespace,
+): string | undefined {
+  const candidates = Object.entries(types).flatMap(([namespace, member]) => {
+    if (isAuthoringTypeDescriptor(member) || !Object.hasOwn(member, written)) return [];
+    const type = member[written];
+    return type !== undefined && isAuthoringTypeDescriptor(type) ? [`${namespace}.${written}`] : [];
+  });
+  return candidates.length === 0
+    ? undefined
+    : `Cannot find type "${written}". Did you mean ${candidates.join(' or ')}?`;
+}
+
 /**
- * The message for a field type the binder cannot find. A call to a field preset Prisma 8 removed names what to write instead. `Unsupported("x")`, the Prisma 6 and Prisma 7 way to keep a column of a type those versions do not know, is named as no Prisma 8 type; any other name keeps the binder's message.
+ * The message for a field type the binder cannot find. A call to a field preset Prisma 8 removed names what to write instead, and a bare name that a contributed namespace holds names that type. `Unsupported("x")`, the Prisma 6 and Prisma 7 way to keep a column of a type those versions do not know, is named as no Prisma 8 type; any other name keeps the binder's message.
  */
 export function describeUnresolvedSqlType(
   contributions: AssembledAuthoringContributions,
 ): DescribeUnresolvedType {
   return ({ field, written, declared }) => {
     const call = field.typeConstructor;
-    if (call === undefined) return undefined;
+    if (call === undefined) {
+      return field.typeNamespaceId === undefined
+        ? suggestNamespacedTypes(written, contributions.type)
+        : undefined;
+    }
     if (written !== 'Unsupported')
       return describeRemovedFieldPreset(removedSqlFieldPresets, call, contributions.type, declared);
     const [argument, ...rest] = call.args;

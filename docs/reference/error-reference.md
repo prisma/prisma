@@ -871,10 +871,11 @@ A warning, not an error: a Mongo schema types a field with a deprecated scalar n
 
 A name in the schema refers to nothing in scope: a field's type (`Cannot find type "<name>"`), a mixin (`Cannot find mixin "<name>"`), a field (`Cannot find field "<name>" on "<owner>"`) or an entity (`Cannot find entity "<name>"`). Reported at the name, in SQL and Mongo schemas. Correct the name, or add the extension that contributes it.
 
-Two field types get a message that names what to write instead:
+Three field types get a message that names what to write instead:
 
 - A call to a field preset, which Prisma 8 removed: `<call as written> was a field preset, and Prisma 8 removed field presets. Write <replacement>.` For example, `id.uuidv4String() was a field preset, and Prisma 8 removed field presets. Write UuidString @id @onCreate(uuid()).` and `temporal.time(3, onUpdate: now) was a field preset, and Prisma 8 removed field presets. Write Time(3) @onUpdate(now()).` The replacement stores the same contract, so nothing is re-emitted or migrated. It is built from the call's arguments: the precision, `onCreate: now` and `onUpdate: now`, and the `size` of `nanoid`. When an argument is not one the preset took, the message gives the type and the attributes to add, as in `Write Timestamp(...) with @onCreate(now()) and @onUpdate(now()) for the phases the preset set.` A name is refused this way only on a target that had the preset, so `json()` on SQLite keeps `Cannot find type "json"`.
 - `Unsupported("<type>")`, the Prisma 6 and Prisma 7 form for a column of a type they do not know, in a SQL schema: ``Unsupported("<type>") is not a Prisma 8 type. Write the column's type with a type constructor, or as Raw(sql`<type>`) when no type constructor names it.`` followed by a sentence about adding the extension's pack when the type comes from a database extension.
+- In a SQL schema, a bare name that a contributed namespace holds, such as `Ulid` on SQLite, where only `sql.Ulid` exists: `Cannot find type "Ulid". Did you mean sql.Ulid?`
 
 ### PSL_TYPE_CONSTRUCTOR_NOT_CALLED
 
