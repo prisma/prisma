@@ -11,13 +11,28 @@ const GUIDE = 'The upgrade guide "Field presets are removed" lists every rewrite
 const typeConstructor = (codecId: string) =>
   ({ kind: 'typeConstructor', output: { codecId } }) as const;
 
+const charAlias = {
+  kind: 'typeAlias',
+  output: { type: { codecId: 'sql/char@1', typeParams: { length: 26 } } },
+} as const;
+
+const identifierAliases = {
+  UuidString: charAlias,
+  Ulid: charAlias,
+  Nanoid: charAlias,
+  Cuid2: charAlias,
+  Ksuid: charAlias,
+} as const;
+
 const postgresLike = {
   String: typeConstructor('pg/text@1'),
+  Char: typeConstructor('sql/char@1'),
+  ...identifierAliases,
   Jsonb: typeConstructor('pg/jsonb@1'),
   Uuid: typeConstructor('pg/uuid@1'),
   Time: typeConstructor('pg/time-temporal@1'),
   DateTime: typeConstructor('pg/timestamptz-temporal@1'),
-  sql: { Char: typeConstructor('sql/char@1') },
+  sql: { Char: typeConstructor('sql/char@1'), ...identifierAliases },
   temporal: {
     UpdatedAt: {
       kind: 'typeAlias',
@@ -30,7 +45,7 @@ const sqliteLike = {
   String: typeConstructor('sqlite/text@1'),
   Json: typeConstructor('sqlite/json@1'),
   DateTime: typeConstructor('sqlite/datetime@1'),
-  sql: { Char: typeConstructor('sql/char@1') },
+  sql: { Char: typeConstructor('sql/char@1'), ...identifierAliases },
 } as const;
 
 function readPath(root: object, path: string): unknown {
@@ -65,12 +80,23 @@ describe('a read of a removed field preset from the SQL field helpers', () => {
   it.each([
     ['text', 'field.column(type.String())'],
     ['json', 'field.column(type.Jsonb())'],
-    ['uuidString', 'field.column(type.sql.Char(36))'],
+    ['uuidString', 'field.column(type.UuidString())'],
+    ['ulid', 'field.column(type.Ulid())'],
+    ['cuid2', 'field.column(type.Cuid2())'],
+    ['ksuid', 'field.column(type.Ksuid())'],
     [
       'nanoid',
-      'field.column(type.sql.Char(21)), or field.column(type.sql.Char(n)) for nanoid({ size: n })',
+      'field.column(type.Nanoid()), or field.column(type.Char(n)) for nanoid({ size: n })',
     ],
-    ['id.uuidv4String', 'field.column(type.sql.Char(36)).id().onCreate(gen.uuid())'],
+    ['id.uuidv4String', 'field.column(type.UuidString()).id().onCreate(gen.uuid())'],
+    ['id.uuidv7String', 'field.column(type.UuidString()).id().onCreate(gen.uuid(7))'],
+    ['id.ulid', 'field.column(type.Ulid()).id().onCreate(gen.ulid())'],
+    [
+      'id.nanoid',
+      'field.column(type.Nanoid()).id().onCreate(gen.nanoid()), or field.column(type.Char(n)).id().onCreate(gen.nanoid(n)) for id.nanoid({ size: n })',
+    ],
+    ['id.cuid2', 'field.column(type.Cuid2()).id().onCreate(gen.cuid(2))'],
+    ['id.ksuid', 'field.column(type.Ksuid()).id().onCreate(gen.ksuid())'],
     ['id.uuidv7Native', 'field.column(type.Uuid()).id().onCreate(gen.uuid(7))'],
     ['temporal.updatedAt', 'field.column(type.temporal.UpdatedAt())'],
     [
@@ -79,7 +105,7 @@ describe('a read of a removed field preset from the SQL field helpers', () => {
     ],
     [
       'generated',
-      'field.column(type.sql.Char(n)).onCreate(gen.fn()), such as field.column(type.sql.Char(36)).onCreate(gen.uuid()) for field.generated(uuidv4())',
+      'field.column(type.Char(n)).onCreate(gen.fn()), such as field.column(type.UuidString()).onCreate(gen.uuid()) for field.generated(uuidv4())',
     ],
   ])('names the rewrite of field.%s where the stack has its type', (path, rewrite) => {
     expect(refusalOf(postgresField, path)).toMatchObject(removed(path, rewrite));
@@ -92,6 +118,25 @@ describe('a read of a removed field preset from the SQL field helpers', () => {
   ])('names the forms that replace presets for field.%s where %s', (path) => {
     expect(refusalOf(sqliteField, path)).toMatchObject(unknown(path));
   });
+
+  it.each([
+    ['ulid', 'field.column(type.sql.Ulid())'],
+    ['id.ulid', 'field.column(type.sql.Ulid()).id().onCreate(gen.ulid())'],
+    ['id.uuidv4String', 'field.column(type.sql.UuidString()).id().onCreate(gen.uuid())'],
+    [
+      'id.nanoid',
+      'field.column(type.sql.Nanoid()).id().onCreate(gen.nanoid()), or field.column(type.sql.Char(n)).id().onCreate(gen.nanoid(n)) for id.nanoid({ size: n })',
+    ],
+    [
+      'generated',
+      'field.column(type.sql.Char(n)).onCreate(gen.fn()), such as field.column(type.sql.UuidString()).onCreate(gen.uuid()) for field.generated(uuidv4())',
+    ],
+  ])(
+    'names the sql. alias in the rewrite of field.%s where the stack has no top-level alias',
+    (path, rewrite) => {
+      expect(refusalOf(sqliteField, path)).toMatchObject(removed(path, rewrite));
+    },
+  );
 
   it('names the rewrite of a preset whose type the stack has with its codec', () => {
     expect(refusalOf(sqliteField, 'temporal.datetime')).toMatchObject(
@@ -130,7 +175,7 @@ describe('a read of a removed field preset from the SQL field helpers', () => {
       } satisfies TargetPackRef<'sql', 'postgres'>,
     });
     expect(refusalOf(helpers.field, 'id.uuidv4String')).toMatchObject(
-      removed('id.uuidv4String', 'field.column(type.sql.Char(36)).id().onCreate(gen.uuid())'),
+      removed('id.uuidv4String', 'field.column(type.UuidString()).id().onCreate(gen.uuid())'),
     );
   });
 
