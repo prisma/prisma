@@ -151,6 +151,20 @@ describe('createFunctions', () => {
       expect(ast.exprs[0]).toEqual(new LiteralExpr(true));
     });
 
+    it('and and or refuse a raw operand other than true or false, rather than inline it', () => {
+      for (const value of ["1 OR '1'='1", 1, null, { a: 1 }]) {
+        expect(() => fns.and(value as never, fns.eq(f().id, 1))).toThrow(
+          expect.objectContaining({ code: 'RUNTIME.AST_INVALID' }),
+        );
+        expect(() => fns.or(fns.eq(f().id, 1), value as never)).toThrow(
+          expect.objectContaining({ code: 'RUNTIME.AST_INVALID' }),
+        );
+      }
+      expect((fns.or(false, fns.eq(f().id, 1)).buildAst() as OrExpr).exprs[0]).toEqual(
+        new LiteralExpr(false),
+      );
+    });
+
     it('and produces AndExpr', () => {
       const fields = f();
       const eq1 = fns.eq(fields.id, 1);

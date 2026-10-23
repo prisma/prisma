@@ -1,6 +1,7 @@
 import type { QueryOperationTypesBase } from '@internal/sql-contract/types';
 import type { SqlOperationEntry } from '@internal/sql-operations';
 import { blindCast } from '@internal/utils/casts';
+import { structuredError } from '@internal/utils/structured-error';
 import type { CodecRef } from './ast/codec-types';
 import {
   AndExpr,
@@ -130,13 +131,24 @@ function resolveOperand(operand: ExprOrVal, otherCodec?: CodecRef): AstExpressio
 }
 
 /**
- * Resolves an Expression via `buildAst()`, or wraps a raw value as a `LiteralExpr` — an SQL literal inlined into the query text, not a bound parameter.
+ * Resolves an Expression via `buildAst()`, or wraps `true` or `false` as a `LiteralExpr` — an SQL literal inlined into the query text, not a bound parameter. Any other raw value is refused, so no caller value is written into the SQL.
  *
  * Used for `and` / `or` operands. The usual operand is an `Expression<bool>` (e.g. the result of `fns.eq`), which this function passes through by calling `buildAst()`. The only time the raw-value branch fires is when the caller writes `fns.and(true, x)` or similar — inlining `TRUE`/`FALSE` literals lets the SQL planner statically simplify `TRUE AND x` to `x`, which it cannot do for an opaque `ParamRef`.
  */
 function toLiteralExpr(value: unknown): AstExpression {
   if (isExpression(value)) {
     return value.buildAst();
+  }
+  if (value !== true && value !== false) {
+    throw structuredError(
+      'RUNTIME.AST_INVALID',
+      'fns.and and fns.or take boolean expressions, or the values true and false',
+      {
+        why: 'A raw operand is written into the SQL as a literal, so only the constants true and false are accepted.',
+        fix: 'Pass a boolean expression, such as fns.eq(...), or true or false.',
+        meta: { node: 'and-or-operand', valueType: value === null ? 'null' : typeof value },
+      },
+    );
   }
   return new LiteralExpr(value);
 }
