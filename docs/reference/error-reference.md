@@ -271,7 +271,7 @@ A value handed to a data type's cast, or to an authoring entry that reads writte
 
 ### CONTRACT.CHECK_NAME_RESERVED
 
-An authored `@@check` / `check()`'s `name:` prefix matches the shape a derived enforcement check would use for a column of the same table (`<table>_<column>_check` or `<table>_<column>_elem_not_null`), so it cannot be told apart from a derived check once a non-`managed` table strips those. The message and `collidingColumns` meta name the column(s) whose derived-check shape the prefix matches. Raised while building a SQL contract, once the table's real columns are in hand. The fix is to choose a different `name:`. Payload: `tableName`, `prefix`, `collidingColumns`.
+An authored `@@check` / `check()`'s `name:` prefix matches the shape a derived enforcement check would use for a column of the same table (`<table>_<column>_check`, `<table>_<column>_elem_not_null` or `<table>_<column>_value_object`), so it cannot be told apart from a derived check once a non-`managed` table strips those. The message and `collidingColumns` meta name the column(s) whose derived-check shape the prefix matches. Raised while building a SQL contract, once the table's real columns are in hand. The fix is to choose a different `name:`. Payload: `tableName`, `prefix`, `collidingColumns`.
 
 ### CONTRACT.CHECK_ON_STI_VARIANT
 
