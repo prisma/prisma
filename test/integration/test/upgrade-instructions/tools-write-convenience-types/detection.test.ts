@@ -1,0 +1,58 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'pathe';
+import { describe, expect, it } from 'vitest';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(here, '../../../../..');
+
+function patternsOf(id: string): readonly RegExp[] {
+  const guide = readFileSync(
+    join(
+      repoRoot,
+      'upgrade-instructions/pending/tools-write-convenience-types/app/instructions.md',
+    ),
+    'utf-8',
+  );
+  const block = guide.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`)) ?? '';
+  return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
+    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
+  );
+}
+
+const matches = (id: string, content: string) =>
+  patternsOf(id).some((pattern) => pattern.test(content));
+
+describe('the detection of the changes the tools writing convenience types make', () => {
+  it('matches a config that reads a Prisma 7 schema, and no other', () => {
+    expect({
+      prisma7: matches(
+        'prisma7-schema-reads-dates',
+        "export default defineConfig({ contract: prisma7Schema('prisma/schema.prisma') });",
+      ),
+      prisma8: matches(
+        'prisma7-schema-reads-dates',
+        "export default defineConfig({ contract: prismaSchema('prisma/schema.prisma') });",
+      ),
+    }).toEqual({ prisma7: true, prisma8: false });
+  });
+
+  it('matches each created-at and updated-at alias in PSL and TypeScript, and not the presets', () => {
+    const detects = (content: string) => matches('temporal-type-aliases-on-datetime', content);
+    expect({
+      createdAt: detects('  createdAt temporal.CreatedAt\n'),
+      updatedAtString: detects('  updatedAt temporal.UpdatedAtString\n'),
+      createdAtJsDate: detects('createdAt: field.column(type.temporal.CreatedAtJsDate()),'),
+      preset: detects('  updatedAt temporal.updatedAtString()\n'),
+      longerName: detects('  updatedAt temporal.UpdatedAtStringly\n'),
+      otherNamespace: detects('  updatedAt mytemporal.UpdatedAt\n'),
+    }).toEqual({
+      createdAt: true,
+      updatedAtString: true,
+      createdAtJsDate: true,
+      preset: false,
+      longerName: false,
+      otherNamespace: false,
+    });
+  });
+});

@@ -23,9 +23,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'9268d6eef6e976bf77ca87083b15cd8eb247c9bf7fe4d2929f56a23bfa36d9ec'>;
+  StorageHashBase<'97963644c7d9359d5e31879ed1c6bfdc39b666d0fd1d0f152525b055d3c574c3'>;
 export type ExecutionHash =
-  ExecutionHashBase<'5d2a944d02782b8bcf53d311c7dbe23d41a990f019100658761ce68af6aa0230'>;
+  ExecutionHashBase<'380511653781da301aa7612ce64f0ac7b74bedf70c783143bab5ae56d5295037'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -536,7 +536,7 @@ type ContractBase = Omit<
               columns: {
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamp';
-                  readonly codecId: 'pg/timestamp-string@1';
+                  readonly codecId: 'pg/timestamp-date@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
                   readonly typeParams: { readonly precision: 3 };
@@ -577,7 +577,7 @@ type ContractBase = Omit<
                 };
                 readonly updatedAt: {
                   readonly dataType: 'pg/timestamp';
-                  readonly codecId: 'pg/timestamp-string@1';
+                  readonly codecId: 'pg/timestamp-date@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly precision: 3 };
                   readonly many: false;
@@ -772,7 +772,7 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: {
                   readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamp-string@1';
+                  readonly codecId: 'pg/timestamp-date@1';
                   readonly typeParams: { readonly precision: 3 };
                 };
               };
@@ -800,7 +800,7 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: {
                   readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamp-string@1';
+                  readonly codecId: 'pg/timestamp-date@1';
                   readonly typeParams: { readonly precision: 3 };
                 };
               };
@@ -865,7 +865,7 @@ type ContractBase = Omit<
     readonly mutations: {
       readonly defaults: readonly [
         {
-          readonly onCreate: { readonly id: 'timestampStringNow'; readonly kind: 'generator' };
+          readonly onCreate: { readonly id: 'timestampNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'User';
             readonly field: 'createdAt';
@@ -873,8 +873,8 @@ type ContractBase = Omit<
           };
         },
         {
-          readonly onCreate: { readonly id: 'timestampStringNow'; readonly kind: 'generator' };
-          readonly onUpdate: { readonly id: 'timestampStringNow'; readonly kind: 'generator' };
+          readonly onCreate: { readonly id: 'timestampNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'timestampNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'User';
             readonly field: 'updatedAt';
