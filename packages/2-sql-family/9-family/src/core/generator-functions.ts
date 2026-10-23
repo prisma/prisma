@@ -17,6 +17,7 @@ import {
 import {
   type ArgType,
   type AttributeCtx,
+  type DataTypeValueOptions,
   dataTypeValue,
   type FuncCallSig,
   leafDiagnostic,
@@ -305,10 +306,9 @@ function nanoidSignature(integer: DataTypeId, dataTypes: DataTypeSupport) {
   } as const satisfies FuncCallSig;
 }
 
-/** The label and completion suggestions of an argument that takes one of `values`. */
-function listed(values: readonly number[]) {
-  const suggestions = values.map(String);
-  return { label: suggestions.join(' | '), suggestions };
+/** The completion suggestions of an argument that takes one of `values`, which its label lists. */
+function listed(values: readonly number[]): DataTypeValueOptions {
+  return { suggestions: values.map(String), labelIsUnion: true };
 }
 
 /**
@@ -317,7 +317,7 @@ function listed(values: readonly number[]) {
 function checkedInteger<Allowed extends number>(
   integer: DataTypeId,
   dataTypes: DataTypeSupport,
-  allowed: { readonly label: string; readonly suggestions: readonly string[] },
+  allowed: DataTypeValueOptions,
   refusal: (value: number, written: string) => string | undefined,
 ): ArgType<Allowed, AttributeCtx> {
   return refineArg(dataTypeValue(integer, dataTypes, allowed), ({ value }, arg, ctx) => {
