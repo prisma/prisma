@@ -291,7 +291,7 @@ describe('SQLite placeholder check', () => {
     expect(() => lower(ast)).toThrow(
       expect.objectContaining({
         code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
-        meta: { placeholders: ['?', '?1'], params: 1 },
+        meta: { placeholderCount: 2, paramCount: 1, firstPlaceholders: ['?', '?1'] },
       }),
     );
   });
@@ -307,7 +307,25 @@ describe('SQLite placeholder check', () => {
     expect(() => lower(ast)).toThrow(
       expect.objectContaining({
         code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
-        meta: { placeholders: ['?1'], params: 2 },
+        meta: { placeholderCount: 1, paramCount: 2, firstPlaceholders: ['?1'] },
+      }),
+    );
+  });
+
+  it('reports counts and only the first placeholders of a long mismatch', () => {
+    const ast = selectWhere(
+      new RawExpr({
+        parts: ['"post"."views" IN (?, ?, ?, ?, ?, ?, ?, ?) AND "post"."views" > ', ParamRef.of(5)],
+        returns: textReturn,
+      }),
+    );
+
+    expect(() => lower(ast)).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
+        message:
+          'The lowered SQLite statement writes 9 placeholders for 1 parameter, starting ?, ?, ?, ?, ?; each parameter must be written as its own numbered placeholder, and no other placeholder may appear.',
+        meta: { placeholderCount: 9, paramCount: 1, firstPlaceholders: ['?', '?', '?', '?', '?'] },
       }),
     );
   });

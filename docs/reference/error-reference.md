@@ -1335,7 +1335,7 @@ At query-render time a table references a namespace that is not present, or not 
 
 ### RUNTIME.PARAM_PLACEHOLDER_MISMATCH
 
-The SQLite SQL renderer wrote a statement whose placeholders do not match its parameters: a bare `?` or a numbered placeholder no parameter has, usually a `?` written into raw SQL text, or a parameter no placeholder binds. The renderer refuses the statement rather than bind a value to the wrong place. Pass values into raw SQL by interpolation, not as a `?` in the text. Payload: `placeholders` (the placeholders written, in order), `params` (the number of parameters).
+The SQLite SQL renderer wrote a statement whose placeholders do not match its parameters: a bare `?` or a numbered placeholder no parameter has, usually a `?` written into raw SQL text, or a parameter no placeholder binds. The renderer refuses the statement rather than bind a value to the wrong place. Pass values into raw SQL by interpolation, not as a `?` in the text. The message and payload give the counts and the first five placeholders written. Payload: `placeholderCount`, `paramCount`, `firstPlaceholders`.
 
 ### RUNTIME.PARAM_REF_CODEC_REQUIRED
 

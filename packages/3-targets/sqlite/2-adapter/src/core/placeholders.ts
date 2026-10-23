@@ -68,16 +68,24 @@ function placeholdersMatchParams(placeholders: readonly string[], paramCount: nu
   );
 }
 
+const REPORTED_PLACEHOLDERS = 5;
+
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
 export function assertPlaceholdersMatchParams(sql: string, paramCount: number): void {
   const placeholders = scanPlaceholders(sql);
   if (placeholdersMatchParams(placeholders, paramCount)) return;
+  const firstPlaceholders = placeholders.slice(0, REPORTED_PLACEHOLDERS);
+  const starting = firstPlaceholders.length > 0 ? `, starting ${firstPlaceholders.join(', ')}` : '';
   throw structuredError(
     'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
-    `The lowered SQLite statement writes placeholders ${JSON.stringify(placeholders)} for ${paramCount} parameter(s); each parameter must be written as its own numbered placeholder, and no other placeholder may appear.`,
+    `The lowered SQLite statement writes ${plural(placeholders.length, 'placeholder')} for ${plural(paramCount, 'parameter')}${starting}; each parameter must be written as its own numbered placeholder, and no other placeholder may appear.`,
     {
       why: 'A placeholder that does not match a parameter binds a value to the wrong place in the statement, or leaves a value unbound.',
       fix: 'Pass values into raw SQL through interpolation rather than writing a `?` in the SQL text.',
-      meta: { placeholders, params: paramCount },
+      meta: { placeholderCount: placeholders.length, paramCount, firstPlaceholders },
     },
   );
 }
