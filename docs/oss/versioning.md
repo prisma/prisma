@@ -19,7 +19,7 @@ All new development. The rest of this page describes the line: the [release-cand
 
 - Bug fixes and security fixes, made by the team.
 - No new feature work by the team.
-- A feature contributed by the community, when it is in line with Prisma 7's design direction and meets the quality standards in [PR triage's mechanical requirements](./pr-triage.md#step-4--mechanical-requirements). A [maintainer](./governance.md#maintainer-team) decides whether it does.
+- A feature contributed by the community, when it is in line with Prisma 7's design direction and meets the project's quality standards. A [maintainer](./governance.md#maintainer-team) decides whether it does. Passing [PR triage's mechanical requirements](./pr-triage.md#step-4--mechanical-requirements) is necessary but does not settle either.
 
 > "we will fix security issues and bugs, but not do any new feature work, although we will accept feature requests from the community which are in line with Prisma 7's design direction and meet our quality standards"
 >

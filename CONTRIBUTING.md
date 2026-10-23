@@ -12,7 +12,7 @@ Prisma 8 ships as a release candidate (`8.0.0-rc.N`), and `8.0.0` final is expec
 
 ## Before you start a substantive change
 
-Target `main` for Prisma 8 and `v7` for Prisma 7. Prisma 7 takes fixes, and features from the community that fit its design; [version lines](./docs/oss/versioning.md#version-lines) says what lands in each.
+Target `main` for Prisma 8, and `v7` or `7.9.x` for Prisma 7. Prisma 7 takes fixes, and features from the community that fit its design; [version lines](./docs/oss/versioning.md#version-lines) says what lands in each.
 
 For typo fixes, doc nits, small bug fixes, and obvious improvements: **just open a PR**.
 
