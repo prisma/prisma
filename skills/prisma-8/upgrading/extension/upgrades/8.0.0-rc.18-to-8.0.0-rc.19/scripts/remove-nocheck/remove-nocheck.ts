@@ -29,7 +29,7 @@ interface JsonRecord {
   [key: string]: Json;
 }
 
-const SKIPPED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'build']);
+const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build']);
 const HASH = /^[0-9a-f]{64}$/;
 const TEMPORARY_SUFFIX = '.remove-nocheck-tmp';
 
@@ -322,7 +322,7 @@ function listFiles(root: string): ProjectFiles {
         continue;
       }
       if (entry.isDirectory() || (entry.isSymbolicLink() && isDirectory(path))) {
-        if (!SKIPPED_DIRECTORIES.has(entry.name)) visit(path);
+        if (!SKIPPED_DIRECTORIES.has(entry.name) && !entry.name.startsWith('.')) visit(path);
         continue;
       }
       if (!isFileEntry(dir, entry)) continue;
@@ -645,7 +645,27 @@ function summary(
 
 const JSON_FILES_THAT_MUST_PARSE = new Set(['contract.json', 'migration.json']);
 
-function main(root: string): number {
+function parseRoot(args: readonly string[]): { readonly root: string; readonly errors: string[] } {
+  const errors = args.filter((arg) => arg.startsWith('-')).map((arg) => `${arg}: unknown option`);
+  const positional = args.filter((arg) => !arg.startsWith('-'));
+  if (positional.length > 1) errors.push(`expected one project root, got ${positional.length}`);
+  const root = resolve(positional[0] ?? process.cwd());
+  if (errors.length === 0 && !isDirectory(root)) errors.push(`${root}: not a directory`);
+  if (errors.length > 0) errors.push('Usage: node remove-nocheck.ts [project-root]');
+  return { root, errors };
+}
+
+function main({
+  root,
+  errors,
+}: {
+  readonly root: string;
+  readonly errors: readonly string[];
+}): number {
+  if (errors.length > 0) {
+    process.stderr.write(`${errors.join('\n')}\n`);
+    return 1;
+  }
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
   const plans: ContractPlan[] = [];
@@ -810,4 +830,4 @@ function main(root: string): number {
   return 0;
 }
 
-process.exitCode = main(resolve(process.argv[2] ?? '.'));
+process.exitCode = main(parseRoot(process.argv.slice(2)));

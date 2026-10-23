@@ -6,7 +6,7 @@ changes:
     summary: |
       A stored SQL contract that has a `noCheck` key on a column no longer loads. Before any other step of this change, run `scripts/remove-nocheck/remove-nocheck.ts` from the project root, then run `prisma db sign` against every database. The script removes the key from every stored contract, migration snapshots and the emitted `contract.json` included. A list whose element check was waived becomes a list whose elements may be null, which is what the database allows. The script refreshes every hash and reference that changes.
     detection:
-      glob: "**/contract.json"
+      glob: "**/*.json"
       matches:
         - '"noCheck"\s*:'
     script: ./scripts/remove-nocheck/remove-nocheck.ts
@@ -78,7 +78,7 @@ changes:
       The upgrade changes the storage hash of every SQLite contract with a datetime or JSON column, and of every PostgreSQL contract you emit again. Run `prisma db sign` against every database before deploying the application built with the new contract.
   - id: client-functions-move-from-default-to-on-create
     summary: |
-      `@default` now sets a database default only. `@default(uuid())`, `@default(cuid(2))`, `@default(ulid())` and `@default(nanoid())`, with any arguments, are refused with `PSL_GENERATOR_IN_DEFAULT`. Write `@onCreate(uuid())` and so on instead. Run `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` with the Prisma 8 schema files as arguments to rewrite them. The contract does not change, so there is nothing to re-emit, sign or migrate. The detection matches schema files that write one of these functions in `@default`.
+      `@default` now sets a database default only. `@default(uuid())`, `@default(cuid(2))`, `@default(ulid())` and `@default(nanoid())`, with any arguments, are refused with `PSL_GENERATOR_IN_DEFAULT`. Write `@onCreate(uuid())` and so on instead. Run `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` with every `.prisma` file of the project as arguments, including the schema copies in migration directories; it rewrites the Prisma 8 ones and leaves the others unchanged. The contract does not change, so there is nothing to re-emit, sign or migrate. The detection matches schema files that write one of these functions in `@default`.
     detection:
       glob: "**/*.prisma"
       matches:
@@ -599,7 +599,7 @@ Migration snapshots, the emitted `contract.json` and any other stored contract w
 node <guide>/scripts/remove-nocheck/remove-nocheck.ts
 ```
 
-`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `.git`, `dist` and `build`. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards.
+`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every `*.json` file under the root that is a SQL contract, whatever its name, skipping `node_modules`, `dist`, `build` and every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`. It follows links to files and directories, also outside the root; commit or back up the files there too. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards. A copy of the project under a directory whose name starts with a dot, such as a worktree under `.claude/worktrees/`, is left alone: run the script in that copy separately. The script takes no option, only the project root; an option or a root that is not a directory makes it print its usage and exit 1.
 
 In each contract it removes the `noCheck` key from every column. Where the key waived the element check of a list, it also makes the column, the field that maps it and their types in `contract.d.ts` lists whose elements may be null. That is what the database allows, and it is what the source says after `psl-nocheck-removed` or `ts-nocheck-method-removed`. The script does not change which checks a contract declares: an enum column whose membership check was waived still has none until you migrate.
 
@@ -607,7 +607,7 @@ The storage hash changes, so the script renames each changed snapshot directory 
 
 It changes no file and exits 1 in three cases, and names the file:
 
-- a `contract.json`, `migration.json` or ref is not valid JSON;
+- a `contract.json`, `migration.json` or ref is not valid JSON, or the `ops.json` of a migration whose hashes change is not;
 - a contract's stored storage hash, or the name of its snapshot directory, does not match its content. Restore that file from version control, or re-emit it, and run the script again;
 - a renamed snapshot directory already exists with different content.
 
@@ -698,14 +698,14 @@ Commit your work first, so the script's changes can be reviewed and undone with 
 node <guide>/scripts/data-type-values/data-type-values.ts
 ```
 
-Node 24 or later runs the TypeScript script directly; it needs no `tsx`. It reads and writes files only and needs no database. It rewrites every `*.json` file under the root that parses as a SQLite contract in the previous release's form, skipping `node_modules`, `.git`, `dist` and `build`, and follows links to files and directories, also outside the root; commit or back up the files there too. That includes a test fixture of a contract in the previous release's form: if you keep such a fixture on purpose, restore it with git afterwards (`git restore <file>`), or keep it outside the project root. In each contract it changes:
+Node 24 or later runs the TypeScript script directly; it needs no `tsx`. It reads and writes files only and needs no database. It rewrites every `*.json` file under the root that parses as a SQLite contract in the previous release's form, skipping `node_modules`, `dist`, `build` and every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`, and follows links to files and directories, also outside the root; commit or back up the files there too. That includes a test fixture of a contract in the previous release's form: if you keep such a fixture on purpose, restore it with git afterwards (`git restore <file>`), or keep it outside the project root. In each contract it changes:
 
 - the `dataType` of each column and named type whose codec is `sqlite/datetime@1` or `sqlite/json@1`, from `sqlite/text` to `sqlite/datetime` or `sqlite/json`;
 - each literal default of a `sqlite/datetime@1` column, and each value of an enum typed by `sqlite/datetime@1`, to three fraction digits: `"2024-01-01T00:00:00Z"` becomes `"2024-01-01T00:00:00.000Z"`, and `"2024-01-01T00:00:00.5Z"` becomes `"2024-01-01T00:00:00.500Z"`. A JSON default keeps its value.
 
 It then writes the storage hash each contract now has, renames the contract's snapshot directory under `migrations/snapshots/` to that hash, and replaces the old hash in every `migration.json` (recomputing its `migrationHash`), every ref under `refs/`, every `migration.ts` and every `contract.d.ts`. The planned SQL does not change: SQLite stores the same text in the column default.
 
-When it finishes, it prints how many files it rewrote and how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A project already in the new form is left unchanged, and the script says so. If it finds no SQLite contract under the root, it says so; run it again from the project root. It prints `<file>: stored hash did not recompute; rehashed from content` for a contract whose stored hash does not match its content, and rewrites it anyway. It changes no file and exits 1 when a `contract.json`, `migration.json` or ref is not valid JSON, or when a renamed snapshot directory already exists with different content.
+When it finishes, it prints how many files it rewrote and how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A project already in the new form is left unchanged, and the script says so. If it finds no SQLite contract under the root, it says so and changes nothing; that is the expected result in a PostgreSQL or MongoDB project. In a SQLite project, check that you ran it from the project root. It prints `<file>: stored hash did not recompute; rehashed from content` for a contract whose stored hash does not match its content, and rewrites it anyway. It changes no file and exits 1 when a `contract.json`, `migration.json` or ref is not valid JSON, when the `ops.json` of a migration whose hashes change is not valid JSON, or when a renamed snapshot directory already exists with different content. An option or a project root that is not a directory makes it print its usage and exit 1.
 
 If the script stops on an error partway, for example on a full disk, it prints the error and `the upgrade stopped partway, run the script again to finish it`, and exits 1. Run it again: it finishes the upgrade and removes its own temporary files (ending in `.data-type-values-tmp`).
 
@@ -872,15 +872,15 @@ model Post {
 
 ### `client-functions-move-from-default-to-on-create`
 
-Commit your work first, so the change can be reviewed and undone with git. Run the script with every Prisma 8 schema file of the project as arguments, from the project root:
+Commit your work first, so the change can be reviewed and undone with git. Run the script from the project root with every `.prisma` file git tracks as arguments:
 
 ```sh
-node <guide>/scripts/default-generators-to-on-create/rewrite-default-generators.mjs src/prisma/contract.prisma
+git ls-files -z '*.prisma' | xargs -0 node <guide>/scripts/default-generators-to-on-create/rewrite-default-generators.mjs
 ```
 
-`<guide>` is the directory that holds this guide. The script reads and rewrites only the files it is given. For each one it prints how many calls it rewrote, or that it left the file unchanged. It rewrites every `@default(uuid(...))`, `@default(cuid(...))`, `@default(ulid())` and `@default(nanoid(...))` to `@onCreate(...)`, keeping the call exactly as written, spaces included, and changes nothing else. It leaves string literals and `//` comments unchanged and does not count them, so rewrite a commented-out field yourself if you want it in step.
+`<guide>` is the directory that holds this guide. Pass every file, not only the schema `contract emit` reads: a migration directory can hold a copy of the schema, such as `migrations/app/<migration>/intermediate.prisma` or a `contract.prisma` beside a migration, and the CLI reads those too. The script reads and rewrites only the files it is given, and with no file it prints its usage and exits 1. For each one it prints how many calls it rewrote, or that it left the file unchanged. It rewrites every `@default(uuid(...))`, `@default(cuid(...))`, `@default(ulid())` and `@default(nanoid(...))` to `@onCreate(...)`, keeping the call exactly as written, spaces included, and changes nothing else. It leaves string literals and `//` comments unchanged and does not count them, so rewrite a commented-out field yourself if you want it in step.
 
-Do not pass a Prisma 7 `schema.prisma` that your config reads with `prisma7Schema(...)`. Prisma 7 keeps `@default(uuid())`, and the Prisma 7 reader turns it into the same generator. The script rewrites only a file that has the `// use prisma-8` directive (or the older `// use prisma-next`), read by the same rule `contract emit` uses. It leaves every other file unchanged and prints a line for it, so a Prisma 7 schema split across files is safe even when a file holds only models.
+A Prisma 7 `schema.prisma` that your config reads with `prisma7Schema(...)` keeps `@default(uuid())`, and the Prisma 7 reader turns it into the same generator. Passing it is safe: the script rewrites only a file that has the `// use prisma-8` directive (or the older `// use prisma-next`), read by the same rule `contract emit` uses. It leaves every other file unchanged and prints a line for it, so a Prisma 7 schema split across files is safe even when a file holds only models.
 
 The contract does not change: `@onCreate(uuid())` lowers to the generator `@default(uuid())` lowered to, so `prisma contract emit` writes the same `contract.json` and hashes, and nothing needs to be signed or migrated.
 
@@ -1498,7 +1498,7 @@ Relations name fields too: `"on": { "localFields": ["authorId"], "targetFields":
    node <guide>/scripts/mongo-field-storage-names/mongo-field-storage-names.ts
    ```
 
-   Node 24 or later runs the TypeScript script directly. It reads and writes files only. It rewrites every `*.json` file under the root that is a MongoDB contract with a model whose `storage` has no `fields`, skipping `node_modules`, `.git`, `dist` and `build`, and the `contract.d.ts` next to it (`<name>.d.ts` next to `<name>.json`). These are the contract snapshots under `migrations/snapshots/<hash>/`, which no command regenerates, and any other contract you keep in the old form, such as a test fixture; if you keep one on purpose, restore it with git afterwards. A contract that step 2 emitted is already in the new form and is left alone. The script prints each file it rewrote, or that nothing changed.
+   Node 24 or later runs the TypeScript script directly. It reads and writes files only. It rewrites every `*.json` file under the root that is a MongoDB contract with a model whose `storage` has no `fields`, skipping `node_modules`, `dist`, `build`, every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`, and every link it cannot follow, and the `contract.d.ts` next to it (`<name>.d.ts` next to `<name>.json`). These are the contract snapshots under `migrations/snapshots/<hash>/`, which no command regenerates, and any other contract you keep in the old form, such as a test fixture; if you keep one on purpose, restore it with git afterwards. A contract that step 2 emitted is already in the new form and is left alone. The script prints each file it rewrote, or that nothing changed.
 
    A snapshot cannot be rebuilt as a re-emit would write it, because the old contract does not say what the schema called the field (`_id` could have been `id @map("_id")` or `_id`). So the script keeps every field's name and records it as stored under that name, which is what the old contract meant: `"_id"` stays the field `_id`, stored as `_id`. The snapshot directory names stay as they are. Planning from such a snapshot to the re-emitted contract plans nothing and asks nothing, because the planner compares stored names.
 

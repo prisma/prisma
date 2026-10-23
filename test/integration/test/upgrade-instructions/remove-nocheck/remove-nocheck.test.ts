@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
@@ -174,6 +174,56 @@ describe('remove-nocheck', () => {
       stdout: '',
       stderr: `migrations/snapshots/${misnamed}/contract.json: the stored storage hash ${misnamed} does not match the contract's content, which hashes to ${oldHash}; restore the file from version control, or re-emit it, and run the script again\n`,
       tree: before,
+    });
+  });
+
+  it('skips every directory whose name starts with a dot, such as a worktree under .claude', () => {
+    const root = copyFixture('before');
+    const hidden = join(root, '.claude/worktrees/feature');
+    mkdirSync(hidden, { recursive: true });
+    cpSync(join(root, 'prisma'), join(hidden, 'prisma'), { recursive: true });
+    cpSync(join(root, 'migrations'), join(hidden, 'migrations'), { recursive: true });
+    const hiddenBefore = readTree(hidden);
+    const run = runScript(root);
+    const { hiddenAfter, rest } = Object.entries(readTree(root)).reduce(
+      (split, [path, text]) => {
+        if (path.startsWith('.claude/'))
+          split.hiddenAfter[path.slice('.claude/worktrees/feature/'.length)] = text;
+        else split.rest[path] = text;
+        return split;
+      },
+      { hiddenAfter: {} as Tree, rest: {} as Tree },
+    );
+    expect({ status: run.status, stdout: run.stdout, hiddenAfter, rest: formatted(rest) }).toEqual({
+      status: 0,
+      stdout: summary(7, 2),
+      hiddenAfter: hiddenBefore,
+      rest: fixtureTree('after'),
+    });
+  });
+
+  it('refuses an option or a project root that is not a directory, and changes nothing', () => {
+    const root = copyFixture('before');
+    const missing = join(root, 'missing');
+    const runs = [runScript('--help'), runScript(missing)].map(({ status, stdout, stderr }) => ({
+      status,
+      stdout,
+      stderr,
+    }));
+    expect({ runs, tree: readTree(root) }).toEqual({
+      runs: [
+        {
+          status: 1,
+          stdout: '',
+          stderr: '--help: unknown option\nUsage: node remove-nocheck.ts [project-root]\n',
+        },
+        {
+          status: 1,
+          stdout: '',
+          stderr: `${missing}: not a directory\nUsage: node remove-nocheck.ts [project-root]\n`,
+        },
+      ],
+      tree: fixtureTree('before'),
     });
   });
 
