@@ -148,10 +148,20 @@ function bindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | unde
   return ts.forEachChild(node, (child) => bindingOf(ts, child, wanted));
 }
 
+function isReference(ts: typeof TS, identifier: TS.Identifier): boolean {
+  const parent = identifier.parent;
+  return !(
+    ((ts.isPropertyAccessExpression(parent) || ts.isQualifiedName(parent)) &&
+      parent.name === identifier) ||
+    ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent)) &&
+      parent.name === identifier)
+  );
+}
+
 function identifiersIn(ts: typeof TS, node: TS.Node): string[] {
   const names: string[] = [];
   const visit = (child: TS.Node): void => {
-    if (ts.isIdentifier(child)) names.push(child.text);
+    if (ts.isIdentifier(child) && isReference(ts, child)) names.push(child.text);
     ts.forEachChild(child, visit);
   };
   visit(node);
