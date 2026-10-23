@@ -16,6 +16,9 @@ import { requireTemporal, type TemporalImplementation } from './require-temporal
 
 const POSTGRES_TEMPORAL_SENTINELS: ReadonlySet<string> = new Set(['infinity', '-infinity']);
 
+/** The Temporal types whose text PostgreSQL prints the same in every DateStyle, because it holds no date. Every other Temporal codec reads a date, so its text is refused unless PostgreSQL printed it under DateStyle ISO. */
+const TEMPORAL_TAGS_WITHOUT_A_DATE: ReadonlySet<string> = new Set(['Temporal.PlainTime']);
+
 interface TemporalCodecIdentity {
   readonly codecId: string;
   readonly stringType: string;
@@ -28,6 +31,9 @@ function decodeTemporalText<T>(
   parse: (temporal: TemporalImplementation, text: string) => T,
 ): T {
   const temporal = requireTemporal({ codecId: identity.codecId, operation: 'decode' });
+  if (!TEMPORAL_TAGS_WITHOUT_A_DATE.has(identity.temporalTag)) {
+    requireIsoDateStyle(identity.codecId, wire);
+  }
   if (POSTGRES_TEMPORAL_SENTINELS.has(wire)) {
     throw errorTemporalUnrepresentable({
       ...identity,
@@ -117,31 +123,21 @@ const TIME_TEMPORAL: TemporalCodecIdentity = {
 };
 
 export const pgDateTemporalDecode = (wire: string): Temporal.PlainDate =>
-  decodeTemporalText(
-    DATE_TEMPORAL,
-    requireIsoDateStyle(DATE_TEMPORAL.codecId, wire),
-    (temporal, text) => temporal.PlainDate.from(text),
-  );
+  decodeTemporalText(DATE_TEMPORAL, wire, (temporal, text) => temporal.PlainDate.from(text));
 
 export const pgDateTemporalEncode = (value: Temporal.PlainDate): string =>
   encodeTemporalValue(DATE_TEMPORAL, value);
 
 export const pgTimestampTemporalDecode = (wire: string): Temporal.PlainDateTime =>
-  decodeTemporalText(
-    TIMESTAMP_TEMPORAL,
-    requireIsoDateStyle(TIMESTAMP_TEMPORAL.codecId, wire),
-    (temporal, text) => temporal.PlainDateTime.from(text),
+  decodeTemporalText(TIMESTAMP_TEMPORAL, wire, (temporal, text) =>
+    temporal.PlainDateTime.from(text),
   );
 
 export const pgTimestampTemporalEncode = (value: Temporal.PlainDateTime): string =>
   encodeTemporalValue(TIMESTAMP_TEMPORAL, value);
 
 export const pgTimestamptzTemporalDecode = (wire: string): Temporal.Instant =>
-  decodeTemporalText(
-    TIMESTAMPTZ_TEMPORAL,
-    requireIsoDateStyle(TIMESTAMPTZ_TEMPORAL.codecId, wire),
-    (temporal, text) => temporal.Instant.from(text),
-  );
+  decodeTemporalText(TIMESTAMPTZ_TEMPORAL, wire, (temporal, text) => temporal.Instant.from(text));
 
 export const pgTimestamptzTemporalEncode = (value: Temporal.Instant): string =>
   encodeTemporalValue(TIMESTAMPTZ_TEMPORAL, value);
