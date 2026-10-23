@@ -1,5 +1,5 @@
 /**
- * The statements every new connection runs before any other, and again after a statement that holds caller-written SQL, which may have changed them. The renderer writes literal text with backslashes doubled, and the lexer that finds placeholders reads a backslash as an escape and `"…"` as a string, so the session clears NO_BACKSLASH_ESCAPES and ANSI_QUOTES and MySQL reads quoted text the same way. The session runs in UTC, so `CURRENT_TIMESTAMP` writes the UTC time the codecs read, and in utf8mb4.
+ * The statements every new connection runs before any other, and, on a connection a caller holds, again before the holder's next statement after one that held raw SQL. The lexer that finds placeholders reads a backslash as an escape and `"…"` as a string, so the session clears NO_BACKSLASH_ESCAPES and ANSI_QUOTES and MySQL reads quoted text the same way. The session runs in UTC, so `CURRENT_TIMESTAMP` writes the UTC time the codecs read, and in utf8mb4.
  */
 export const SESSION_SETUP = [
   "SET SESSION sql_mode = TRIM(BOTH ',' FROM REPLACE(REPLACE(CONCAT(',', @@SESSION.sql_mode, ','), ',NO_BACKSLASH_ESCAPES,', ','), ',ANSI_QUOTES,', ','))",

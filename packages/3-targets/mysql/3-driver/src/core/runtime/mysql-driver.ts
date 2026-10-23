@@ -51,7 +51,6 @@ function prepareChecked(
 /** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
 async function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
-  noteRawSql(connection, request);
   await prepareChecked(connection, sql, values);
   return new Promise((resolve, reject) => {
     connection.execute({ sql, values }, (error, result) => {
@@ -72,18 +71,8 @@ function isResultSetHeader(result: unknown): result is ResultSetHeader {
   return typeof result === 'object' && result !== null && 'affectedRows' in result;
 }
 
-/** Connections that ran raw SQL, which may have changed the session, and run the session setup again before their next statement. */
-const changedSessions = new WeakSet<PoolConnection>();
-
-/** Notes that `connection` ran raw SQL, which the request states. The driver's own statements and the ORM's and SQL builder's other statements cannot change session variables. */
-function noteRawSql(connection: PoolConnection, request: SqlExecuteRequest): void {
-  if (request.containsRawSql) changedSessions.add(connection);
-}
-
-/** Runs the session setup on `connection`, and forgets that its session changed. */
-async function restoreSession(connection: PoolConnection): Promise<void> {
+async function setUpSession(connection: PoolConnection): Promise<void> {
   for (const sql of SESSION_SETUP) await runConstant(connection, sql);
-  changedSessions.delete(connection);
 }
 
 /** Counts what the driver has handed out, a connection or a stream, so `close()` can wait until every one is back. */
@@ -114,6 +103,8 @@ interface Lent {
   readonly connection: PoolConnection;
   /** What to do when the caller stops reading a stream early: evict a connection the pool lent for this one statement, or read and drop the rest of the result on a connection the caller holds, whose session must survive. */
   readonly onEarlyExit: 'evict' | 'drain';
+  /** Records that the statement about to run holds raw SQL, which may change any session setting. */
+  runsRawSql(): void;
   done(evict: boolean): void;
 }
 
@@ -136,7 +127,6 @@ async function* streamRows<Row>(
   { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
-  noteRawSql(connection, request);
   await prepareChecked(connection, sql, values);
   const command = connection.execute({ sql, values });
   let settle: () => void = () => {};
@@ -185,6 +175,7 @@ abstract class MysqlQueryable implements SqlQueryable {
 
   async *query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
     const lent = await this.lend();
+    if (request.containsRawSql) lent.runsRawSql();
     const outcome: StreamOutcome = { evict: false };
     try {
       yield* streamRows<Row>(lent.connection, request, {
@@ -198,6 +189,7 @@ abstract class MysqlQueryable implements SqlQueryable {
 
   async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
     const lent = await this.lend();
+    if (request.containsRawSql) lent.runsRawSql();
     let evict = false;
     try {
       const result = await run(lent.connection, request);
@@ -211,49 +203,81 @@ abstract class MysqlQueryable implements SqlQueryable {
   }
 }
 
+/**
+ * The session of a connection one caller holds, shared by the connection and its transactions. After raw SQL, the session setup runs again before the holder's next statement, and the connection is destroyed when the hold ends, because a raw statement may have changed any other setting.
+ */
+class HeldSession {
+  readonly connection: PoolConnection;
+  #setUpBeforeNext = false;
+  #ranRawSql = false;
+
+  constructor(connection: PoolConnection) {
+    this.connection = connection;
+  }
+
+  get ranRawSql(): boolean {
+    return this.#ranRawSql;
+  }
+
+  async lend(): Promise<Lent> {
+    if (this.#setUpBeforeNext) {
+      await setUpSession(this.connection);
+      this.#setUpBeforeNext = false;
+    }
+    return {
+      connection: this.connection,
+      onEarlyExit: 'drain',
+      runsRawSql: () => {
+        this.#setUpBeforeNext = true;
+        this.#ranRawSql = true;
+      },
+      done: () => {},
+    };
+  }
+}
+
 /** A connection held by one caller, whose statements all run on the same session. */
 class MysqlConnectionImpl extends MysqlQueryable implements SqlConnection {
-  readonly #connection: PoolConnection;
+  readonly #session: HeldSession;
   readonly #giveBack: () => void;
 
   constructor(connection: PoolConnection, giveBack: () => void) {
     super();
-    this.#connection = connection;
+    this.#session = new HeldSession(connection);
     this.#giveBack = giveBack;
   }
 
-  protected async lend(): Promise<Lent> {
-    if (changedSessions.has(this.#connection)) await restoreSession(this.#connection);
-    return { connection: this.#connection, onEarlyExit: 'drain', done: () => {} };
+  protected lend(): Promise<Lent> {
+    return this.#session.lend();
   }
 
   async beginTransaction(): Promise<SqlTransaction> {
-    await runConstant(this.#connection, 'START TRANSACTION');
-    return new MysqlTransactionImpl(this.#connection);
+    await runConstant(this.#session.connection, 'START TRANSACTION');
+    return new MysqlTransactionImpl(this.#session);
   }
 
   async release(): Promise<void> {
-    this.#connection.release();
+    if (this.#session.ranRawSql) this.#session.connection.destroy();
+    else this.#session.connection.release();
     this.#giveBack();
   }
 
   async destroy(_reason?: unknown): Promise<void> {
-    this.#connection.destroy();
+    this.#session.connection.destroy();
     this.#giveBack();
   }
 }
 
 class MysqlTransactionImpl extends MysqlQueryable implements SqlTransaction {
-  readonly #connection: PoolConnection;
+  readonly #session: HeldSession;
 
-  constructor(connection: PoolConnection) {
+  constructor(session: HeldSession) {
     super();
-    this.#connection = connection;
+    this.#session = session;
   }
 
-  protected async lend(): Promise<Lent> {
-    if (changedSessions.has(this.#connection)) await restoreSession(this.#connection);
-    return { connection: this.#connection, onEarlyExit: 'drain', done: () => {} };
+  protected lend(): Promise<Lent> {
+    return this.#session.lend();
   }
 
   async commit(): Promise<void> {
@@ -301,7 +325,7 @@ type DriverState =
   | { readonly kind: 'closed' };
 
 /**
- * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement, and again before its next statement after one that held raw SQL. `close()` waits for every connection and stream it has handed out before it ends the pool.
+ * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement. A connection that ran raw SQL never goes back to the pool: the pool's own connection is destroyed after the statement, and a held one when the hold ends, after the setup has run again before each of the holder's statements that follows raw SQL. `close()` waits for every connection and stream it has handed out before it ends the pool.
  */
 export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
   readonly familyId = 'sql' as const;
@@ -344,11 +368,15 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
     const giveBack = this.#leases.take();
     try {
       const connection = await this.#acquire();
+      let ranRawSql = false;
       return {
         connection,
         onEarlyExit: 'evict',
+        runsRawSql: () => {
+          ranRawSql = true;
+        },
         done: (evict) => {
-          if (evict) connection.destroy();
+          if (evict || ranRawSql) connection.destroy();
           else connection.release();
           giveBack();
         },
@@ -374,9 +402,9 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
       );
     }
     const connection = await waitForConnection(this.#state.pool, this.#state.poolTimeoutMs);
-    if (this.#setUp.has(connection) && !changedSessions.has(connection)) return connection;
+    if (this.#setUp.has(connection)) return connection;
     try {
-      await restoreSession(connection);
+      await setUpSession(connection);
     } catch (error) {
       connection.destroy();
       throw normalizeMysqlError(error);

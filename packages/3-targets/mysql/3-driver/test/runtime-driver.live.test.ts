@@ -311,6 +311,87 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     });
   });
 
+  describe('a setting raw SQL changes', () => {
+    async function withOneConnection(
+      test: Parameters<typeof withMysqlDatabase>[0],
+      fn: (driver: ReturnType<typeof mysqlRuntimeDriver.create>) => Promise<void>,
+    ): Promise<void> {
+      await withMysqlDatabase(test, async ({ url }) => {
+        const single = new URL(url);
+        single.searchParams.set('connectionLimit', '1');
+        await withDriver(single.toString(), async (driver) => {
+          await driver.execute({ containsRawSql: false, sql: 'CREATE TABLE t (n INT)' });
+          await driver.execute({
+            containsRawSql: false,
+            sql: 'INSERT INTO t (n) VALUES (1), (2), (3), (4)',
+          });
+          await fn(driver);
+        });
+      });
+    }
+
+    const readAll = { containsRawSql: false, sql: 'SELECT n FROM t ORDER BY n' } as const;
+    const allRows = [{ n: 1 }, { n: 2 }, { n: 3 }, { n: 4 }];
+    const readSession = {
+      containsRawSql: false,
+      sql: 'SELECT @@SESSION.autocommit AS autocommit, @@SESSION.foreign_key_checks AS fk',
+    } as const;
+
+    it('does not reach the next statement through the pool', async (test) => {
+      await withOneConnection(test, async (driver) => {
+        await driver.execute({ containsRawSql: true, sql: 'SET SESSION sql_select_limit = 1' });
+        const afterLimit = await collect(driver.query(readAll));
+        await driver.execute({
+          containsRawSql: true,
+          sql: 'SET SESSION autocommit = 0, foreign_key_checks = 0',
+        });
+        const afterSession = await collect(driver.query(readSession));
+        expect({ afterLimit, afterSession }).toEqual({
+          afterLimit: allRows,
+          afterSession: [{ autocommit: '1', fk: '1' }],
+        });
+      });
+    });
+
+    it('lasts while a connection is held, and does not reach the next borrower after release', async (test) => {
+      await withOneConnection(test, async (driver) => {
+        const held = await driver.acquireConnection();
+        await held.execute({ containsRawSql: true, sql: 'SET SESSION sql_select_limit = 1' });
+        await held.execute({
+          containsRawSql: true,
+          sql: 'SET SESSION autocommit = 0, foreign_key_checks = 0',
+        });
+        const whileHeld = {
+          rows: await collect(held.query(readAll)),
+          session: await collect(held.query(readSession)),
+        };
+        await held.release();
+        const afterRelease = {
+          rows: await collect(driver.query(readAll)),
+          session: await collect(driver.query(readSession)),
+        };
+        expect({ whileHeld, afterRelease }).toEqual({
+          whileHeld: { rows: [{ n: 1 }], session: [{ autocommit: '0', fk: '0' }] },
+          afterRelease: { rows: allRows, session: [{ autocommit: '1', fk: '1' }] },
+        });
+      });
+    });
+
+    it('does not reach the next borrower after a transaction on a held connection', async (test) => {
+      await withOneConnection(test, async (driver) => {
+        const held = await driver.acquireConnection();
+        const transaction = await held.beginTransaction();
+        await transaction.execute({
+          containsRawSql: true,
+          sql: 'SET SESSION sql_select_limit = 1',
+        });
+        await transaction.commit();
+        await held.release();
+        expect(await collect(driver.query(readAll))).toEqual(allRows);
+      });
+    });
+  });
+
   it('refuses a LIMIT value that is not an integer with RUNTIME.ARGUMENT_INVALID', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
