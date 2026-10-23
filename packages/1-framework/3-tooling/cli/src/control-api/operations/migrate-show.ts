@@ -22,6 +22,7 @@ import {
   errorRuntime,
 } from '../../utils/cli-errors';
 import { closeQuietly, resolveMigrationPaths } from '../../utils/command-helpers';
+import { type CliInvocation, cliInvocation } from '../../utils/printed-command';
 import { createControlClient } from '../client';
 import type { CreateControlClient } from '../types';
 import { errorFromCaught } from './caught-errors';
@@ -52,6 +53,8 @@ export interface ExecuteMigrateShowPlanOptions {
   readonly db?: string;
   readonly to?: string;
   readonly from?: string;
+  /** The command line printed advice repeats; without it, advice prints no `--config`. */
+  readonly invocation?: CliInvocation;
   /** Client factory used when the plan needs the live DB marker; defaults to the real client. */
   readonly createClient?: CreateControlClient;
   /**
@@ -197,9 +200,16 @@ export async function executeMigrateShowPlan(
       databaseMarkers = allMarkers;
       const appMarker = allMarkers.get(aggregate.app.spaceId);
       if (appMarker !== undefined) {
-        const refusal = refuseMarkerOutsideGraph({
+        const refusal = await refuseMarkerOutsideGraph({
+          spaceId: aggregate.app.spaceId,
           markerHash: appMarker.storageHash,
+          targetHash,
           graph: appGraph,
+          migrationsDir,
+          invocation:
+            options.invocation ??
+            cliInvocation({ cwd: options.cwd, configPath: undefined }, options.db),
+          readLedger: () => client.readLedger(aggregate.app.spaceId),
         });
         if (refusal) {
           return notOk(refusal);

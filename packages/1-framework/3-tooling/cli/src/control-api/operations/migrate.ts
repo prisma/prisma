@@ -44,6 +44,7 @@ import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
+import { refuseMarkerOutsideGraph } from './graph-queries';
 import { noInvariantPathError } from './no-invariant-path';
 import {
   buildPerSpaceBreakdown,
@@ -199,8 +200,21 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       return notOk(buildNeverPlannedFailure(outcome.spaceId, outcome.targetHash, migrationsDir));
     }
     if (outcome.kind === 'unreachable') {
+      const markerRefusal =
+        outcome.liveMarker === null
+          ? null
+          : await refuseMarkerOutsideGraph({
+              spaceId: space.spaceId,
+              markerHash: outcome.liveMarker.storageHash,
+              targetHash: outcome.targetHash,
+              graph: space.graph(),
+              migrationsDir,
+              invocation: options.invocation,
+              readLedger: () => familyInstance.readLedger({ driver, space: space.spaceId }),
+            });
       return notOk(
-        buildPathNotFoundFailure(outcome.spaceId, outcome.liveMarker, outcome.targetHash),
+        markerRefusal ??
+          buildPathNotFoundFailure(outcome.spaceId, outcome.liveMarker, outcome.targetHash),
       );
     }
     if (outcome.kind === 'unsatisfiable') {

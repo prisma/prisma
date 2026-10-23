@@ -288,6 +288,7 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         const planned = await executeMigrateShowPlan({
           config: ctx.config,
           cwd: ctx.cwd,
+          invocation: cliInvocation(ctx, args.flags.db),
           createClient,
           ...ifDefined('db', args.flags.db),
           ...ifDefined('to', args.flags.to),
@@ -408,18 +409,23 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         const appGraph = aggregate.app.graph();
         const appMarker = (await client.readAllMarkers()).get('app') ?? null;
 
+        const target: RequestedTarget =
+          offlineTarget === undefined ? liveMarkerTarget(appMarker) : offlineTarget.value;
+
         if (appMarker !== null) {
-          const markerRefusal = refuseMarkerOutsideGraph({
+          const markerRefusal = await refuseMarkerOutsideGraph({
+            spaceId: aggregate.app.spaceId,
             markerHash: appMarker.storageHash,
+            targetHash: target.entry?.hash ?? appContract.storage.storageHash,
             graph: appGraph,
+            migrationsDir,
+            invocation: cliInvocation(ctx, args.flags.db),
+            readLedger: () => client.readLedger(aggregate.app.spaceId),
           });
           if (markerRefusal) {
             return notOk(normalizeError(markerRefusal));
           }
         }
-
-        const target: RequestedTarget =
-          offlineTarget === undefined ? liveMarkerTarget(appMarker) : offlineTarget.value;
         const refEntry = target.entry;
         if (refEntry !== undefined && refEntry.invariants.length > 0) {
           const invariantRefusal = refuseUnknownInvariants({
