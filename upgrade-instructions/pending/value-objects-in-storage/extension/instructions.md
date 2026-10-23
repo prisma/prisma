@@ -19,7 +19,7 @@ changes:
         - '\bPostgresCheck(?:Kind|ExpressionInput|ExpressionCandidate)\b'
   - id: field-types-read-storage-value-objects
     summary: |
-      In `@prisma/orm-framework/contract/types`, `ValueObjectTypesFromDomain` is now `ValueObjectTypesFromStorage`, which takes the contract's storage namespaces. `FieldTypesFromDomain` takes the storage namespaces as a new sixth argument, `Contract['storage']['namespaces']`. It defaults to none, so code that still passes five arguments types no value object field: such a field gets no type. An override for a value object field is keyed by the value object's storage namespace, at `[storage namespace]['valueObjects'][valueObject][field]`.
+      In `@prisma/orm-framework/contract/types`, `ValueObjectTypesFromDomain` is now `ValueObjectTypesFromStorage`, which takes the contract's storage namespaces. `FieldTypesFromDomain` takes the storage namespaces as a new, required sixth argument, `Contract['storage']['namespaces']`, since it reads both planes. An override for a value object field is keyed by the value object's storage namespace, at `[storage namespace]['valueObjects'][valueObject][field]`, while a model field's override stays keyed by its domain namespace.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -80,7 +80,15 @@ type Fields = FieldTypesFromDomain<Contract['domain']['namespaces'], CodecTypes,
 type ValueObjects = ValueObjectTypesFromStorage<Contract['storage']['namespaces'], CodecTypes, Parameterized, Overrides, 'output'>;
 ```
 
-Pass the sixth argument whenever the contract has value objects. A model field's override stays at `[namespace]['models'][model][field]`. A value object field's override moves to the namespace the value object is stored in: on SQL that is usually the model's namespace, and on MongoDB it is `__unbound__`.
+Pass the sixth argument for every contract, with value objects or without. `FieldTypeOverrides` has two kinds of key at its top level. Under `models`, the key is the domain namespace of the model. Under `valueObjects`, the key is the storage namespace that holds the value object. These can differ. On SQL every value object is stored in the default storage namespace, such as `public` on Postgres, whatever the namespace of the model that holds it. On MongoDB it is `__unbound__`.
+
+```ts
+// a model `User` in the PSL namespace `billing`, with an `Address` field, on Postgres
+type FieldTypeOverrides = {
+  readonly billing: { readonly models: { readonly User: { readonly status: { readonly output: 'active' | 'closed' } } } };
+  readonly public: { readonly valueObjects: { readonly Address: { readonly kind: { readonly output: 'home' | 'work' } } } };
+};
+```
 
 ## `value-object-reference-type`
 

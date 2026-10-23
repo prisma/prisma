@@ -136,11 +136,11 @@ describe('generateContractDts field type maps', () => {
     expect(dts).toMatch(/\n {2}FieldTypesFromDomain,\n/);
   });
 
-  it('leaves the storage namespaces out of the shared generic for a contract without value objects', () => {
+  it('passes the storage namespaces to the shared generic for a contract without value objects too', () => {
     const dts = generateContractDts(createTestContract(), createMockSpi(), [CODEC_TYPES], HASHES);
 
     expect(dts).toContain(
-      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, \"output\">;",
+      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, \"output\", ContractBase['storage']['namespaces']>;",
     );
     expect(dts).not.toContain('ValueObjectTypesFromStorage');
   });

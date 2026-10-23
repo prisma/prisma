@@ -378,13 +378,9 @@ export function parameterizedOutputTypeFunctionsAlias(
   return `type ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS} = ${aliases.length > 0 ? aliases.join(' | ') : 'never'};`;
 }
 
-/** `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`): the shared generic applied to the emitted contract's domain, with `FieldTypeOverrides`, and to its storage namespaces when the contract has value objects. */
-export function fieldTypesMapExpression(
-  side: 'output' | 'input',
-  hasValueObjects: boolean,
-): string {
-  const storageNamespaces = hasValueObjects ? ", ContractBase['storage']['namespaces']" : '';
-  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}${storageNamespaces}>`;
+/** `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`): the shared generic applied to the emitted contract's domain, with `FieldTypeOverrides`, and to its storage namespaces. */
+export function fieldTypesMapExpression(side: 'output' | 'input'): string {
+  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}, ContractBase['storage']['namespaces']>`;
 }
 
 export function generateContractFieldDescriptor(fieldName: string, field: ContractField): string {

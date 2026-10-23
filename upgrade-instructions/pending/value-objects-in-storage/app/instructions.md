@@ -44,7 +44,7 @@ Storage now holds the value objects, so each contract it rewrites has a new stor
 
 When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A project already in the new form is left unchanged, and the script says that nothing changed. It changes no file and exits 1 when a file it must read is not valid JSON, when a contract's stored hash does not match its content, when a field holds a value object the contract does not declare, when a member's enum has no storage value set, when a discriminator's value set name is already taken by an enum, when a renamed snapshot directory already exists with different content, or when it cannot read a directory under the root. If it stops on an error partway, for example on a full disk, run it again: it finishes the upgrade.
 
-The script rewrites a snapshot's `contract.d.ts` for the moved value objects. It does not add the types of the discriminator value sets. Nothing reads them from a snapshot: a `migration.ts` that imports a snapshot's `contract.d.ts` compiles without them, and `prisma contract emit` writes them for the emitted contract.
+The script rewrites a snapshot's `contract.d.ts` for the moved value objects. In every `contract.d.ts` it finds, including those of contracts without value objects, it also passes the storage namespaces to `FieldTypesFromDomain`, which now requires them. It does not add the types of the discriminator value sets. Nothing reads them from a snapshot: a `migration.ts` that imports a snapshot's `contract.d.ts` compiles without them, and `prisma contract emit` writes them for the emitted contract.
 
 Then:
 

@@ -1,4 +1,4 @@
-import { chmodSync, readFileSync } from 'node:fs';
+import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
 import { computeStorageHash } from '@internal/contract/hashing';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
@@ -71,6 +71,28 @@ describe('a project whose contracts keep value objects in the domain plane', () 
       status: 0,
       stdout: 'No contract keeps value objects in the domain plane; nothing changed.\n',
       stderr: '',
+    });
+  });
+});
+
+describe('a contract.d.ts whose contract the script leaves unchanged', () => {
+  it('gains the storage namespaces argument of FieldTypesFromDomain, which is now required', () => {
+    const root = copyFixture('after');
+    const path = join(
+      root,
+      'mongo/migrations/snapshots/95332b0bd6fbbfab4462d882c037a574c92e51897249c333ba681b12c4d603c9/contract.d.ts',
+    );
+    writeFileSync(
+      path,
+      readFileSync(path, 'utf8').replaceAll(",\n  ContractBase['storage']['namespaces']\n>", '\n>'),
+    );
+    expect({ run: runScript(root), tree: readTree(root) }).toEqual({
+      run: {
+        status: 0,
+        stdout: 'Rewrote 1 file and renamed 0 snapshot directories.\n',
+        stderr: '',
+      },
+      tree: fixtureTree('after'),
     });
   });
 });

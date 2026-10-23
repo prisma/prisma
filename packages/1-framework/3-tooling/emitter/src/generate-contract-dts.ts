@@ -188,8 +188,8 @@ ${familyTypeAliases}
 ${parameterizedOutputTypesDeclaration}
 ${valueObjectTypeAliases}
 type FieldTypeOverrides = ${fieldTypeOverrides};
-export type FieldOutputTypes = ${fieldTypesMapExpression('output', hasValueObjects)};
-export type FieldInputTypes = ${fieldTypesMapExpression('input', hasValueObjects)};
+export type FieldOutputTypes = ${fieldTypesMapExpression('output')};
+export type FieldInputTypes = ${fieldTypesMapExpression('input')};
 ${extraTypeExports ? `${extraTypeExports}\n` : ''}
 ${modelTypesBlock}
 

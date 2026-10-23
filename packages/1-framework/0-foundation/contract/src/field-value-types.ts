@@ -260,7 +260,7 @@ type FieldValueType<
       : never;
 
 /**
- * `FieldOutputTypes` (`Side` `'output'`) or `FieldInputTypes` (`'input'`) of a contract whose domain namespaces are `DomainNamespaces` and whose storage namespaces are `StorageNamespaces`, computed from the contract's literal shape. A contract without value objects may leave `StorageNamespaces` out. Both an emitted `contract.d.ts` and a contract written with `defineContract` type their fields through it.
+ * `FieldOutputTypes` (`Side` `'output'`) or `FieldInputTypes` (`'input'`) of a contract whose domain namespaces are `DomainNamespaces` and whose storage namespaces are `StorageNamespaces`, computed from the contract's literal shape. It reads both planes: the domain for the fields, and storage for the value objects the fields refer to, so it always takes both. Both an emitted `contract.d.ts` and a contract written with `defineContract` type their fields through it.
  *
  * Each value is typed by, in order:
  *
@@ -277,7 +277,7 @@ export type FieldTypesFromDomain<
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Overrides,
   Side extends ValueTypeSide,
-  StorageNamespaces = Record<never, never>,
+  StorageNamespaces,
 > = {
   readonly [Ns in keyof DomainNamespaces]: NamespaceFieldTypes<
     Lookup<DomainNamespaces[Ns], 'models'>,

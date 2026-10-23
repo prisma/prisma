@@ -799,6 +799,12 @@ interface Edit {
 }
 
 const STORAGE_NAMESPACES = "ContractBase['storage']['namespaces']";
+
+function dtsPathOf(contractPath: string, snapshot: boolean): string {
+  return snapshot
+    ? join(dirname(contractPath), 'contract.d.ts')
+    : `${contractPath.slice(0, -'.json'.length)}.d.ts`;
+}
 const DTS_LINE_WIDTH = 100;
 
 /**
@@ -868,15 +874,20 @@ function rewriteDts(
       /ValueObjectTypesFromDomain<(\s*)ContractBase\['domain'\]\['namespaces'\]/g,
       `ValueObjectTypesFromStorage<$1${STORAGE_NAMESPACES}`,
     )
-    .replace(/\bValueObjectTypesFromDomain\b/g, 'ValueObjectTypesFromStorage')
-    .replace(
-      /(FieldTypesFromDomain<[^<>]*?(['"])(?:output|input)\2)(\s*)>/g,
-      (_match: string, head: string, _quote: string, space: string) =>
-        space.includes('\n')
-          ? `${head},${lineEnding}  ${STORAGE_NAMESPACES}${lineEnding}>`
-          : `${head}, ${STORAGE_NAMESPACES}>`,
-    );
-  return replaceHashTokens(result, hashes);
+    .replace(/\bValueObjectTypesFromDomain\b/g, 'ValueObjectTypesFromStorage');
+  return replaceHashTokens(withStorageNamespacesArgument(result), hashes);
+}
+
+/** `FieldTypesFromDomain` with the storage namespaces as its sixth argument, which it now requires of every contract. */
+function withStorageNamespacesArgument(text: string): string {
+  const lineEnding = lineEndingOf(text);
+  return text.replace(
+    /(FieldTypesFromDomain<[^<>]*?(['"])(?:output|input)\2)(\s*)>/g,
+    (_match: string, head: string, _quote: string, space: string) =>
+      space.includes('\n')
+        ? `${head},${lineEnding}  ${STORAGE_NAMESPACES}${lineEnding}>`
+        : `${head}, ${STORAGE_NAMESPACES}>`,
+  );
 }
 
 /** A value object field's coordinate type, on one line when it fits the emitter's line width, else one member per line. */
@@ -978,6 +989,7 @@ function main({
     return 1;
   }
   const plans: ContractPlan[] = [];
+  const argumentWrites = new Map<string, string>();
   const stops: string[] = [];
   let contractsFound = 0;
 
@@ -996,8 +1008,16 @@ function main({
     if (family === undefined || !isRecord(contract['storage'])) continue;
     contractsFound++;
     const rewrite = rewriteContract(contract, family);
-    if (!rewrite.changed) continue;
     const snapshot = isSnapshotContract(path);
+    if (!rewrite.changed) {
+      const dtsPath = dtsPathOf(path, snapshot);
+      if (existsSync(dtsPath)) {
+        const dts = readFileSync(dtsPath, 'utf8');
+        const next = withStorageNamespacesArgument(dts);
+        if (next !== dts) argumentWrites.set(dtsPath, next);
+      }
+      continue;
+    }
     const stored = contract['storage']['storageHash'];
     const oldHash = snapshot ? basename(dirname(path)) : typeof stored === 'string' ? stored : '';
     const computed = computeStorageHash(family, contract);
@@ -1038,9 +1058,7 @@ function main({
   const referenceWrites = new Map<string, string>();
   const contractWrites = new Map<string, string>();
   for (const plan of plans) {
-    const dtsPath = plan.snapshot
-      ? join(dirname(plan.path), 'contract.d.ts')
-      : `${plan.path.slice(0, -'.json'.length)}.d.ts`;
+    const dtsPath = dtsPathOf(plan.path, plan.snapshot);
     const dtsHashes = new Map([...hashes, [plan.oldHash, plan.newHash]]);
     const dts = existsSync(dtsPath)
       ? rewriteDts(readFileSync(dtsPath, 'utf8'), plan.valueObjectNamespaces, dtsHashes)
@@ -1126,6 +1144,7 @@ function main({
     for (const [path, text] of snapshotRewrites) writeFile(path, text);
     for (const [path, text] of referenceWrites) writeFile(path, text);
     for (const [path, text] of contractWrites) writeFile(path, text);
+    for (const [path, text] of argumentWrites) writeFile(path, text);
     for (const dir of removals) removeDirectory(dir);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -1134,7 +1153,8 @@ function main({
     );
     return 1;
   }
-  const rewrittenFiles = snapshotRewrites.length + referenceWrites.size + contractWrites.size;
+  const rewrittenFiles =
+    snapshotRewrites.length + referenceWrites.size + contractWrites.size + argumentWrites.size;
   const lines = summary(root, contractsFound, rewrittenFiles, removals.size, hashes);
   process.stdout.write(`${lines.join('\n')}\n`);
   return 0;

@@ -265,16 +265,9 @@ describe('field types from a contract domain', () => {
     expectTypeOf<User['elsewhere']>().toEqualTypeOf<{ readonly elsewhere: bigint }>();
   });
 
-  test('a contract without value objects may leave the storage namespaces out', () => {
-    type WithoutStorage = FieldTypesFromDomain<
-      Domain,
-      CodecTypes,
-      CharOutputTypes,
-      Overrides,
-      'output'
-    >['app']['User'];
-    expectTypeOf<WithoutStorage['count']>().toEqualTypeOf<bigint>();
-    expectTypeOf<WithoutStorage['mood']>().toEqualTypeOf<'happy' | 'sad' | null>();
+  test('the storage namespaces are required, so no value object field goes untyped', () => {
+    // @ts-expect-error FieldTypesFromDomain reads both planes and takes the storage namespaces
+    expectTypeOf<FieldTypesFromDomain<Domain, CodecTypes, CharOutputTypes, Overrides, 'output'>>();
   });
 
   test('a union field is the union of its members, a scalar member taking its plain codec type', () => {
