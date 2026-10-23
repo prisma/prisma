@@ -8,7 +8,7 @@ import type {
 } from '@internal/mongo-contract';
 import type { MongoRawClient } from '@internal/mongo-orm';
 import { mongoRaw } from '@internal/mongo-orm';
-import { mongoQuery } from '@internal/mongo-query-builder';
+import { mongoQueryOnValidatedContract } from '@internal/mongo-query-builder/internal/on-validated-contract';
 import {
   buildMongoEnums,
   createMongoExecutionContext,
@@ -30,7 +30,7 @@ export interface MongoStaticContext<
   readonly context: MongoExecutionContext<TContract>;
   readonly contract: TContract;
   readonly enums: UnboundEnums<TContract>;
-  readonly query: ReturnType<typeof mongoQuery<TContract>>;
+  readonly query: ReturnType<typeof mongoQueryOnValidatedContract<TContract>>;
   readonly raw: MongoRawClient<TContract>;
 }
 
@@ -56,7 +56,7 @@ export function buildMongoStaticContext<
     UnboundEnums<TContract>,
     'built from this contract domain; the mapped-type shape cannot be proven statically'
   >(unbound);
-  const query = mongoQuery({ contract });
+  const query = mongoQueryOnValidatedContract({ contract });
   const raw = mongoRaw<TContract>({ contract });
   return { context, contract, enums, enumsByNamespace, query, raw };
 }

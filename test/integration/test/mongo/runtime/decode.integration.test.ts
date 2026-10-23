@@ -9,7 +9,7 @@ import {
   MongoMatchStage,
   RawAggregateCommand,
 } from '@internal/mongo-query-ast/execution';
-import { mongoQuery } from '@internal/mongo-query-builder';
+import { mongoQueryOnValidatedContract } from '@internal/mongo-query-builder/internal/on-validated-contract';
 import { MongoParamRef } from '@internal/mongo-value';
 import { timeouts } from '@repo/test-utils';
 import { ObjectId } from 'mongodb';
@@ -38,7 +38,7 @@ describe('Mongo runtime decode integration', { timeout: timeouts.spinUpMongoMemo
       });
 
       // User-facing path: build the plan through the query-builder so the Row type is contract-derived (no explicit annotation on execute).
-      const plan = mongoQuery({ contract })
+      const plan = mongoQueryOnValidatedContract({ contract })
         .from('users')
         .match((f) =>
           f['_id']!.eq(MongoParamRef.of(insert.insertedId, { codecId: 'mongo/objectId@1' })),
@@ -59,7 +59,7 @@ describe('Mongo runtime decode integration', { timeout: timeouts.spinUpMongoMemo
 
   it('decode failure surfaces RUNTIME.DECODE_FAILED with details and cause', async () => {
     await withMongod(async (ctx) => {
-      // The synthetic codec id (`test/throws-on-decode@1`) is not a contract field codec, so this test legitimately needs a stub `resultShape` — the user-facing `mongoQuery(...)` path can't construct a shape referencing a codec the contract doesn't declare. The tradeoff is intentional: this test exercises the failure-envelope plumbing, not the lane-population path. The other two integration tests in this file go through the
+      // The synthetic codec id (`test/throws-on-decode@1`) is not a contract field codec, so this test legitimately needs a stub `resultShape` — the user-facing `mongoQueryOnValidatedContract(...)` path can't construct a shape referencing a codec the contract doesn't declare. The tradeoff is intentional: this test exercises the failure-envelope plumbing, not the lane-population path. The other two integration tests in this file go through the
       // query-builder.
       const failing = mongoCodec({
         typeId: 'test/throws-on-decode@1',

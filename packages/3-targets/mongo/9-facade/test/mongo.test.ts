@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   driverFromDb: vi.fn(),
   deserializeContract: vi.fn(),
   mongoOrm: vi.fn(),
-  mongoQuery: vi.fn(),
+  mongoQueryOnValidatedContract: vi.fn(),
   mongoRaw: vi.fn(),
 }));
 
@@ -59,8 +59,8 @@ vi.mock('@internal/mongo-orm', () => ({
   mongoRaw: mocks.mongoRaw,
 }));
 
-vi.mock('@internal/mongo-query-builder', () => ({
-  mongoQuery: mocks.mongoQuery,
+vi.mock('@internal/mongo-query-builder/internal/on-validated-contract', () => ({
+  mongoQueryOnValidatedContract: mocks.mongoQueryOnValidatedContract,
 }));
 
 import mongo from '../src/runtime/mongo';
@@ -93,7 +93,7 @@ describe('mongo() facade', () => {
     mocks.driverFromDb.mockReturnValue({ id: 'driver-from-db', close: fakeDriverFromDbClose });
     mocks.createMongoRuntime.mockReturnValue(fakeRuntime);
     mocks.mongoOrm.mockReturnValue(fakeOrm);
-    mocks.mongoQuery.mockReturnValue(fakeQuery);
+    mocks.mongoQueryOnValidatedContract.mockReturnValue(fakeQuery);
     mocks.mongoRaw.mockReturnValue(fakeRaw);
     fakeRaw.collection.mockClear();
     fakeRuntime.close.mockClear();
@@ -107,7 +107,7 @@ describe('mongo() facade', () => {
     expect(db.orm).toBe(fakeOrm);
     expect(db.query).toBe(fakeQuery);
     expect(mocks.mongoOrm).toHaveBeenCalledTimes(1);
-    expect(mocks.mongoQuery).toHaveBeenCalledTimes(1);
+    expect(mocks.mongoQueryOnValidatedContract).toHaveBeenCalledTimes(1);
 
     expect(mocks.driverFromConnection).not.toHaveBeenCalled();
     expect(mocks.driverFromDb).not.toHaveBeenCalled();

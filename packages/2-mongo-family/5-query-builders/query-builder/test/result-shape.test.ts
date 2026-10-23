@@ -1,6 +1,6 @@
 import { MongoFieldFilter, MongoProjectStage } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
-import { mongoQuery } from '../src/query';
+import { mongoQueryOnValidatedContract } from '../src/query';
 import {
   contractFieldToMongoFieldShape,
   contractModelToMongoResultShape,
@@ -197,12 +197,12 @@ describe('contractFieldToMongoFieldShape', () => {
 
 describe('PipelineChain build resultShape', () => {
   it('identity pipeline attaches document shape from bound model', () => {
-    const plan = mongoQuery({ contract: testContract }).from('orders').build();
+    const plan = mongoQueryOnValidatedContract({ contract: testContract }).from('orders').build();
     expect(plan.resultShape?.kind).toBe('document');
   });
 
   it('project stage reifies a document shape retaining _id and the projected field', () => {
-    const plan = mongoQuery({ contract: testContract })
+    const plan = mongoQueryOnValidatedContract({ contract: testContract })
       .from('orders')
       .match(MongoFieldFilter.eq('status', 'x'))
       .project('status')

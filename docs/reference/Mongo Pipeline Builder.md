@@ -10,7 +10,7 @@ Imagine an `orders` collection where each document has `customerId`, `amount`, a
 
 ```ts
 import { contractFromJson } from '@internal/mongo/static';
-import { mongoQuery } from '@internal/mongo-query-builder';
+import { mongoQuery } from '@internal/mongo/query-builder';
 import type { Contract } from './contract';
 import contractJson from './contract.json' with { type: 'json' };
 

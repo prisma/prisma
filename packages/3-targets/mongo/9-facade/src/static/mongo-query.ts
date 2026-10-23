@@ -3,10 +3,8 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
 } from '@internal/mongo-contract';
-import {
-  type QueryRoot,
-  mongoQuery as queryOnValidatedContract,
-} from '@internal/mongo-query-builder';
+import type { QueryRoot } from '@internal/mongo-query-builder';
+import { mongoQueryOnValidatedContract } from '@internal/mongo-query-builder/internal/on-validated-contract';
 import { validateMongoContract } from './contract-from-json';
 
 /**
@@ -15,5 +13,5 @@ import { validateMongoContract } from './contract-from-json';
 export function mongoQuery<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
 >(options: { readonly contract: TContract }): QueryRoot<TContract> {
-  return queryOnValidatedContract({ contract: validateMongoContract(options.contract) });
+  return mongoQueryOnValidatedContract({ contract: validateMongoContract(options.contract) });
 }
