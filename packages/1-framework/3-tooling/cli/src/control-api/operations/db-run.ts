@@ -715,6 +715,7 @@ function mapPlannerError(
       : planningRefusedError(error.conflicts, {
           invocation: context.invocation,
           from: recordedDatabaseContract(context.aggregate, context.markerRows),
+          to: undefined,
           statements: context.statements,
           resolved: context.resolved,
         });

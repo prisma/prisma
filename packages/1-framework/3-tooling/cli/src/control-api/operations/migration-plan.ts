@@ -673,6 +673,7 @@ async function executeMigrationPlanCommandInner(
       planningRefusedError(conflicts, {
         invocation: invocationOf(options),
         from: fromHash ?? undefined,
+        to: options.to,
         statements: texts,
         resolved,
       });

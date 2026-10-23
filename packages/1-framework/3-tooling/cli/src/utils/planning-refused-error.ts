@@ -24,6 +24,8 @@ export function planningRefusedError(
   context: {
     readonly invocation: CliInvocation;
     readonly from: string | undefined;
+    /** The `--to` the run was given, if any. */
+    readonly to: string | undefined;
     /** The statements the run was given, in order. */
     readonly statements: readonly StatementText[];
     /** The rename, convert and backfill statements of `statements`, resolved, in the same order. */
@@ -43,7 +45,10 @@ export function planningRefusedError(
     return resolved !== undefined && leaveOut.has(JSON.stringify(resolved));
   });
   const kept = context.statements.filter((statement) => !left.includes(statement));
-  const plan = printedPlanCommand(context.invocation, context.from, kept.map(statementFlag));
+  const plan = printedPlanCommand(context.invocation, context.from, [
+    ...(context.to === undefined ? [] : ['--to', context.to]),
+    ...kept.map(statementFlag),
+  ]);
   const action = chooseAction(
     `To write the rewrites by hand, plan the change without ${left.map(statementFlag).join(' and ')} with \`${plan}\`, add the rewrites the message describes to the migration.ts it writes, ${runWrittenFile(context.invocation)}`,
   );

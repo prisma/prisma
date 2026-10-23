@@ -31,6 +31,7 @@ describe('a planning refusal that can be written by hand', () => {
     const error = planningRefusedError([conflict], {
       invocation: PROJECT,
       from: 'sha256:0123',
+      to: undefined,
       statements: [
         { verb: 'rename', text: 'Status.ACTIVE:Status.X' },
         { verb: 'rename', text: 'Status.DONE:Status.FINISHED' },
@@ -51,12 +52,27 @@ describe('a planning refusal that can be written by hand', () => {
     });
   });
 
+  it('keeps the --to the plan was given', () => {
+    const error = planningRefusedError([conflict], {
+      invocation: PROJECT,
+      from: 'sha256:0123',
+      to: 'staging',
+      statements: [{ verb: 'rename', text: 'Status.ACTIVE:Status.X' }],
+      resolved: [active],
+    });
+
+    expect((error.nextActions ?? []).map(({ label }) => label)).toEqual([
+      'To write the rewrites by hand, plan the change without --rename Status.ACTIVE:Status.X with `{bin} migration plan --from sha256:0123 --to staging`, add the rewrites the message describes to the migration.ts it writes, run `node <migration directory>/migration.ts` for the directory it writes, and apply it with `{bin} db migrate`',
+    ]);
+  });
+
   it('is the plain planning failure when no conflict can be written by hand', () => {
     const { leaveOut: _, ...plain } = conflict;
     expect(
       planningRefusedError([plain], {
         invocation: PROJECT,
         from: undefined,
+        to: undefined,
         statements: [],
         resolved: [],
       }).nextActions ?? [],
