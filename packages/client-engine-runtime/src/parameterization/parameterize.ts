@@ -238,13 +238,14 @@ class Parameterizer {
       return value
     }
 
+    if (mask & ScalarMask.Json) {
+      const type: PlaceholderType = { type: 'Json' }
+      return this.#getOrCreatePlaceholder(JSON.stringify(value), type)
+    }
+
     const type = getPrimitivePlaceholderType(value)
     if (!matchesPrimitiveMask(type, mask)) {
       return value
-    }
-
-    if (mask & ScalarMask.Json) {
-      value = JSON.stringify(value)
     }
 
     return this.#getOrCreatePlaceholder(value, type)
