@@ -17,6 +17,14 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bPostgresCheck(?:Kind|ExpressionInput|ExpressionCandidate)\b'
+  - id: field-types-read-storage-value-objects
+    summary: |
+      In `@prisma/orm-framework/contract/types`, `ValueObjectTypesFromDomain` is now `ValueObjectTypesFromStorage`, which takes the contract's storage namespaces. `FieldTypesFromDomain` takes the storage namespaces as a new sixth argument, `Contract['storage']['namespaces']`. It defaults to none, so code that still passes five arguments types no value object field: such a field gets no type. An override for a value object field is keyed by the value object's storage namespace, at `[storage namespace]['valueObjects'][valueObject][field]`.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '\bValueObjectTypesFromDomain\b'
+        - '\bFieldTypesFromDomain\s*<'
 ---
 
 # Value objects are storage entities
@@ -50,3 +58,19 @@ import type { CheckExpressionInput } from '@prisma/orm-postgres/family-contract/
 ```
 
 `postgresRenderCheckExpressions` stays in `@prisma/orm-postgres/target/types`. Its input also takes `valueObjectField`, the value object a column holds, or `undefined`.
+
+## `field-types-read-storage-value-objects`
+
+```ts
+// before
+import type { FieldTypesFromDomain, ValueObjectTypesFromDomain } from '@prisma/orm-framework/contract/types';
+type Fields = FieldTypesFromDomain<Contract['domain']['namespaces'], CodecTypes, Parameterized, Overrides, 'output'>;
+type ValueObjects = ValueObjectTypesFromDomain<Contract['domain']['namespaces'], CodecTypes, Parameterized, Overrides, 'output'>;
+
+// after
+import type { FieldTypesFromDomain, ValueObjectTypesFromStorage } from '@prisma/orm-framework/contract/types';
+type Fields = FieldTypesFromDomain<Contract['domain']['namespaces'], CodecTypes, Parameterized, Overrides, 'output', Contract['storage']['namespaces']>;
+type ValueObjects = ValueObjectTypesFromStorage<Contract['storage']['namespaces'], CodecTypes, Parameterized, Overrides, 'output'>;
+```
+
+Pass the sixth argument whenever the contract has value objects. A model field's override stays at `[namespace]['models'][model][field]`. A value object field's override moves to the namespace the value object is stored in: on SQL that is usually the model's namespace, and on MongoDB it is `__unbound__`.
