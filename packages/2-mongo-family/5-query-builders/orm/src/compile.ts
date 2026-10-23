@@ -1,5 +1,5 @@
-import type { PlanMeta } from '@internal/contract/types';
-import type { MongoModelDefinition } from '@internal/mongo-contract';
+import type { ContractModel, PlanMeta } from '@internal/contract/types';
+import type { MongoModelStorage } from '@internal/mongo-contract';
 import type {
   MongoFieldShape,
   MongoPipelineStage,
@@ -63,7 +63,7 @@ export function compileMongoQuery<Row = unknown>(
   collection: string,
   state: MongoCollectionState,
   storageHash: string,
-  model: MongoModelDefinition,
+  model: ContractModel<MongoModelStorage>,
   valueObjects: MongoValueObjects,
 ): MongoQueryPlan<Row> {
   const stages: MongoPipelineStage[] = [];

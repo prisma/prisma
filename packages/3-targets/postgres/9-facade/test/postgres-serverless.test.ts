@@ -304,7 +304,11 @@ describe('postgresServerless connect() opens the database connection', () => {
       fix: 'Verify the database URL, ensure the database is reachable, and confirm credentials/permissions',
       meta: { extension: 'postgres', host: 'localhost', port: '5432', database: 'db' },
     });
-    expect((error as { cause?: unknown }).cause).toBe(refused);
+    expect((error as { cause?: unknown }).cause).toMatchObject({
+      kind: 'sql_connection',
+      transient: false,
+      cause: refused,
+    });
     expect(lastClient().end).toHaveBeenCalledTimes(1);
   });
 

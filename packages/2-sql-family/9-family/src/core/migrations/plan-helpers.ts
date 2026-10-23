@@ -171,6 +171,7 @@ export function plannerFailure(conflicts: readonly SqlPlannerConflict[]): SqlPla
           ...(conflict.why ? { why: conflict.why } : {}),
           ...(conflict.location ? { location: Object.freeze({ ...conflict.location }) } : {}),
           ...(conflict.refusedStatement ? { refusedStatement: conflict.refusedStatement } : {}),
+          ...(conflict.leaveOut ? { leaveOut: Object.freeze([...conflict.leaveOut]) } : {}),
           ...(conflict.refusedOperationClass
             ? { refusedOperationClass: conflict.refusedOperationClass }
             : {}),

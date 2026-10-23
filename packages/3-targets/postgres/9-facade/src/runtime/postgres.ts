@@ -2,6 +2,7 @@ import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver, {
   createPgPool,
+  type PostgresBinding as DriverPostgresBinding,
   suppressIdleConnectionErrors,
 } from '@internal/driver-postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -69,16 +70,19 @@ export type PostgresOptions<
     readonly collections?: TCollections;
   };
 
+type ConnectedBinding = Exclude<DriverPostgresBinding, { readonly kind: 'url' }>;
+
 function toRuntimeBinding<
   TContract extends Contract<SqlStorage>,
   TCollections extends CollectionClasses,
->(binding: PostgresBinding, options: PostgresOptions<TContract, TCollections>) {
+>(binding: PostgresBinding, options: PostgresOptions<TContract, TCollections>): ConnectedBinding {
   if (binding.kind !== 'url') {
-    return binding;
+    return { ...binding, ownedByDriver: false };
   }
 
   return {
     kind: 'pgPool',
+    ownedByDriver: true,
     pool: suppressIdleConnectionErrors(
       createPgPool(
         {
@@ -144,29 +148,23 @@ export default function postgres<
   let connectPromise: Promise<void> | undefined;
   let backgroundConnectError: unknown;
   let closePromise: Promise<void> | undefined;
-  // True once the driver holds a pool this client created. close() then closes the runtime, which
-  // ends that pool; a pool or client the caller passed in stays open, and so does the runtime.
-  let ownsPool = false;
 
   const connectDriver = async (resolvedBinding: PostgresBinding): Promise<void> => {
     if (driverConnected) return;
     if (!runtimeDriver) throw new InternalError('Postgres runtime driver missing');
     if (connectPromise) return connectPromise;
     const runtimeBinding = toRuntimeBinding(resolvedBinding, options);
-    const ownedPool =
-      resolvedBinding.kind === 'url' && runtimeBinding.kind === 'pgPool'
-        ? runtimeBinding.pool
-        : undefined;
     connectPromise = runtimeDriver
       .connect(runtimeBinding)
       .then(() => {
         driverConnected = true;
-        ownsPool = ownedPool !== undefined;
       })
       .catch(async (err) => {
         backgroundConnectError = err;
         connectPromise = undefined;
-        await ownedPool?.end().catch(() => undefined);
+        if (runtimeBinding.kind === 'pgPool' && runtimeBinding.ownedByDriver) {
+          await runtimeBinding.pool.end().catch(() => undefined);
+        }
         throw err;
       });
     return connectPromise;
@@ -216,13 +214,13 @@ export default function postgres<
   };
 
   // Once connected, the runtime's close starts in the same call as close(), so the runtime's idle wait is measured from the caller's close().
-  const closeOwnedRuntime = async (): Promise<void> => {
+  // The runtime closes its driver, which ends only a pool it owns; a pool or client the caller
+  // passed in stays open.
+  const closeRuntime = async (): Promise<void> => {
     if (!driverConnected) {
       await connectPromise?.catch(() => undefined);
     }
-    if (ownsPool) {
-      await runtimeInstance?.close();
-    }
+    await runtimeInstance?.close();
   };
 
   const runtimeBoundMembers = buildPostgresRuntimeBoundMembers<TContract, TCollections>({
@@ -286,7 +284,7 @@ export default function postgres<
     },
 
     close(): Promise<void> {
-      closePromise ??= closeOwnedRuntime();
+      closePromise ??= closeRuntime();
       return closePromise;
     },
 

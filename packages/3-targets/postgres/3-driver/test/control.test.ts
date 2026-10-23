@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import type { Client } from 'pg';
 import { types as pgTypes } from 'pg';
 import { describe, expect, it, vi } from 'vitest';
@@ -74,13 +75,14 @@ describe('@internal/driver-postgres control', () => {
         return { rows: [{ name: 'appdb' }] };
       },
     );
-    const driver = new PostgresControlDriver({ query } as unknown as Client);
+    const driver = new PostgresControlDriver({ query, on: () => undefined } as unknown as Client);
 
     await expect(driver.query('select 1')).resolves.toEqual({ rows: [{ name: 'appdb' }] });
   });
 
   it('names the connected database', async () => {
     const mockClient = {
+      on: () => undefined,
       query: vi.fn(async () => ({ rows: [{ name: 'appdb' }] })),
     };
     const driver = new PostgresControlDriver(mockClient as unknown as Client);
@@ -90,6 +92,7 @@ describe('@internal/driver-postgres control', () => {
 
   it('names nothing when the server returns no name', async () => {
     const mockClient = {
+      on: () => undefined,
       query: vi.fn(async () => ({ rows: [] })),
     };
     const driver = new PostgresControlDriver(mockClient as unknown as Client);
@@ -99,6 +102,7 @@ describe('@internal/driver-postgres control', () => {
 
   it('close() resolves even when the underlying client.end() rejects', async () => {
     const mockClient = {
+      on: () => undefined,
       end: vi.fn(async () => {
         throw new Error('connection already dropped');
       }),
@@ -106,5 +110,35 @@ describe('@internal/driver-postgres control', () => {
     const driver = new PostgresControlDriver(mockClient as unknown as Client);
 
     await expect(driver.close()).resolves.toBeUndefined();
+  });
+
+  it('classifies a code-less error after the client ended as a connection error', async () => {
+    const client = new EventEmitter();
+    const cause = new Error('Connection terminated unexpectedly');
+    const driver = new PostgresControlDriver(
+      Object.assign(client, {
+        query: vi.fn(async () => {
+          client.emit('end');
+          throw cause;
+        }),
+      }) as unknown as Client,
+    );
+
+    await expect(driver.query('select 1')).rejects.toMatchObject({
+      kind: 'sql_connection',
+      cause,
+    });
+  });
+
+  it('leaves a code-less error on a live client unclassified', async () => {
+    const cause = new Error('Connection terminated unexpectedly');
+    const driver = new PostgresControlDriver({
+      on: () => undefined,
+      query: vi.fn(async () => {
+        throw cause;
+      }),
+    } as unknown as Client);
+
+    await expect(driver.query('select 1')).rejects.toBe(cause);
   });
 });

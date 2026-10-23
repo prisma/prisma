@@ -174,7 +174,7 @@ function schemaTypeText(
 /**
  * Builds the column's `CodecRef` from its codec identity — the same construction the query AST and the migration DDL renderer already use (TML-2456, TML-2918).
  */
-function buildColumnCodecRef(
+export function buildColumnCodecRef(
   column: Pick<StorageColumn, 'codecId' | 'typeParams'>,
   many: boolean | undefined,
 ): CodecRef {

@@ -1,10 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(here, '../../../../..');
+import { detectionPatterns } from '../guide-detections';
 
 const GUIDE_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/instructions.md',
@@ -13,12 +8,7 @@ const GUIDE_PATHS = {
 } as const;
 
 function detectionOf(audience: 'app' | 'extension', id: string): readonly RegExp[] {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-  const entry = guide.split(/\n {2}- id: /).find((block) => block.startsWith(`${id}\n`));
-  if (entry === undefined) throw new Error(`The ${audience} fragment has no change ${id}`);
-  return [...entry.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-  );
+  return detectionPatterns(GUIDE_PATHS[audience], id);
 }
 
 function detects(audience: 'app' | 'extension', id: string, content: string): boolean {
@@ -56,6 +46,15 @@ describe('app detection of type-constructor arguments that are now refused', () 
 describe('extension detection', () => {
   it.each([
     [
+      'data-types-own-parameter-limits',
+      "export const acmeMoney = mongoDataType('acme/money', {\n  bsonTypes: ['long'],\n});",
+    ],
+    ['data-types-own-parameter-limits', "const myType = dataType('my/type', { params });"],
+    [
+      'data-types-own-parameter-limits',
+      "export const postgisGeometry = sqlDataType('postgis/geometry', { params, texts });",
+    ],
+    [
       'value-arguments-name-a-data-type',
       "args: [{ kind: 'number', name: 'length', integer: true, minimum: 1 }]",
     ],
@@ -85,6 +84,10 @@ describe('extension detection', () => {
     ],
     ['psl-and-print-helpers-take-data-types', 'const args = parsePslPositionalArgs(call);'],
     [
+      'psl-and-print-helpers-take-data-types',
+      'const args = mapPslHelperArgs({ args: call.args, descriptors, helperLabel });',
+    ],
+    [
       'composed-helpers-take-no-data-type-lookup',
       'createComposedAuthoringHelpers({ family, target, codecLookup, dataTypeLookup })',
     ],
@@ -99,6 +102,18 @@ describe('extension detection', () => {
   });
 
   it.each([
+    [
+      'psl-and-print-helpers-take-data-types',
+      'const args = mapPslHelperArgs({ args: call.args, descriptors, helperLabel, dataTypes });',
+    ],
+    [
+      'data-types-own-parameter-limits',
+      "export const acmeMoney = mongoDataType('acme/money', {\n  bsonTypes: ['long'],\n  read: readMoney,\n});",
+    ],
+    [
+      'data-types-own-parameter-limits',
+      "export const postgisGeometry = sqlDataType('postgis/geometry', { params, texts, read: readGeometry });",
+    ],
     [
       'value-arguments-name-a-data-type',
       "args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }]",

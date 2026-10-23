@@ -11,7 +11,8 @@ import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import type { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
-import { normalizePgError } from '../normalize-error';
+import { normalizePgClientError, normalizePgConnectFailure } from '../normalize-error';
+import { watchClientLoss } from '../pg-client-state';
 import { controlTextTypes } from '../server-text-types';
 import { createPgClient } from '../session-settings';
 
@@ -19,7 +20,11 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
 
-  constructor(private readonly client: Client) {}
+  private readonly client: Client;
+
+  constructor(client: Client) {
+    this.client = watchClientLoss(client);
+  }
 
   async query<Row = Record<string, unknown>>(
     sql: string,
@@ -35,7 +40,7 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
         rows: blindCast<Row[], 'pg query rows are shaped by the query result type'>(result.rows),
       };
     } catch (error) {
-      throw normalizePgError(error);
+      throw normalizePgClientError(this.client, error);
     }
   }
 
@@ -62,20 +67,22 @@ const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', Postg
       url: string,
       options?: ControlDriverConnectOptions,
     ): Promise<PostgresControlDriver> {
-      const client = suppressIdleConnectionErrors(
-        createPgClient(
-          {
-            connectionString: url,
-            ...ifDefined('connectionTimeoutMillis', options?.connectTimeoutMs),
-          },
-          options?.sessionSettings ?? {},
+      const client = watchClientLoss(
+        suppressIdleConnectionErrors(
+          createPgClient(
+            {
+              connectionString: url,
+              ...ifDefined('connectionTimeoutMillis', options?.connectTimeoutMs),
+            },
+            options?.sessionSettings ?? {},
+          ),
         ),
       );
       try {
         await client.connect();
         return new PostgresControlDriver(client);
       } catch (error) {
-        const normalized = normalizePgError(error);
+        const normalized = normalizePgConnectFailure(error);
         const redacted = redactDatabaseUrl(url);
         try {
           await client.end();

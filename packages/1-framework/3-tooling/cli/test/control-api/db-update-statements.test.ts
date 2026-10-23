@@ -435,6 +435,41 @@ describe('executeDbUpdate with statements', () => {
     ]);
   });
 
+  it('lists a delete a dry run is given among its applied statements, as migration plan does', async () => {
+    const { migrations } = recordingMigrations('additive', [
+      {
+        operationIndex: 0,
+        subject: {
+          kind: 'field',
+          namespaceId: asNamespaceId('app'),
+          model: 'Profile',
+          field: 'nickname',
+        },
+        loss: 'drop',
+        label: 'Drop column nickname',
+      },
+    ]);
+
+    const result = await update({
+      migrationsDir: await migrationsDirWithSnapshot(origin),
+      marker: markerAt(ORIGIN_HASH),
+      renames: ['Profile:User'],
+      fieldStatements: [{ verb: 'delete', text: 'User.nickname' }],
+      migrations,
+    });
+
+    expect(
+      result.ok &&
+        result.value.appliedStatements.map(({ verb, operationIndexes }) => ({
+          verb,
+          operationIndexes,
+        })),
+    ).toEqual([
+      { verb: 'rename', operationIndexes: [0] },
+      { verb: 'delete', operationIndexes: [0] },
+    ]);
+  });
+
   it('reads no snapshot without statements, and plans from no origin contract', async () => {
     const withSnapshot = recordingMigrations();
     const result = await update({

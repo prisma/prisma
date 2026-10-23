@@ -58,6 +58,7 @@ describe('the startup options of a connection', () => {
       {
         kind: 'pgClient',
         client: new pg.Client({ connectionString: `${recorder.url}?${URL_OPTIONS}` }),
+        ownedByDriver: false,
       },
       undefined,
       { sessionSettings: SESSION_SETTINGS },

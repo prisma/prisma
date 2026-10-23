@@ -1,8 +1,29 @@
-import mysqlDriver from '@internal/driver-mysql/control';
+import mysqlDriver, { type MysqlControlDriver } from '@internal/driver-mysql/control';
+import { acquireMarkerLock, releaseMarkerLock } from '@internal/target-mysql/marker-lock';
 import { timeouts } from '@repo/test-utils';
 import { withMysqlDatabase } from '@repo/test-utils/mysql-database';
 import { describe, expect, it } from 'vitest';
 import { createAdapter } from './helpers';
+
+async function bootstrap(driver: MysqlControlDriver): Promise<void> {
+  const adapter = createAdapter();
+  for (const node of adapter.bootstrapControlTableQueries()) {
+    await driver.query((await adapter.lowerToExecuteRequest(node)).sql);
+  }
+}
+
+async function lockIsFree(url: string): Promise<boolean> {
+  const other = await mysqlDriver.create(url);
+  try {
+    await acquireMarkerLock(other, 0);
+    await releaseMarkerLock(other);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    await other.close();
+  }
+}
 
 describe('MysqlControlAdapter against a MySQL server', {
   timeout: timeouts.databaseOperation,
@@ -120,6 +141,96 @@ describe('MysqlControlAdapter against a MySQL server', {
           }),
         ).rejects.toThrow('undo');
         expect((await driver.query('SELECT id FROM t')).rows).toEqual([{ id: '1' }]);
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+  it('writes markers and ledger entries, and advances a marker only from the hash it holds', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const adapter = createAdapter();
+      const driver = await mysqlDriver.create(url);
+      try {
+        await bootstrap(driver);
+        await adapter.insertMarker(driver, 'ext', { storageHash: 'sha256:e1', profileHash: 'p' });
+        await expect(
+          adapter.insertMarker(driver, 'ext', { storageHash: 'sha256:e2', profileHash: 'p' }),
+        ).rejects.toThrow();
+        await adapter.initMarker(driver, 'app', { storageHash: 'sha256:a1', profileHash: 'p1' });
+        await adapter.initMarker(driver, 'app', {
+          storageHash: 'sha256:a2',
+          profileHash: 'p2',
+          invariants: ['inv-1'],
+        });
+        const swaps = await adapter.withTransaction(driver, async () => [
+          await adapter.updateMarker(driver, 'app', 'sha256:stale', {
+            storageHash: 'sha256:x',
+            profileHash: 'px',
+          }),
+          await adapter.updateMarker(driver, 'app', 'sha256:a2', {
+            storageHash: 'sha256:a3',
+            profileHash: 'p3',
+            invariants: ['inv-0'],
+          }),
+        ]);
+        await adapter.writeLedgerEntry(driver, 'app', {
+          edgeId: 'sha256:a2->sha256:a3',
+          from: 'sha256:a2',
+          to: 'sha256:a3',
+          migrationName: '20261022_add',
+          migrationHash: 'sha256:m',
+          operations: [{ id: 'one' }],
+        });
+
+        const markers = await adapter.readAllMarkers(driver);
+        expect({
+          swaps,
+          app: markers.get('app'),
+          ext: markers.get('ext')?.storageHash,
+          ledger: await adapter.readLedger(driver, 'app'),
+        }).toMatchObject({
+          swaps: [false, true],
+          app: { storageHash: 'sha256:a3', profileHash: 'p3', invariants: ['inv-0', 'inv-1'] },
+          ext: 'sha256:e1',
+          ledger: [
+            { space: 'app', migrationName: '20261022_add', from: 'sha256:a2', to: 'sha256:a3' },
+          ],
+        });
+      } finally {
+        await driver.close();
+      }
+    });
+  });
+
+  it('releases the marker lock when the transaction it guards commits or rolls back', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const adapter = createAdapter();
+      const driver = await mysqlDriver.create(url);
+      try {
+        const heldDuringCommit = await adapter.holdMarkerLock(driver, () =>
+          adapter.withTransaction(driver, async () => !(await lockIsFree(url))),
+        );
+        const freeAfterCommit = await lockIsFree(url);
+        let heldDuringRollback = false;
+        await expect(
+          adapter.holdMarkerLock(driver, () =>
+            adapter.withTransaction(driver, async () => {
+              heldDuringRollback = !(await lockIsFree(url));
+              throw new Error('undo');
+            }),
+          ),
+        ).rejects.toThrow('undo');
+        expect({
+          heldDuringCommit,
+          freeAfterCommit,
+          heldDuringRollback,
+          freeAfterRollback: await lockIsFree(url),
+        }).toEqual({
+          heldDuringCommit: true,
+          freeAfterCommit: true,
+          heldDuringRollback: true,
+          freeAfterRollback: true,
+        });
       } finally {
         await driver.close();
       }

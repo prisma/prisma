@@ -1,7 +1,10 @@
 import { mongoDescriptorById } from '@internal/target-mongo/codecs';
 import { mongoBson, mongoJson } from '@internal/target-mongo/data-types';
 import { describe, expect, it } from 'vitest';
-import mongoAdapterDescriptor, { mongoScalarAuthoringTypes } from '../src/exports/control';
+import mongoAdapterDescriptor, {
+  MongoControlAdapterImpl,
+  mongoScalarAuthoringTypes,
+} from '../src/exports/control';
 
 // The legacy scalar-type map channel (name-to-codecId, retired in TML-2985) is gone; the pinned
 // name → codecId pairs below carry the retired map's claims forward.
@@ -95,5 +98,11 @@ describe('mongoScalarAuthoringTypes', () => {
       named: 'CodecTypes',
       alias: 'MongoCodecTypes',
     });
+  });
+});
+
+describe('MongoControlAdapterImpl', () => {
+  it('names the collection that holds the markers', () => {
+    expect(new MongoControlAdapterImpl().markerLocation).toBe('_prisma_migrations');
   });
 });

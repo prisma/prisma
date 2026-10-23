@@ -2,6 +2,9 @@ import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types
 import { describe, expect, it } from 'vitest';
 import {
   describeMigrationStatement,
+  enumValueCoordinateFromJson,
+  enumValueCoordinateJson,
+  enumValueStatementText,
   fieldStatementText,
   isRenameStatement,
   migrationStatementJson,
@@ -310,5 +313,87 @@ describe('a namespace rename', () => {
 
   it('is a rename statement', () => {
     expect(isRenameStatement(statement)).toBe(true);
+  });
+});
+
+describe('an enum value rename', () => {
+  const statement: ResolvedMigrationStatement = {
+    kind: 'rename',
+    entity: 'enumValue',
+    from: { namespaceId: app, enum: 'Status', member: 'ARCHIVED' },
+    to: { namespaceId: app, enum: 'Status', member: 'RETIRED' },
+  };
+
+  it('is described through its enum, with the namespace only when the contract has several', () => {
+    expect(
+      describeMigrationStatement(statement, contractWith({ app: [] }), contractWith({ app: [] })),
+    ).toBe('rename enum value "Status.ARCHIVED" to "Status.RETIRED"');
+    expect(
+      describeMigrationStatement(
+        statement,
+        contractWith({ app: [], billing: [] }),
+        contractWith({ app: [], billing: [] }),
+      ),
+    ).toBe('rename enum value "app.Status.ARCHIVED" to "app.Status.RETIRED"');
+  });
+
+  it('is written to JSON with a coordinate on each side', () => {
+    expect(migrationStatementJson(statement)).toEqual({
+      kind: 'rename',
+      entity: 'enumValue',
+      from: { namespaceId: 'app', enum: 'Status', member: 'ARCHIVED' },
+      to: { namespaceId: 'app', enum: 'Status', member: 'RETIRED' },
+    });
+  });
+
+  it('is a rename statement', () => {
+    expect(isRenameStatement(statement)).toBe(true);
+  });
+});
+
+describe('an enum value subject', () => {
+  const subject = {
+    kind: 'enumValue',
+    namespaceId: app,
+    enum: 'Status',
+    member: 'ARCHIVED',
+  } as const;
+
+  it('has a key of its own and a JSON coordinate', () => {
+    expect(migrationSubjectKey(subject)).not.toBe(
+      migrationSubjectKey({ kind: 'field', namespaceId: app, model: 'Status', field: 'ARCHIVED' }),
+    );
+    expect(migrationSubjectJson(subject)).toEqual({
+      kind: 'enumValue',
+      namespaceId: 'app',
+      enum: 'Status',
+      member: 'ARCHIVED',
+    });
+    expect(
+      migrationSubjectJson({ ...subject, namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID) }),
+    ).toEqual({ kind: 'enumValue', enum: 'Status', member: 'ARCHIVED' });
+  });
+
+  it('is named through its enum in statements', () => {
+    expect(enumValueStatementText(contractWith({ app: [] }), subject)).toBe('Status.ARCHIVED');
+    expect(enumValueStatementText(contractWith({ app: [], billing: [] }), subject)).toBe(
+      'app.Status.ARCHIVED',
+    );
+  });
+});
+
+describe('enum value coordinates in JSON', () => {
+  it('leave out the unbound namespace, and read it back', () => {
+    const unbound = {
+      namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+      enum: 'Status',
+      member: 'A',
+    };
+    const named = { namespaceId: asNamespaceId('app'), enum: 'Status', member: 'A' };
+
+    expect(enumValueCoordinateJson(unbound)).toEqual({ enum: 'Status', member: 'A' });
+    expect(enumValueCoordinateJson(named)).toEqual(named);
+    expect(enumValueCoordinateFromJson(enumValueCoordinateJson(unbound))).toEqual(unbound);
+    expect(enumValueCoordinateFromJson(named)).toEqual(named);
   });
 });

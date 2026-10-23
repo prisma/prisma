@@ -193,6 +193,8 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
     case 'addColumn':
     case 'renameColumn':
       return 'column';
+    case 'replaceStoredValue':
+    case 'removeStoredValue':
     case 'alterColumnType':
     case 'setNotNull':
     case 'dropNotNull':

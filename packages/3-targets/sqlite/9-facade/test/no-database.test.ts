@@ -16,9 +16,9 @@ const contract = contractFromJson<Contract>(contractJson);
 const collections = { Post: PostCollection };
 
 const selectIds = { sql: 'SELECT "id" AS "id" FROM "posts" LIMIT 10', params: [] };
-const resetViews = { sql: 'UPDATE posts SET views = ?', params: [0] };
+const resetViews = { sql: 'UPDATE posts SET views = ?1', params: [0] };
 const selectTitled = {
-  sql: 'SELECT "posts"."id" AS "id" FROM "posts" WHERE "posts"."title" = ?',
+  sql: 'SELECT "posts"."id" AS "id" FROM "posts" WHERE "posts"."title" = ?1',
   params: ['Hello'],
 };
 

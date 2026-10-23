@@ -110,7 +110,7 @@ function buildBaselineOps(): readonly MigrationPlanOperation[] {
       operationClass: 'additive',
       target: {
         id: 'sqlite',
-        details: { schema: 'main', objectType: 'table', name: '_ext_helper' },
+        details: { objectType: 'table', name: '_ext_helper' },
       },
       precheck: [],
       execute: [
@@ -132,7 +132,7 @@ function buildAdvanceOps(): readonly MigrationPlanOperation[] {
       operationClass: 'additive',
       target: {
         id: 'sqlite',
-        details: { schema: 'main', objectType: 'table', name: '_ext_helper' },
+        details: { objectType: 'table', name: '_ext_helper' },
       },
       precheck: [],
       execute: [
@@ -154,7 +154,7 @@ function buildFailingOps(): readonly MigrationPlanOperation[] {
       operationClass: 'additive',
       target: {
         id: 'sqlite',
-        details: { schema: 'main', objectType: 'table', name: '_ext_helper' },
+        details: { objectType: 'table', name: '_ext_helper' },
       },
       precheck: [],
       execute: [

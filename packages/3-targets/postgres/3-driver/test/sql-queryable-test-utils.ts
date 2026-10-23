@@ -44,8 +44,16 @@ export async function openDevDriver(
   const database = await createDevDatabase();
   const driver = createBoundDriverFromBinding(
     binding === 'pgClient'
-      ? { kind: 'pgClient', client: new pg.Client({ connectionString: database.connectionString }) }
-      : { kind: 'pgPool', pool: new pg.Pool({ connectionString: database.connectionString }) },
+      ? {
+          kind: 'pgClient',
+          client: new pg.Client({ connectionString: database.connectionString }),
+          ownedByDriver: true,
+        }
+      : {
+          kind: 'pgPool',
+          pool: new pg.Pool({ connectionString: database.connectionString }),
+          ownedByDriver: true,
+        },
     { disabled: mode === 'buffered' },
   );
   return {

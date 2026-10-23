@@ -565,6 +565,39 @@ describe('migration plan', () => {
       expect(await plannedDirs(project)).toEqual(['20260101T0000_initial']);
     });
 
+    it('advises the plan without a rename typed at the prompt once its plan is refused, keeping the given delete', async () => {
+      const project = await losingProject();
+      const result = await executeMigrationPlanCommand(
+        {
+          config: {
+            ...offlineConfig({
+              project,
+              script: {
+                operations: [ADDITIVE_OP, DESTRUCTIVE_OP, DROP_AUDIT_OP],
+                dataLoss: [LEGACY_LOSS, AUDIT_LOSS],
+                leaveOutStatements: true,
+              },
+            }),
+            baseDir: project.dir,
+          } as unknown as PrismaNextConfig,
+          cwd: project.dir,
+          projectDir: project.dir,
+          statements: [{ verb: 'delete', text: 'audit_log' }],
+          answerQuestions: async (questions) =>
+            questions.map(() => ({ verb: 'rename', text: 'Legacy:Archive' })),
+          client: { renderContractDts: renderContractDtsMock },
+        },
+        Date.now(),
+      );
+
+      expect(!result.ok && result.failure.toEnvelope().nextActions).toEqual([
+        {
+          kind: 'user-choice',
+          label: `To write the rewrites by hand, plan the change without --rename Legacy:Archive with \`{bin} migration plan --from ${HASH_FROM} --delete audit_log\`, add the rewrites the message describes to the migration.ts it writes, run \`node <migration directory>/migration.ts\` for the directory it writes, and apply it with \`{bin} db migrate\``,
+        },
+      ]);
+    });
+
     it('refuses where nobody can answer, listing every operation with the flags that answer it', async () => {
       const project = await losingProject();
 

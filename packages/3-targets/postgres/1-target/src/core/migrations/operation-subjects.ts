@@ -11,6 +11,7 @@ import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-c
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { parseWireName } from '@internal/sql-schema-ir/naming';
+import { ifDefined } from '@internal/utils/defined';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import {
@@ -22,13 +23,17 @@ import {
   DropPostgresRlsPolicyCall,
   DropTableCall,
   RawSqlCall,
+  RemoveStoredValueCall,
 } from './op-factory-call';
+import type { StoredValueSubject } from './stored-value-calls';
 
 interface Locator {
   /** The contract that names the namespaces: the origin contract when the plan has one. */
   readonly contract: Contract<SqlStorage>;
   /** The codec hooks' calls, each with the column of the field event it was returned for. */
   readonly fieldEvents: ReadonlyMap<OpFactoryCall, FieldEventCall>;
+  /** The stored value removals the planner made for enum values, each with its enum value. */
+  readonly storedValues?: ReadonlyMap<OpFactoryCall, StoredValueSubject>;
 }
 
 /**
@@ -77,6 +82,13 @@ function knownTarget(locator: Locator, call: OpFactoryCall): SubjectStorage | un
   }
   if (call instanceof DropColumnCall || call instanceof AlterColumnTypeCall) {
     return target(locator, call.schemaName, call.tableName, call.columnName);
+  }
+  if (call instanceof RemoveStoredValueCall) {
+    const enumValue = locator.storedValues?.get(call)?.enumValue;
+    return {
+      ...target(locator, call.schemaName, call.tableName, call.columnName),
+      ...ifDefined('enumValue', enumValue),
+    };
   }
   if (call instanceof RawSqlCall) return rawSqlTarget(locator, call);
   const fieldEvent = locator.fieldEvents.get(call);
@@ -151,7 +163,13 @@ export function postgresCallSubjects(
       label: call.label,
       dataLoss:
         lossTarget !== undefined
-          ? [{ ...lossTarget, loss }]
+          ? [
+              {
+                ...lossTarget,
+                loss,
+                ...ifDefined('keepDataEdit', locator.storedValues?.get(call)?.keepDataEdit),
+              },
+            ]
           : unknownName !== undefined
             ? [{ storageName: unknownName, table: undefined, loss }]
             : [],

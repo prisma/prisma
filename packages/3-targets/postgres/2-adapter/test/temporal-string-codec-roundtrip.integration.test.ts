@@ -160,7 +160,7 @@ describe('the string date and time codecs read ISO 8601 from PostgreSQL', () => 
     const stackInstance = instantiateExecutionStack(stack);
 
     const driver = postgresRuntimeDriverDescriptor.create();
-    await driver.connect({ kind: 'pgClient', client });
+    await driver.connect({ kind: 'pgClient', client, ownedByDriver: true });
     session = driver;
     runtime = createTestRuntime({ stackInstance, context, driver, verifyMarker: false });
 

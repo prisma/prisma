@@ -47,7 +47,7 @@ const DATA_TYPES: Readonly<Record<string, string>> = {
 const DATETIME_CODEC = 'sqlite/datetime@1';
 const PREVIOUS_DATA_TYPE = 'sqlite/text';
 const UTC_INSTANT = /^(.*:\d{2})(?:\.(\d{1,3}))?Z$/;
-const SKIPPED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'build']);
+const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build']);
 const HASH = /^[0-9a-f]{64}$/;
 const TEMPORARY_SUFFIX = '.data-type-values-tmp';
 
@@ -348,7 +348,7 @@ function listFiles(root: string): ProjectFiles {
         continue;
       }
       if (entry.isDirectory() || (entry.isSymbolicLink() && isDirectory(path))) {
-        if (!SKIPPED_DIRECTORIES.has(entry.name)) visit(path);
+        if (!SKIPPED_DIRECTORIES.has(entry.name) && !entry.name.startsWith('.')) visit(path);
         continue;
       }
       if (!isFileEntry(dir, entry)) continue;
@@ -931,10 +931,13 @@ interface ContractPlan {
 const JSON_FILES_THAT_MUST_PARSE = new Set(['contract.json', 'migration.json']);
 
 function parseRoot(args: readonly string[]): { readonly root: string; readonly errors: string[] } {
-  const errors = args.filter((arg) => arg.startsWith('--')).map((arg) => `${arg}: unknown option`);
-  const positional = args.filter((arg) => !arg.startsWith('--'));
+  const errors = args.filter((arg) => arg.startsWith('-')).map((arg) => `${arg}: unknown option`);
+  const positional = args.filter((arg) => !arg.startsWith('-'));
   if (positional.length > 1) errors.push(`expected one project root, got ${positional.length}`);
-  return { root: resolve(positional[0] ?? process.cwd()), errors };
+  const root = resolve(positional[0] ?? process.cwd());
+  if (errors.length === 0 && !isDirectory(root)) errors.push(`${root}: not a directory`);
+  if (errors.length > 0) errors.push('Usage: node data-type-values.ts [project-root]');
+  return { root, errors };
 }
 
 function main({

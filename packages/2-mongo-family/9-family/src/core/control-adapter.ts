@@ -76,6 +76,9 @@ export interface MongoRunnerDependencies {
  */
 export interface MongoControlAdapter<TTarget extends string = string>
   extends ControlAdapterInstance<'mongo', TTarget> {
+  /** Where the database keeps the contract markers, as messages name it to the user. */
+  readonly markerLocation: string;
+
   /**
    * Reads the contract marker document for `space`, or returns `null`
    * if no marker document has been written for that space yet. Each

@@ -40,6 +40,7 @@ export {
   validateCodecRegistryCompleteness,
   validateContractCodecMappings,
 } from '../codecs/validation';
+export { type DelegatingRuntime, delegatingRuntime } from '../delegating-runtime';
 export { lowerSqlPlan } from '../lower-sql-plan';
 export type { BudgetsOptions } from '../middleware/budgets';
 export { budgets } from '../middleware/budgets';

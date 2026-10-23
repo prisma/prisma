@@ -18,6 +18,7 @@ import type { ShellDefinition, ShellName } from '../src/shells';
 
 const postgresFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-postgres' };
 const mongoFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-mongo' };
+const mysqlFacade: ImportRoot = { mode: 'facade', facade: '@prisma/orm-mysql' };
 const platform: ImportRoot = { mode: 'platform' };
 
 describe('resolveImportSpecifier', () => {
@@ -135,6 +136,34 @@ describe('resolveImportSpecifier', () => {
       expect(() => resolveImportSpecifier('@internal/migration-tools', postgresFacade)).toThrow(
         /has no name under @prisma\/orm-postgres/,
       );
+    });
+
+    it('resolves what emitted MySQL contracts and migrations name to the MySQL facade', () => {
+      expect(resolveImportSpecifier('@internal/adapter-mysql/codec-types', mysqlFacade)).toBe(
+        '@prisma/orm-mysql/adapter/codec-types',
+      );
+      expect(resolveImportSpecifier('@internal/sql-contract/types', mysqlFacade)).toBe(
+        '@prisma/orm-mysql/family-contract/types',
+      );
+      expect(resolveImportSpecifier('@internal/contract/types', mysqlFacade)).toBe(
+        '@prisma/orm-mysql/contract/types',
+      );
+      expect(resolveImportSpecifier('@internal/mysql/migration', mysqlFacade)).toBe(
+        '@prisma/orm-mysql/migration',
+      );
+    });
+
+    it('gives the MySQL facade no query surface, because the MySQL target has no runtime yet', () => {
+      for (const specifier of [
+        '@internal/sql-runtime',
+        '@internal/sql-orm-client',
+        '@internal/sql-builder',
+        '@internal/sql-relational-core',
+      ]) {
+        expect(() => resolveImportSpecifier(specifier, mysqlFacade)).toThrow(
+          /has no name under @prisma\/orm-mysql/,
+        );
+      }
     });
 
     it('rejects a non-facade shell as the facade', () => {

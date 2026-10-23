@@ -9,6 +9,7 @@ import {
   createControlStack,
   hasOperationPreview,
   type MigrationPlanNamespaces,
+  type MigrationPlannerConflict,
   type MigrationPlanOperation,
   migrationSubjectKey,
   type OperationPreview,
@@ -49,6 +50,8 @@ import {
 import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
+import { migrationPlanKeepDataEditAdvice } from '../../utils/keep-data-edit-advice';
+import { planningRefusedError } from '../../utils/planning-refused-error';
 import { type CliInvocation, selfEmitCommand } from '../../utils/printed-command';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
@@ -178,6 +181,8 @@ async function runPlannerLeg(
   ownership: SchemaOwnership,
   snapshotsImportPath: string,
   resolveImportSpecifier: ImportSpecifierResolver,
+  refused: (conflicts: readonly MigrationPlannerConflict[]) => CliStructuredError = (conflicts) =>
+    errorMigrationPlanningFailed({ conflicts: castAs<readonly CliErrorConflict[]>(conflicts) }),
 ): Promise<Result<PlannerSuccess, PlannerLegFailure>> {
   const fromContract = origin.kind === 'contract' ? origin.contract : null;
   const fromSchema = migrations.contractToSchema(fromContract, frameworkComponents);
@@ -201,9 +206,7 @@ async function runPlannerLeg(
   if (plannerResult.kind === 'failure') {
     return notOk({
       reason: 'refused',
-      error: errorMigrationPlanningFailed({
-        conflicts: castAs<readonly CliErrorConflict[]>(plannerResult.conflicts),
-      }),
+      error: refused(plannerResult.conflicts),
     });
   }
 
@@ -244,12 +247,13 @@ async function runPlannerLeg(
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
     dataLoss: plannerResult.dataLoss.map(
-      ({ operationIndex, subject, loss, label, keepDataAdvice }) => ({
+      ({ operationIndex, subject, loss, label, keepDataAdvice, keepDataEdit }) => ({
         operationIndex: position(operationIndex),
         subject,
         loss,
         label,
         ...ifDefined('keepDataAdvice', keepDataAdvice),
+        ...ifDefined('keepDataEdit', keepDataEdit),
       }),
     ),
     appliedStatements: reportAppliedStatements(
@@ -330,6 +334,7 @@ async function answerPlannedDataLoss(input: {
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
+  readonly invocation: CliInvocation;
   readonly planDelta: (
     statements: readonly StatementText[],
   ) => Promise<Result<PlannerSuccess, CliStructuredError>>;
@@ -359,6 +364,7 @@ async function answerPlannedDataLoss(input: {
     originKnown: input.originKnown,
     destination: input.destination,
     answer: input.answer,
+    keepDataEditAdvice: migrationPlanKeepDataEditAdvice(input.invocation),
     replan: async (statements) => {
       const replanned = await input.planDelta(statements);
       return replanned.ok ? ok(legs(replanned.value)) : replanned;
@@ -649,6 +655,7 @@ async function executeMigrationPlanCommandInner(
   // is written. A plan from an empty database has no model to rename.
   let statements: readonly ResolvedMigrationStatement[] = [];
   const statementTexts = options.statements ?? [];
+  const consentTexts = statementTexts.filter((statement) => !isPlannedStatement(statement));
   if (statementTexts.length > 0) {
     const resolved = resolveStatements({
       statements: statementTexts,
@@ -660,6 +667,16 @@ async function executeMigrationPlanCommandInner(
     }
     statements = resolved.value;
   }
+  const refusedWith =
+    (texts: readonly StatementText[], resolved: readonly ResolvedMigrationStatement[]) =>
+    (conflicts: readonly MigrationPlannerConflict[]) =>
+      planningRefusedError(conflicts, {
+        invocation: invocationOf(options),
+        from: fromHash ?? undefined,
+        to: options.to,
+        statements: texts,
+        resolved,
+      });
 
   // Before the seed phase, which is the first thing here that writes: an
   // unreadable or contradictory project manifest fails the command outright
@@ -776,6 +793,7 @@ async function executeMigrationPlanCommandInner(
       baseline: PlannerSuccess | undefined,
       delta: PlannerSuccess | undefined,
       planDelta: (
+        texts: readonly StatementText[],
         resolved: readonly ResolvedMigrationStatement[],
       ) => Promise<Result<PlannerSuccess, PlannerLegFailure>>,
     ) =>
@@ -783,11 +801,12 @@ async function executeMigrationPlanCommandInner(
         baseline,
         delta,
         statements: statementTexts.filter(isPlannedStatement),
-        consents: statementTexts.filter((statement) => !isPlannedStatement(statement)),
+        consents: consentTexts,
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
         destination: toContract,
         answer: options.answerQuestions,
+        invocation: invocationOf(options),
         planDelta: async (planned) => {
           const resolved = resolveStatements({
             statements: planned,
@@ -795,7 +814,7 @@ async function executeMigrationPlanCommandInner(
             destination: toContract,
           });
           if (!resolved.ok) return resolved;
-          const leg = await planDelta(resolved.value);
+          const leg = await planDelta([...consentTexts, ...planned], resolved.value);
           return leg.ok ? leg : notOk(leg.failure.error);
         },
       });
@@ -826,7 +845,10 @@ async function executeMigrationPlanCommandInner(
         return notOk(baselineLeg.failure.error);
       }
 
-      const planBaselineDelta = (resolved: readonly ResolvedMigrationStatement[]) =>
+      const planBaselineDelta = (
+        texts: readonly StatementText[],
+        resolved: readonly ResolvedMigrationStatement[],
+      ) =>
         runPlannerLeg(
           planner,
           migrations,
@@ -840,9 +862,12 @@ async function executeMigrationPlanCommandInner(
           aggregate,
           snapshotsImportPathFrom(deltaPackageDir, migrationsDir),
           resolveImportSpecifier,
+          refusedWith(texts, resolved),
         );
       const plannedDelta =
-        fromHash === toStorageHash ? undefined : await planBaselineDelta(statements);
+        fromHash === toStorageHash
+          ? undefined
+          : await planBaselineDelta(statementTexts, statements);
       // A refused delta writes nothing. A delta with no operations still writes the baseline, so
       // the `migration new --from` its error advises has the history to start from.
       if (
@@ -1018,7 +1043,10 @@ async function executeMigrationPlanCommandInner(
     const dirName = formatMigrationDirName(timestamp, slug);
     const packageDir = join(appMigrationsDir, dirName);
 
-    const planDelta = (resolved: readonly ResolvedMigrationStatement[]) =>
+    const planDelta = (
+      texts: readonly StatementText[],
+      resolved: readonly ResolvedMigrationStatement[],
+    ) =>
       runPlannerLeg(
         planner,
         migrations,
@@ -1032,8 +1060,9 @@ async function executeMigrationPlanCommandInner(
         aggregate,
         snapshotsImportPathFrom(packageDir, migrationsDir),
         resolveImportSpecifier,
+        refusedWith(texts, resolved),
       );
-    const plannedDelta = await planDelta(statements);
+    const plannedDelta = await planDelta(statementTexts, statements);
     if (!plannedDelta.ok) {
       return notOk(plannedDelta.failure.error);
     }

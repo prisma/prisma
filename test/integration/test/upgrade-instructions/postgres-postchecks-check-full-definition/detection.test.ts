@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { guideChanges, patternsOf } from '../guide-detections';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
@@ -24,23 +25,17 @@ const FRAGMENT_CHANGES: Record<string, (id: string) => boolean> = {
 function changesOf(fragment: string): readonly Change[] {
   const belongs = FRAGMENT_CHANGES[fragment];
   if (belongs === undefined) throw new Error(`No changes listed for ${fragment}`);
-  const guide = readFileSync(join(repoRoot, GUIDE_PATH), 'utf-8');
-  return guide
-    .split(/\n {2}- id: /)
-    .slice(1)
-    .map((block) => ({
-      id: block.slice(0, block.indexOf('\n')),
-      patterns: [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
-        ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-      ),
-    }))
-    .filter(({ id }) => belongs(id));
+  const changes = guideChanges(GUIDE_PATH).filter(({ id }) => belongs(id));
+  if (changes.length === 0) throw new Error(`The guide lists no change of ${fragment}`);
+  return changes.map((change) => ({ id: change.id, patterns: patternsOf(change) }));
 }
 
 function opsJsonChanges(fragment: string): readonly Change[] {
-  return changesOf(fragment).filter(
+  const changes = changesOf(fragment).filter(
     ({ id }) => id !== 'postgres-alter-column-type-unchanged-refused',
   );
+  if (changes.length === 0) throw new Error(`The guide lists no ops.json change of ${fragment}`);
+  return changes;
 }
 
 const fixture = (name: string) => readFileSync(join(here, 'fixtures', name), 'utf-8');

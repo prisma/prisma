@@ -211,16 +211,26 @@ model Post {
     ]);
   });
 
-  it('rejects an optional preset field with PSL_PRESET_NOT_OPTIONAL', () => {
-    expect(
-      diagnosticsOf(`model Post {
+  it('builds an optional preset field', () => {
+    const result = interpret(`model Post {
   id        ObjectId              @id @map("_id")
   createdAt temporal.createdAt()?
 }
-`),
-    ).toEqual([
-      expect.objectContaining({ code: 'PSL_PRESET_NOT_OPTIONAL', sourceId: 'schema.prisma' }),
-    ]);
+`);
+    if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+
+    expect({
+      field: result.value.domain.namespaces['__unbound__']?.models['Post']?.fields['createdAt'],
+      defaults: result.value.execution?.mutations.defaults,
+    }).toEqual({
+      field: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: true, many: false },
+      defaults: [
+        {
+          ref: { namespace: '__unbound__', entry: 'Post', field: 'createdAt' },
+          onCreate: { kind: 'generator', id: 'timestampNow' },
+        },
+      ],
+    });
   });
 
   it('rejects a preset as a list element type with PSL_PRESET_NOT_LIST', () => {
@@ -372,7 +382,7 @@ model Post {
     ]);
   });
 
-  it('rejects a preset on a composite-type field with PSL_UNSUPPORTED_FIELD_TYPE', () => {
+  it('rejects a preset that generates a value on a composite-type field with PSL_UNSUPPORTED_FIELD_TYPE', () => {
     expect(
       diagnosticsOf(`type Audit {
   createdAt temporal.createdAt()
@@ -386,7 +396,8 @@ model Post {
     ).toEqual([
       expect.objectContaining({
         code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-        message: expect.stringContaining('not on fields of a composite type'),
+        message:
+          'Field "Audit.createdAt" uses field preset "temporal.createdAt", which generates a value; a member of a composite type has no generated values.',
       }),
     ]);
   });

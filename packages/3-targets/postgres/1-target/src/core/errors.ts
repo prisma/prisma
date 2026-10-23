@@ -3,6 +3,7 @@ import type { StructuredError, StructuredErrorOptions } from '@internal/utils/st
 import { structuredError } from '@internal/utils/structured-error';
 
 export type PostgresTargetErrorCode =
+  | 'CONTRACT.ARGUMENT_INVALID'
   | 'CONTRACT.CODEC_DESCRIPTOR_MISSING'
   | 'CONTRACT.PRINT_UNSUPPORTED'
   | 'CONTRACT.DEFAULT_INVALID'

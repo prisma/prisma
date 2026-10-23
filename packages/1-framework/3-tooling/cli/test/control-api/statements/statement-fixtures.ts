@@ -23,6 +23,8 @@ interface ModelSpec {
 interface NamespaceSpec {
   readonly models?: Record<string, ModelSpec>;
   readonly valueObjects?: Record<string, readonly string[]>;
+  /** Each enum's member names; a member stores its name in lower case. */
+  readonly enums?: Record<string, readonly string[]>;
 }
 
 const textField: ContractField = {
@@ -84,6 +86,22 @@ export function contractOf(namespaces: Record<string, NamespaceSpec>): ContractW
                 valueObjectOf(fields),
               ]),
             ),
+            ...(ns.enums === undefined
+              ? {}
+              : {
+                  enum: Object.fromEntries(
+                    Object.entries(ns.enums).map(([name, members]) => [
+                      name,
+                      {
+                        codecId: 'test/text@1',
+                        members: members.map((member) => ({
+                          name: member,
+                          value: member.toLowerCase(),
+                        })),
+                      },
+                    ]),
+                  ),
+                }),
           },
         ]),
       ),

@@ -32,9 +32,13 @@ describe('the session settings on a connection the application supplies', () => 
     async () => {
       const pool = new pg.Pool({ connectionString: await devDatabaseUrl(), max: 1 });
       await pool.query(GERMAN);
-      const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined, {
-        sessionSettings: SESSION_SETTINGS,
-      });
+      const driver = createBoundDriverFromBinding(
+        { kind: 'pgPool', pool, ownedByDriver: false },
+        undefined,
+        {
+          sessionSettings: SESSION_SETTINGS,
+        },
+      );
       cleanups.push(() => driver.close());
 
       expect(await dateStyleOf(driver)).toMatch(/^ISO/);
@@ -46,9 +50,13 @@ describe('the session settings on a connection the application supplies', () => 
     'are applied again after a connection handed out for exclusive use is released',
     async () => {
       const pool = new pg.Pool({ connectionString: await devDatabaseUrl(), max: 1 });
-      const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined, {
-        sessionSettings: SESSION_SETTINGS,
-      });
+      const driver = createBoundDriverFromBinding(
+        { kind: 'pgPool', pool, ownedByDriver: false },
+        undefined,
+        {
+          sessionSettings: SESSION_SETTINGS,
+        },
+      );
       cleanups.push(() => driver.close());
 
       const connection = await driver.acquireConnection();
@@ -66,9 +74,13 @@ describe('the session settings on a connection the application supplies', () => 
       const client = new pg.Client({ connectionString: await devDatabaseUrl() });
       await client.connect();
       await client.query(GERMAN);
-      const driver = createBoundDriverFromBinding({ kind: 'pgClient', client }, undefined, {
-        sessionSettings: SESSION_SETTINGS,
-      });
+      const driver = createBoundDriverFromBinding(
+        { kind: 'pgClient', client, ownedByDriver: false },
+        undefined,
+        {
+          sessionSettings: SESSION_SETTINGS,
+        },
+      );
       cleanups.push(() => driver.close());
 
       const first = await dateStyleOf(driver);
@@ -88,9 +100,13 @@ describe('the session settings on a connection the application supplies', () => 
     'refuse a connection whose settings the server rejects, and evict it from the pool',
     async () => {
       const pool = new pg.Pool({ connectionString: await devDatabaseUrl(), max: 1 });
-      const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined, {
-        sessionSettings: { no_such_setting: 'x' },
-      });
+      const driver = createBoundDriverFromBinding(
+        { kind: 'pgPool', pool, ownedByDriver: false },
+        undefined,
+        {
+          sessionSettings: { no_such_setting: 'x' },
+        },
+      );
       cleanups.push(() => driver.close());
 
       await expect(driver.acquireConnection()).rejects.toThrow(/no_such_setting/);
