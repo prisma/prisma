@@ -59,3 +59,19 @@ One reviewer reads this as "MySQL can read": a runtime plane and a renderer, wit
 The At a glance calls return the expected rows against MySQL 8.4 in live tests, including a nested include and an ordered to-many include; golden tests cover every rendered node kind; and build, typecheck, lint, `lint:deps` and the changed packages' tests pass.
 
 **Added 2026-10-23, after the reviews:** the runtime driver runs statements as server-side prepared statements with a bounded cache (design notes section 8), replacing client-side escaping.
+
+## Changed during the slice
+
+The reviews changed four parts of the chosen design above. Design notes sections 7 and 8 give the reasons.
+
+- **Placeholders are numbered.** The renderer writes `?N`, N being the parameter's place in the runtime's list, not `?`.
+- **The length limit is in the statement.** A statement that uses `GROUP_CONCAT` carries a `SET_VAR(group_concat_max_len = …)` optimizer hint; the driver no longer sets it for the session.
+- **Values travel apart from the SQL.** The runtime driver runs every statement as a server-side prepared statement, with a bounded cache, not the text protocol. Integer parameters are written `CAST(?N AS SIGNED)`, except as `LIMIT` or `OFFSET` operands.
+- **Raw SQL never leaves a setting on a shared connection.** A pooled connection that ran raw SQL is closed, not returned to the pool.
+
+The slice also made four shared changes, each with an upgrade note in `upgrade-instructions/pending/mysql-orm-reads/`:
+
+1. Every SQL driver request carries `containsRawSql`, computed by the runtime from the query's AST.
+2. An ORM `having` comparand is a bound parameter on every target, so a fractional or out-of-range comparand against an integer aggregate now fails.
+3. Codec descriptors can declare `integerRepresentation`, which the `having` comparand's type and runtime check both read.
+4. `fns.and` and `fns.or` accept only `true` and `false` as raw operands.
