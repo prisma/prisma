@@ -1,0 +1,92 @@
+import { describe, expect, it } from 'vitest';
+import { hover } from './helpers/hover';
+
+describe('providePslHover', () => {
+  it('shows a contributed type with documentation and args', () => {
+    const result = hover('model Product {\n  price pg.Varc|har(255)\n}');
+    expect(result).toEqual({
+      contents: {
+        kind: 'markdown',
+        value: '```prisma\npg.Varchar(length: a number)\n```\n\nA variable-length string.',
+      },
+      range: { start: { line: 1, character: 11 }, end: { line: 1, character: 18 } },
+    });
+  });
+
+  it('shows a contributed type alias with its documentation', () => {
+    const result = hover('model Product {\n  createdAt pg.Created|At\n}');
+    expect(result).toEqual({
+      contents: {
+        kind: 'markdown',
+        value: '```prisma\npg.CreatedAt\n```\n\nSet to now when a row is created.',
+      },
+      range: { start: { line: 1, character: 15 }, end: { line: 1, character: 24 } },
+    });
+  });
+
+  it('shows a contributed type without documentation as the bare path', () => {
+    const result = hover('model Product {\n  label pg.Te|xt\n}');
+    expect(result).toEqual({
+      contents: { kind: 'markdown', value: '```prisma\npg.Text\n```' },
+      range: { start: { line: 1, character: 11 }, end: { line: 1, character: 15 } },
+    });
+  });
+
+  it('omits the documentation section when descriptor.documentation is empty', () => {
+    const result = hover('model Product {\n  flag pg.Fl|ag\n}');
+    expect(result).toEqual({
+      contents: { kind: 'markdown', value: '```prisma\npg.Flag\n```' },
+      range: { start: { line: 1, character: 10 }, end: { line: 1, character: 14 } },
+    });
+  });
+
+  it('shows a field-preset contributed type as the fence only, with its arg labels', () => {
+    const result = hover('model Counter {\n  value pg.Ser|ial(1)\n}');
+    expect(result).toEqual({
+      contents: { kind: 'markdown', value: '```prisma\npg.Serial(start: number)\n```' },
+      range: { start: { line: 1, character: 11 }, end: { line: 1, character: 17 } },
+    });
+  });
+
+  it('shows a value argument by the forms its data type is written in', () => {
+    const result = hover('model Product {\n  labels pg.Ra|w(sql`text`)\n}');
+    expect(result).toEqual({
+      contents: {
+        kind: 'markdown',
+        value: '```prisma\npg.Raw(sql: sql`...`)\n```\n\nA type written as SQL.',
+      },
+      range: { start: { line: 1, character: 12 }, end: { line: 1, character: 15 } },
+    });
+  });
+
+  it('shows an option contributed-type arg as its joined allowed values', () => {
+    const result = hover('model Product {\n  onDelete pg.Mo|de(cascade)\n}');
+    expect(result).toEqual({
+      contents: {
+        kind: 'markdown',
+        value: "```prisma\npg.Mode(mode: 'cascade' | 'restrict')\n```\n\nA deletion mode.",
+      },
+      range: { start: { line: 1, character: 14 }, end: { line: 1, character: 18 } },
+    });
+  });
+
+  it('shows a type choice with its choices as written and the explicit type each becomes', () => {
+    const result = hover('model Product {\n  at pg.Mo|ment(as: text)\n}');
+    expect(result?.contents).toEqual({
+      kind: 'markdown',
+      value: [
+        '```prisma',
+        'pg.Moment(as?: date | text, storage?: wide | narrow, precision?: a number)',
+        '```',
+        '',
+        'A moment in time.',
+        '',
+        '| as | storage | Becomes |',
+        '| --- | --- | --- |',
+        '| date (default) | wide (default) | `Stamp(precision: 3)` |',
+        '| text | wide (default) | `Text` |',
+        '| date (default) | narrow | `Flag` |',
+      ].join('\n'),
+    });
+  });
+});
