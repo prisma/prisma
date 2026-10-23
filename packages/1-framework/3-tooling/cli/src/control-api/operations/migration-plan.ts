@@ -655,6 +655,7 @@ async function executeMigrationPlanCommandInner(
   // is written. A plan from an empty database has no model to rename.
   let statements: readonly ResolvedMigrationStatement[] = [];
   const statementTexts = options.statements ?? [];
+  const consentTexts = statementTexts.filter((statement) => !isPlannedStatement(statement));
   if (statementTexts.length > 0) {
     const resolved = resolveStatements({
       statements: statementTexts,
@@ -667,12 +668,12 @@ async function executeMigrationPlanCommandInner(
     statements = resolved.value;
   }
   const refusedWith =
-    (resolved: readonly ResolvedMigrationStatement[]) =>
+    (texts: readonly StatementText[], resolved: readonly ResolvedMigrationStatement[]) =>
     (conflicts: readonly MigrationPlannerConflict[]) =>
       planningRefusedError(conflicts, {
         invocation: invocationOf(options),
         from: fromHash ?? undefined,
-        statements: statementTexts,
+        statements: texts,
         resolved,
       });
 
@@ -791,6 +792,7 @@ async function executeMigrationPlanCommandInner(
       baseline: PlannerSuccess | undefined,
       delta: PlannerSuccess | undefined,
       planDelta: (
+        texts: readonly StatementText[],
         resolved: readonly ResolvedMigrationStatement[],
       ) => Promise<Result<PlannerSuccess, PlannerLegFailure>>,
     ) =>
@@ -798,7 +800,7 @@ async function executeMigrationPlanCommandInner(
         baseline,
         delta,
         statements: statementTexts.filter(isPlannedStatement),
-        consents: statementTexts.filter((statement) => !isPlannedStatement(statement)),
+        consents: consentTexts,
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
         destination: toContract,
@@ -811,7 +813,7 @@ async function executeMigrationPlanCommandInner(
             destination: toContract,
           });
           if (!resolved.ok) return resolved;
-          const leg = await planDelta(resolved.value);
+          const leg = await planDelta([...consentTexts, ...planned], resolved.value);
           return leg.ok ? leg : notOk(leg.failure.error);
         },
       });
@@ -842,7 +844,10 @@ async function executeMigrationPlanCommandInner(
         return notOk(baselineLeg.failure.error);
       }
 
-      const planBaselineDelta = (resolved: readonly ResolvedMigrationStatement[]) =>
+      const planBaselineDelta = (
+        texts: readonly StatementText[],
+        resolved: readonly ResolvedMigrationStatement[],
+      ) =>
         runPlannerLeg(
           planner,
           migrations,
@@ -856,10 +861,12 @@ async function executeMigrationPlanCommandInner(
           aggregate,
           snapshotsImportPathFrom(deltaPackageDir, migrationsDir),
           resolveImportSpecifier,
-          refusedWith(resolved),
+          refusedWith(texts, resolved),
         );
       const plannedDelta =
-        fromHash === toStorageHash ? undefined : await planBaselineDelta(statements);
+        fromHash === toStorageHash
+          ? undefined
+          : await planBaselineDelta(statementTexts, statements);
       // A refused delta writes nothing. A delta with no operations still writes the baseline, so
       // the `migration new --from` its error advises has the history to start from.
       if (
@@ -1035,7 +1042,10 @@ async function executeMigrationPlanCommandInner(
     const dirName = formatMigrationDirName(timestamp, slug);
     const packageDir = join(appMigrationsDir, dirName);
 
-    const planDelta = (resolved: readonly ResolvedMigrationStatement[]) =>
+    const planDelta = (
+      texts: readonly StatementText[],
+      resolved: readonly ResolvedMigrationStatement[],
+    ) =>
       runPlannerLeg(
         planner,
         migrations,
@@ -1049,9 +1059,9 @@ async function executeMigrationPlanCommandInner(
         aggregate,
         snapshotsImportPathFrom(packageDir, migrationsDir),
         resolveImportSpecifier,
-        refusedWith(resolved),
+        refusedWith(texts, resolved),
       );
-    const plannedDelta = await planDelta(statements);
+    const plannedDelta = await planDelta(statementTexts, statements);
     if (!plannedDelta.ok) {
       return notOk(plannedDelta.failure.error);
     }

@@ -248,7 +248,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     }
     return resolved.value;
   };
-  const statements = resolveRenames(statementTexts);
+  const consentTexts = statementTexts.filter((statement) => !isPlannedStatement(statement));
+  const firstResolved = resolveRenames(statementTexts);
 
   // 2a. Orphan-marker pre-flight: refuse to *apply* when a marker row
   // exists for a space that is not declared in the aggregate. Plan mode
@@ -284,6 +285,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // (today's `db init` / `db update` daily-driver behaviour); extensions
   // walk their on-disk migration graphs via resolveRecordedPath.
   const plan = async (
+    texts: readonly StatementText[],
     resolved: readonly ResolvedMigrationStatement[],
   ): Promise<Result<PlannedRun, PlanningRefused>> => {
     onProgress?.({
@@ -311,7 +313,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           aggregate,
           markerRows,
           invocation: options.invocation,
-          statements: statementTexts,
+          statements: texts,
           resolved,
         }),
       });
@@ -342,7 +344,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     });
   };
 
-  const first = await plan(statements);
+  const first = await plan(statementTexts, firstResolved);
   if (!first.ok) {
     return notOk(first.failure.refused);
   }
@@ -358,7 +360,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       askAccess: true,
       canConvert: false,
       statements: plannedTexts,
-      preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
+      preAnswers: consentTexts,
       consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessChanges },
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
@@ -368,7 +370,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
         options.invocation,
         recordedDatabaseContract(aggregate, markerRows),
       ),
-      replan: (planned) => plan(resolveRenames(planned)),
+      replan: (planned) => plan([...consentTexts, ...planned], resolveRenames(planned)),
     });
     if (!answered.ok) {
       if (CliStructuredError.is(answered.failure)) {
