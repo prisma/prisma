@@ -13,6 +13,8 @@ import {
 } from '@internal/framework-components/codec';
 import { sqlRawDataType } from '@internal/sql-contract/data-type';
 import {
+  CastExpr,
+  type ProjectionExpr,
   SqlCharCodec,
   SqlRawCodec,
   SqlVarcharCodec,
@@ -39,9 +41,16 @@ import {
   mysqlText,
   mysqlVarchar,
 } from './data-types';
-import { mysqlError } from './errors';
+import { mysqlError, mysqlQueryNotYetSupported } from './errors';
 
 const DECIMAL_INTEGER = /^-?\d+$/;
+
+/** Projects a column whose JSON form, a number or a string, is what its `fromWire` reads. */
+const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
+
+/** Projects a column as the text MySQL sends for it in a row: a bigint past 2^53 keeps every digit, and a datetime keeps its column's fraction digits instead of JSON's six. */
+const textJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  CastExpr.as(expression, 'CHAR');
 
 function decodeFailed(codecId: string, expected: string, received: unknown): never {
   throw mysqlError('RUNTIME.DECODE_FAILED', `${codecId} wire value must be ${expected}`, {
@@ -58,18 +67,23 @@ function encodeFailed(codecId: string, expected: string, received: unknown): nev
 export const mysqlSqlCharDescriptor = mysqlCodec(sqlCharDescriptor, {
   dataType: mysqlChar,
   renderValueLiteral: renderTsLiteral,
+  jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType, params) => () => new SqlCharCodec(descriptor, dataType, params),
 });
 
 export const mysqlSqlVarcharDescriptor = mysqlCodec(sqlVarcharDescriptor, {
   dataType: mysqlVarchar,
   renderValueLiteral: renderTsLiteral,
+  jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType, params) => () =>
     new SqlVarcharCodec(descriptor, dataType, params),
 });
 
 export const mysqlSqlRawDescriptor = mysqlCodec(sqlRawDescriptor, {
   dataType: sqlRawDataType,
+  jsonProjection: () => {
+    throw mysqlQueryNotYetSupported('Reading a raw column inside an include');
+  },
   factory: (descriptor, dataType, params) => () => new SqlRawCodec(descriptor, dataType, params),
 });
 
@@ -100,6 +114,9 @@ export class MysqlTextDescriptor extends MysqlCodecDescriptor<void> {
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return identityJsonProjection(expression);
   }
   override factory(): (ctx: CodecInstanceContext) => MysqlTextCodec {
     return () => new MysqlTextCodec(this, mysqlText);
@@ -144,6 +161,9 @@ export class MysqlIntDescriptor extends MysqlCodecDescriptor<void> {
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);
   }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return identityJsonProjection(expression);
+  }
   override factory(): (ctx: CodecInstanceContext) => MysqlIntCodec {
     return () => new MysqlIntCodec(this, mysqlInt);
   }
@@ -183,6 +203,9 @@ export class MysqlBigintDescriptor extends MysqlCodecDescriptor<void> {
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
     return decimalTextBigintLiteral(value);
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return textJsonProjection(expression);
   }
   override factory(): (ctx: CodecInstanceContext) => MysqlBigintCodec {
     return () => new MysqlBigintCodec(this, mysqlBigint);
@@ -241,6 +264,9 @@ export class MysqlDatetimeDescriptor extends MysqlCodecDescriptor<DatetimeParams
   override readonly codecId = MYSQL_DATETIME_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = mysqlDatetimeParams;
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return textJsonProjection(expression);
+  }
   override factory(params: DatetimeParams): (ctx: CodecInstanceContext) => MysqlDatetimeCodec {
     return () => new MysqlDatetimeCodec(this, mysqlDatetime, params);
   }
@@ -278,6 +304,9 @@ export class MysqlEnumDescriptor extends MysqlCodecDescriptor<EnumParams> {
   override readonly paramsSchema = mysqlEnumParams;
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);
+  }
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
+    return identityJsonProjection(expression);
   }
   override factory(params: EnumParams): (ctx: CodecInstanceContext) => MysqlEnumCodec {
     return () => new MysqlEnumCodec(this, mysqlEnum, params);

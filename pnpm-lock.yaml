@@ -3937,6 +3937,9 @@ importers:
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/schema-ir
@@ -3995,6 +3998,9 @@ importers:
       '@internal/sql-relational-core':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/5-runtime
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/schema-ir
@@ -4041,6 +4047,9 @@ importers:
       '@internal/sql-errors':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/errors
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/4-lanes/relational-core
       '@internal/utils':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/0-foundation/utils
@@ -4078,6 +4087,9 @@ importers:
       '@internal/config':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/1-core/config
+      '@internal/contract':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../1-framework/0-foundation/contract
       '@internal/driver-mysql':
         specifier: workspace:8.0.0-rc.20
         version: link:../3-driver
@@ -4087,6 +4099,9 @@ importers:
       '@internal/framework-components':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/1-core/framework-components
+      '@internal/sql-builder':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/4-lanes/sql-builder
       '@internal/sql-contract':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/1-core/contract
@@ -4096,6 +4111,15 @@ importers:
       '@internal/sql-contract-ts':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../2-sql-family/2-authoring/contract-ts
+      '@internal/sql-orm-client':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../3-extensions/sql-orm-client
+      '@internal/sql-relational-core':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/4-lanes/relational-core
+      '@internal/sql-runtime':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../2-sql-family/5-runtime
       '@internal/target-mysql':
         specifier: workspace:8.0.0-rc.20
         version: link:../1-target
@@ -4106,9 +4130,6 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
     devDependencies:
-      '@internal/contract':
-        specifier: workspace:8.0.0-rc.20
-        version: link:../../../1-framework/0-foundation/contract
       '@internal/migration-tools':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../1-framework/3-tooling/migration

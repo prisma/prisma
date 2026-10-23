@@ -101,17 +101,6 @@ describe('MySQL codec descriptors', () => {
     });
   });
 
-  it('refuses to project a column as JSON until reads with includes exist', () => {
-    expect(() =>
-      mysqlIntDescriptor.projectJson(undefined as never, { codecId: 'mysql/int@1' }),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'RUNTIME.AST_UNSUPPORTED',
-        meta: { target: 'mysql', feature: 'Reading related rows as JSON' },
-      }),
-    );
-  });
-
   it('builds a registry of every built-in codec', () => {
     const registry = createMysqlBuiltinCodecLookup();
     expect(Array.from(registry.values(), (descriptor) => descriptor.codecId).sort()).toEqual(
