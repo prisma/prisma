@@ -1,6 +1,7 @@
 import {
   asNamespaceId,
   type Contract,
+  type ContractModel,
   type ContractRelation,
   type ContractWithDomain,
   type ControlPolicy,
@@ -25,7 +26,7 @@ import {
   hasOwnFieldStoredAs,
   MongoCollection,
   type MongoContract,
-  type MongoModelDefinition,
+  type MongoModelStorage,
   modelAndBasesOf,
   mongoModelsOf,
   ownEmbedStoredNamesOf,
@@ -62,7 +63,7 @@ export function collectionOf(
 function modelAt(
   contract: ContractWithDomain,
   coordinate: ModelCoordinate,
-): MongoModelDefinition | undefined {
+): ContractModel<MongoModelStorage> | undefined {
   const models = mongoModelsOf(contract.domain, coordinate.namespaceId);
   return Object.hasOwn(models, coordinate.model) ? models[coordinate.model] : undefined;
 }
@@ -176,7 +177,10 @@ type StoredField =
   | { readonly kind: 'embed' }
   | { readonly kind: 'absent' };
 
-function storedField(model: MongoModelDefinition | undefined, field: string): StoredField {
+function storedField(
+  model: ContractModel<MongoModelStorage> | undefined,
+  field: string,
+): StoredField {
   if (model === undefined) return { kind: 'absent' };
   if (Object.hasOwn(model.fields, field)) return { kind: 'field' };
   const relation = Object.hasOwn(model.relations, field) ? model.relations[field] : undefined;
@@ -716,7 +720,7 @@ function renamedByStatement(input: FieldRemovalInput, field: FieldCoordinate): b
 }
 
 /** Whether one of `model`'s own fields or embed relations is stored under `storedName`. */
-function ownStores(model: MongoModelDefinition, storedName: string): boolean {
+function ownStores(model: ContractModel<MongoModelStorage>, storedName: string): boolean {
   return (
     hasOwnFieldStoredAs(model, storedName) ||
     Object.values(ownEmbedStoredNamesOf(model)).includes(storedName)

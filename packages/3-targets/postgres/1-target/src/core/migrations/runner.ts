@@ -38,7 +38,7 @@ import {
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
-import { SqlQueryError } from '@internal/sql-errors';
+import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -264,18 +264,32 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     }
 
     await this.beginTransaction(driver);
-    let committed = false;
+    let result: MigrationRunnerResult;
     try {
-      const result = await this.executeSpaces(driver, perSpaceOptions);
-      if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
-      await this.commitTransaction(driver);
-      committed = true;
-      return result;
-    } finally {
-      if (!committed) {
-        await this.rollbackTransaction(driver);
-      }
+      result = await this.executeSpaces(driver, perSpaceOptions);
+    } catch (error) {
+      await this.rollbackAfterFailure(driver);
+      throw error;
     }
+    if (!result.ok) {
+      await this.rollbackAfterFailure(driver);
+      return notOk(withDatabaseUnchanged(result.failure, true));
+    }
+    try {
+      await this.commitTransaction(driver);
+    } catch (error) {
+      await this.rollbackAfterFailure(driver);
+      throw error;
+    }
+    return result;
+  }
+
+  // Runs only after a failure, which is what the caller reports: a ROLLBACK that also fails, for
+  // example on a lost connection, must not replace it.
+  private async rollbackAfterFailure(
+    driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
+  ): Promise<void> {
+    await this.rollbackTransaction(driver).catch(() => undefined);
   }
 
   private async executeSpaces(
@@ -532,6 +546,23 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       try {
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
+        if (SqlConnectionError.is(error)) {
+          return runnerFailure(
+            'MIGRATION.EXECUTION_FAILED',
+            `Operation ${operation.id} failed during execution: ${step.description}`,
+            {
+              why: error.message,
+              meta: {
+                operationId: operation.id,
+                stepDescription: step.description,
+                sql: step.sql,
+                sqlState: error.sqlState,
+                connectionLost: true,
+                transient: error.transient,
+              },
+            },
+          );
+        }
         if (SqlQueryError.is(error)) {
           const dependents =
             error.sqlState === DEPENDENT_OBJECTS_STILL_EXIST ? dependentsOf(error.detail) : [];

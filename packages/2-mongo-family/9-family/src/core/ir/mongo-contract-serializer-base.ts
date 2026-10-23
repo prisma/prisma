@@ -1,3 +1,4 @@
+import type { ContractModel } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
 import { withDerivedToOneRelationNullability } from '@internal/contract-authoring';
 import type { ContractSerializer } from '@internal/framework-components/control';
@@ -9,7 +10,7 @@ import {
   createMongoContractSchema,
   type MongoContract,
   MongoContractSchema,
-  type MongoModelDefinition,
+  type MongoModelStorage,
   type MongoNamespaceEntries,
   resolveMongoToOneRelationFields,
   validateMongoStorage,
@@ -51,7 +52,7 @@ function withMongoToOneRelationNullability(contract: MongoContract): MongoContra
   const domain = withDerivedToOneRelationNullability(contract.domain, ({ model, relation }) => {
     const { ownsForeignKey, fields } = resolveMongoToOneRelationFields(
       blindCast<
-        MongoModelDefinition,
+        ContractModel<MongoModelStorage>,
         'the contract schema validated every model of a MongoDB contract'
       >(model),
       relation,

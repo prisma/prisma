@@ -4,8 +4,6 @@ import type {
   AuthoringFieldPresetDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import type { TypeLookups } from '@internal/framework-components/codec';
-import { codecTypeParamsProblem } from '@internal/mongo-contract/data-type';
 import {
   diagnosticSource,
   type FieldSymbol,
@@ -21,17 +19,7 @@ export interface FieldPresetContext {
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
-  readonly typeLookups: TypeLookups;
   readonly dataTypes: DataTypeSupport;
-  readonly warnPresetWithoutEffect: (preset: PresetWithoutEffect) => void;
-}
-
-export interface PresetWithoutEffect {
-  readonly field: FieldSymbol;
-  readonly entityLabel: string;
-  readonly helperPath: string;
-  readonly descriptor: AuthoringFieldPresetDescriptor;
-  readonly codecId: string;
 }
 
 export type FieldPresetResolution =
@@ -40,6 +28,8 @@ export type FieldPresetResolution =
       readonly kind: 'preset';
       readonly field: ContractField;
       readonly executionDefaults?: ExecutionMutationDefaultPhases;
+      /** The preset's path, as in `temporal.createdAt`. */
+      readonly helperPath: string;
     };
 
 const INVALID: FieldPresetResolution = { kind: 'invalid' };
@@ -59,7 +49,6 @@ export function resolveFieldPreset(input: {
   readonly call: ResolvedTypeConstructorCall;
   readonly descriptor: AuthoringFieldPresetDescriptor;
   readonly ownerName: string;
-  readonly ownerKind: 'model' | 'compositeType';
   readonly context: FieldPresetContext;
 }): FieldPresetResolution {
   const { field, call, descriptor, ownerName, context } = input;
@@ -68,26 +57,10 @@ export function resolveFieldPreset(input: {
   const entityLabel = `Field "${ownerName}.${field.name}"`;
   const helperPath = call.path.join('.');
 
-  if (input.ownerKind === 'compositeType') {
-    diagnostics.push({
-      code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-      message: `${entityLabel} uses field preset "${helperPath}". Field presets can only be used on model fields, not on fields of a composite type.`,
-      ...source.at(field.span),
-    });
-    return INVALID;
-  }
   if (field.list) {
     diagnostics.push({
       code: 'PSL_PRESET_NOT_LIST',
       message: `${entityLabel} uses a field-preset call as a list element type. Presets cannot be list elements; remove "[]" or use a scalar type.`,
-      ...source.at(field.span),
-    });
-    return INVALID;
-  }
-  if (field.optional) {
-    diagnostics.push({
-      code: 'PSL_PRESET_NOT_OPTIONAL',
-      message: `${entityLabel} uses a field-preset call and cannot be optional. Remove "?" or use a different field type.`,
       ...source.at(field.span),
     });
     return INVALID;
@@ -125,30 +98,6 @@ export function resolveFieldPreset(input: {
     return INVALID;
   }
 
-  const { codecId, typeParams } = instantiated.descriptor;
-  const problem =
-    typeParams === undefined
-      ? undefined
-      : codecTypeParamsProblem(codecId, typeParams, context.typeLookups);
-  if (problem !== undefined) {
-    diagnostics.push({
-      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `${entityLabel} uses field preset "${helperPath}", whose type parameters are refused: ${problem.message}`,
-      ...source.at(call.span),
-    });
-    return INVALID;
-  }
-
-  if (instantiated.executionDefaults === undefined) {
-    context.warnPresetWithoutEffect({
-      field,
-      entityLabel,
-      helperPath,
-      descriptor,
-      codecId: instantiated.descriptor.codecId,
-    });
-  }
-
   return {
     kind: 'preset',
     field: {
@@ -157,9 +106,10 @@ export function resolveFieldPreset(input: {
         codecId: instantiated.descriptor.codecId,
         ...ifDefined('typeParams', instantiated.descriptor.typeParams),
       },
-      nullable: instantiated.nullable,
+      nullable: field.optional || instantiated.nullable,
       many: false,
     },
     ...ifDefined('executionDefaults', instantiated.executionDefaults),
+    helperPath,
   };
 }

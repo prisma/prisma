@@ -36,7 +36,7 @@ import {
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
-import { SqlQueryError } from '@internal/sql-errors';
+import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -186,25 +186,50 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       await driver.query('PRAGMA foreign_keys = OFF');
     }
 
+    let result: MigrationRunnerResult;
     try {
-      await this.beginExclusiveTransaction(driver);
-      let committed = false;
-      try {
-        const result = await this.executeSpaces(driver, perSpaceOptions, fkWasEnabled);
-        if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
-        await this.commitTransaction(driver);
-        committed = true;
-        return result;
-      } finally {
-        if (!committed) {
-          await this.rollbackTransaction(driver);
-        }
-      }
-    } finally {
-      if (fkWasEnabled) {
-        await driver.query('PRAGMA foreign_keys = ON');
-      }
+      result = await this.executeInTransaction(driver, perSpaceOptions, fkWasEnabled);
+    } catch (error) {
+      if (fkWasEnabled) await this.afterFailure(driver.query('PRAGMA foreign_keys = ON'));
+      throw error;
     }
+    if (fkWasEnabled) {
+      const restore = driver.query('PRAGMA foreign_keys = ON');
+      await (result.ok ? restore : this.afterFailure(restore));
+    }
+    return result;
+  }
+
+  private async executeInTransaction(
+    driver: SqlControlDriverInstance<string>,
+    perSpaceOptions: ReadonlyArray<SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>>,
+    fkWasEnabled: boolean,
+  ): Promise<MigrationRunnerResult> {
+    await this.beginExclusiveTransaction(driver);
+    let result: MigrationRunnerResult;
+    try {
+      result = await this.executeSpaces(driver, perSpaceOptions, fkWasEnabled);
+    } catch (error) {
+      await this.afterFailure(this.rollbackTransaction(driver));
+      throw error;
+    }
+    if (!result.ok) {
+      await this.afterFailure(this.rollbackTransaction(driver));
+      return notOk(withDatabaseUnchanged(result.failure, true));
+    }
+    try {
+      await this.commitTransaction(driver);
+    } catch (error) {
+      await this.afterFailure(this.rollbackTransaction(driver));
+      throw error;
+    }
+    return result;
+  }
+
+  // Cleanup that runs only after a failure, which is what the caller reports: cleanup that also
+  // fails, for example on a closed database, must not replace it.
+  private async afterFailure(cleanup: Promise<unknown>): Promise<void> {
+    await cleanup.catch(() => undefined);
   }
 
   private async executeSpaces(
@@ -503,6 +528,19 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
+        if (SqlConnectionError.is(error)) {
+          // A transient connection error (a busy or locked database) leaves the connection open.
+          return runnerFailure('MIGRATION.EXECUTION_FAILED', failed, {
+            why: message,
+            meta: {
+              operationId: operation.id,
+              stepDescription: step.description,
+              sql: step.sql,
+              connectionLost: error.transient === false,
+              transient: error.transient,
+            },
+          });
+        }
         const rowsWithoutValue = await this.rowsWithoutValue(driver, error, plan);
         const failedConversion =
           rowsWithoutValue === undefined

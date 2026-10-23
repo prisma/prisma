@@ -39,6 +39,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
+import { mongoTestStack } from '../src/test';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
@@ -265,6 +266,7 @@ model Item {
         sources: input.sources,
         symbolTable,
         binder,
+        ...mongoTestStack,
         scalarTypeCodecIds: new Map(),
         defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
         dataTypes: context.dataTypes,

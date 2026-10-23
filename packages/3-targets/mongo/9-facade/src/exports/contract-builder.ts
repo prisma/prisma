@@ -1,6 +1,6 @@
 export type {
-  ContractDefinition,
   ContractFactory,
+  ContractInput,
   ContractScaffold,
   EnumMember,
   EnumTypeHandle,

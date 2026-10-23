@@ -11,6 +11,7 @@ import type {
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
 import { InternalError } from '@internal/utils/internal-error';
+import { closeDatabase, wasClosedByDriver } from './database-state';
 import { normalizeSqliteError } from './normalize-error';
 import { sqliteParams } from './sqlite-params';
 
@@ -56,7 +57,7 @@ function openConnection(path: string): DatabaseSync {
     db.exec('PRAGMA busy_timeout = 5000');
     return db;
   } catch (error) {
-    throw normalizeSqliteError(error);
+    throw normalizeSqliteError(error, false);
   }
 }
 
@@ -74,7 +75,7 @@ abstract class SqliteQueryable implements SqlQueryable {
         yield row as Row;
       }
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 
@@ -86,7 +87,7 @@ abstract class SqliteQueryable implements SqlQueryable {
       }
       return { affectedRows: Number(stmt.run(...sqliteParams(request.params)).changes) };
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 
@@ -98,7 +99,7 @@ abstract class SqliteQueryable implements SqlQueryable {
       >;
       return { rows };
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 }
@@ -109,7 +110,7 @@ export class SqliteConnectionImpl extends SqliteQueryable implements SqlConnecti
       this.db.exec('BEGIN');
       return new SqliteTransactionImpl(this.db);
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 
@@ -119,9 +120,9 @@ export class SqliteConnectionImpl extends SqliteQueryable implements SqlConnecti
 
   async destroy(_reason?: unknown): Promise<void> {
     try {
-      this.db.close();
+      closeDatabase(this.db);
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 }
@@ -131,7 +132,7 @@ class SqliteTransactionImpl extends SqliteQueryable implements SqlTransaction {
     try {
       this.db.exec('COMMIT');
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 
@@ -139,7 +140,7 @@ class SqliteTransactionImpl extends SqliteQueryable implements SqlTransaction {
     try {
       this.db.exec('ROLLBACK');
     } catch (error) {
-      throw normalizeSqliteError(error);
+      throw normalizeSqliteError(error, wasClosedByDriver(this.db));
     }
   }
 }

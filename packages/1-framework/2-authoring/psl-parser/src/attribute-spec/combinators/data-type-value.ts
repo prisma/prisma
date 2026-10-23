@@ -10,33 +10,49 @@ import type { PslDiagnostic } from '../../diagnostic';
 import { readExpressionAs } from '../../read-expression-as';
 import { nodePslSpan } from '../../resolve';
 import type { ExpressionAst } from '../../syntax/ast/expressions';
+import { UNION_LABEL_SEPARATOR } from '../type-label';
 import type { AttributeCtx, DataTypeValueArgType, ParsedTypedValue } from '../types';
 import { leafDiagnostic } from './diagnostic';
+
+/** How a `dataTypeValue` argument is offered and labelled: its own label, or a label that lists its suggestions. */
+export type DataTypeValueOptions =
+  | {
+      /** Written values offered for completion besides the tags. */
+      readonly suggestions?: readonly string[];
+      /** The label shown for the argument in place of the forms its type admits. */
+      readonly label?: string;
+      readonly labelIsUnion?: never;
+    }
+  | {
+      readonly suggestions: readonly string[];
+      /** The label is the suggestions joined as a union, as the versions a function takes are. */
+      readonly labelIsUnion: true;
+      readonly label?: never;
+    };
 
 /** An argument typed by a data type: any literal, admitted by the ADR 254 cast rule. Used as a parameter of an attribute, a block or a `funcCall`; `oneOf` refuses it as an arm. ADR 231, ADR 254, ADR 268. */
 export function dataTypeValue(
   dataType: DataTypeId,
   support: DataTypeSupport,
-  options: {
-    /** Written values offered for completion besides the tags. */
-    readonly suggestions?: readonly string[];
-    /** The label shown for the argument in place of the forms its type admits, such as the values a function takes. */
-    readonly label?: string;
-  } = {},
+  options: DataTypeValueOptions = {},
 ): DataTypeValueArgType<AttributeCtx> {
   const tags = admittedTags(support, dataType);
   const [firstTag] = tags;
+  const suggestions = options.suggestions ?? [];
+  const labelIsUnion = options.labelIsUnion === true;
   return {
     kind: 'dataTypeValue',
-    label:
-      options.label ??
-      (firstTag === undefined
-        ? describeAdmittedForms(support, dataType)
-        : tagForm(firstTag).phrase),
+    label: labelIsUnion
+      ? suggestions.join(UNION_LABEL_SEPARATOR)
+      : (options.label ??
+        (firstTag === undefined
+          ? describeAdmittedForms(support, dataType)
+          : tagForm(firstTag).phrase)),
+    labelIsUnion: labelIsUnion && suggestions.length > 1,
     dataType,
     tags,
     documentation: support.entries[dataType]?.documentation ?? '',
-    suggestions: options.suggestions ?? [],
+    suggestions,
     parse: (arg, ctx) => parseDataTypeValue(arg, ctx, dataType, support),
   };
 }
