@@ -54,7 +54,7 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
     expect(sql).toBe(
       'INSERT INTO "_prisma_marker" ("space", "core_hash", "profile_hash", "contract_json", ' +
         '"canonical_version", "updated_at", "app_tag", "meta", "invariants") ' +
-        "VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?)",
+        "VALUES (?1, ?2, ?3, ?4, ?5, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?6, ?7, ?8)",
     );
     expect(sql).not.toContain('ON CONFLICT');
     expect(params[0]).toBe('app');
@@ -74,7 +74,7 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
     expect(sql).toBe(
       'INSERT INTO "_prisma_marker" ("space", "core_hash", "profile_hash", "contract_json", ' +
         '"canonical_version", "updated_at", "app_tag", "meta", "invariants") ' +
-        "VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?) " +
+        "VALUES (?1, ?2, ?3, ?4, ?5, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?6, ?7, ?8) " +
         'ON CONFLICT ("space") DO UPDATE SET "core_hash" = excluded."core_hash", ' +
         '"profile_hash" = excluded."profile_hash", "contract_json" = excluded."contract_json", ' +
         '"canonical_version" = excluded."canonical_version", ' +
@@ -102,9 +102,9 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
 
     const update = driver.calls.at(-1)!;
     expect(update.sql).toBe(
-      'UPDATE "_prisma_marker" SET "core_hash" = ?, "profile_hash" = ?, ' +
-        '"updated_at" = strftime(\'%Y-%m-%dT%H:%M:%fZ\',\'now\'), "invariants" = ? ' +
-        'WHERE ("_prisma_marker"."space" = ? AND "_prisma_marker"."core_hash" = ?) ' +
+      'UPDATE "_prisma_marker" SET "core_hash" = ?1, "profile_hash" = ?2, ' +
+        '"updated_at" = strftime(\'%Y-%m-%dT%H:%M:%fZ\',\'now\'), "invariants" = ?3 ' +
+        'WHERE ("_prisma_marker"."space" = ?4 AND "_prisma_marker"."core_hash" = ?5) ' +
         'RETURNING "space"',
     );
     // union({a,b}, {b,c}) deduped + sorted, JSON-encoded — not the incoming set verbatim.
@@ -121,9 +121,9 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
 
     const { sql, params } = driver.calls[0]!;
     expect(sql).toBe(
-      'UPDATE "_prisma_marker" SET "core_hash" = ?, "profile_hash" = ?, ' +
+      'UPDATE "_prisma_marker" SET "core_hash" = ?1, "profile_hash" = ?2, ' +
         "\"updated_at\" = strftime('%Y-%m-%dT%H:%M:%fZ','now') " +
-        'WHERE ("_prisma_marker"."space" = ? AND "_prisma_marker"."core_hash" = ?) ' +
+        'WHERE ("_prisma_marker"."space" = ?3 AND "_prisma_marker"."core_hash" = ?4) ' +
         'RETURNING "space"',
     );
     expect(params).toEqual(['to', 'prof', 'app', 'from']);
@@ -144,7 +144,7 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
     const { sql, params } = driver.calls[0]!;
     expect(sql).toBe(
       'INSERT INTO "_prisma_ledger" ("space", "migration_name", "migration_hash", ' +
-        '"origin_core_hash", "destination_core_hash", "operations") VALUES (?, ?, ?, ?, ?, ?)',
+        '"origin_core_hash", "destination_core_hash", "operations") VALUES (?1, ?2, ?3, ?4, ?5, ?6)',
     );
     expect(params).toEqual(['app', '001_init', 'mig', 'from', 'to', '[{"id":"op-1"}]']);
   });

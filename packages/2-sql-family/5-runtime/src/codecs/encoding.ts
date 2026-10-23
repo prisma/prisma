@@ -25,13 +25,8 @@ const NO_METADATA: ParamMetadata = Object.freeze({
   name: undefined,
 });
 
-// Indexed by Postgres-style deduped slot order (matches the adapter's
-// `collectOrderedParamRefs` walk). For SQLite's non-deduped renderer,
-// `lowered.params` has one entry per occurrence: positions past
-// `refs.length` fall back to `NO_METADATA` in encodeParamsWithMetadata,
-// so codec'd repeats round-trip unchanged — a limitation that will be
-// revisited when SQLite prepared statements ship and each adapter
-// carries codec metadata on its `LoweredParam` slots directly.
+// Indexed by the deduped slot order of `collectOrderedParamRefs`, which the
+// SQL adapters' lowered params follow.
 export function deriveParamMetadata(ast: AnyQueryAst): readonly ParamMetadata[] {
   return collectOrderedParamRefs(ast).map((ref): ParamMetadata => {
     return { codec: ref.codec, name: ref.name };

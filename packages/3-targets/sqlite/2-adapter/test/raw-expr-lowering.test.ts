@@ -66,7 +66,7 @@ describe('RawExpr sqlite lowering', () => {
     expect(lowered.params).toHaveLength(0);
   });
 
-  it('lowers a RawExpr with a string part and a ParamRef element using ? placeholders', () => {
+  it('lowers a RawExpr with a string part and a ParamRef element using numbered placeholders', () => {
     const paramRef = ParamRef.of(42, { name: 'score', codec: { codecId: 'sqlite/integer@1' } });
     const rawExpr = new RawExpr({
       parts: ['score > ', paramRef],
@@ -76,12 +76,12 @@ describe('RawExpr sqlite lowering', () => {
     const ast = selectWithWhere(rawExpr);
     const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
-    expect(lowered.sql).toContain('score > ?');
+    expect(lowered.sql).toContain('score > ?1');
     expect(lowered.params).toHaveLength(1);
     expect(lowered.params[0]).toEqual({ kind: 'literal', value: 42 });
   });
 
-  it('lowers multiple ParamRef elements each rendered as ?', () => {
+  it('lowers multiple ParamRef elements each rendered as a numbered placeholder', () => {
     const ref1 = ParamRef.of(1, { name: 'minId', codec: { codecId: 'sqlite/integer@1' } });
     const ref2 = ParamRef.of(100, { name: 'maxId', codec: { codecId: 'sqlite/integer@1' } });
     const rawExpr = new RawExpr({
@@ -92,7 +92,7 @@ describe('RawExpr sqlite lowering', () => {
     const ast = selectWithWhere(rawExpr);
     const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
-    expect(lowered.sql).toContain('id BETWEEN ? AND ?');
+    expect(lowered.sql).toContain('id BETWEEN ?1 AND ?2');
     expect(lowered.params).toHaveLength(2);
     expect(lowered.params[0]).toEqual({ kind: 'literal', value: 1 });
     expect(lowered.params[1]).toEqual({ kind: 'literal', value: 100 });
@@ -109,7 +109,7 @@ describe('RawExpr sqlite lowering', () => {
     const ast = selectWithWhere(rawExpr);
     const lowered = renderLoweredSql(ast, contract, sqliteCodecDescriptorRegistry);
 
-    expect(lowered.sql).toContain('??');
+    expect(lowered.sql).toContain('?1?2');
     expect(lowered.params).toHaveLength(2);
   });
 
