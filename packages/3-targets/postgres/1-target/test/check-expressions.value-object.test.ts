@@ -148,6 +148,16 @@ describe('postgresRenderCheckExpressions for a column that holds a value object'
     ]);
   });
 
+  it('requires a decimal member to be a JSON string, as the ORM writes it', () => {
+    const amount = member(scalar('pg/numeric@1'));
+    expect(render(member(holding({ fields: { amount } })))).toEqual([
+      {
+        kind: 'valueObject',
+        expression: `jsonb_path_match("address", 'strict ${isObject} && exists($.keyvalue() ? (@.key == "amount" && (@.value.type() == "string"))) && !exists($.keyvalue() ? (@.key != "amount"))') IS TRUE`,
+      },
+    ]);
+  });
+
   it('writes member names as jsonpath strings', () => {
     const quoted = member(scalar('pg/text@1'));
     expect(render(member(holding({ fields: { 'say "hi"': quoted } })))).toEqual([

@@ -12,6 +12,7 @@ import {
   PG_INT8_NUMBER_CODEC_ID,
   PG_JSON_CODEC_ID,
   PG_JSONB_CODEC_ID,
+  PG_NUMERIC_CODEC_ID,
   PG_TEXT_CODEC_ID,
   PG_TIME_STRING_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,
@@ -32,7 +33,7 @@ import {
 type JsonType = 'string' | 'number' | 'boolean';
 
 /**
- * The JSON type a value object member of each codec has in the JSON the SQL ORM writes: the type its JavaScript value serializes to. JSON members hold any value, and a member of a codec missing here is checked only for being present and, when required, not JSON null.
+ * The JSON type a value object member of each codec has in the JSON the SQL ORM writes: the type its JavaScript value serializes to, or for `Decimal` the string the ORM writes. JSON members hold any value, and a member of a codec missing here is checked only for being present and, when required, not JSON null.
  */
 const JSON_TYPE_OF_CODEC: Readonly<Record<string, JsonType>> = {
   [PG_TEXT_CODEC_ID]: 'string',
@@ -42,6 +43,7 @@ const JSON_TYPE_OF_CODEC: Readonly<Record<string, JsonType>> = {
   [SQL_CHAR_CODEC_ID]: 'string',
   [SQL_VARCHAR_CODEC_ID]: 'string',
   [PG_UUID_CODEC_ID]: 'string',
+  [PG_NUMERIC_CODEC_ID]: 'string',
   [PG_DATE_TEMPORAL_CODEC_ID]: 'string',
   [PG_TIMESTAMP_TEMPORAL_CODEC_ID]: 'string',
   [PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID]: 'string',

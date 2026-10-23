@@ -238,3 +238,10 @@ A column's `valueSet: { plane: 'storage', entityKind: 'valueSet', entityName }` 
 ## Composite types are not namespaced in SQL PSL
 
 SQL PSL resolves a composite type by its bare name across all namespaces and writes every value object to the default storage namespace. Two composite types with the same name in different PSL namespaces are refused with `PSL_DUPLICATE_DECLARATION` (before PR 3 of the remaining-nouns slice they silently overwrote each other). Letting each namespace declare its own needs namespace-qualified type references in PSL and writing each value object to its namespace's storage. When that changes, `generate-contract-dts.ts` must also emit one `<Name>Output` alias per storage namespace; today it emits one per name, from the first namespace. Found in the review of that PR, 2026-10-23.
+
+## The SQL ORM cannot write some value object members
+
+Found in the review of the value object storage PR, 2026-10-23. Both limits are older than that PR.
+
+- A `BigInt` member of a value object cannot be written: the `pg/jsonb@1` codec throws "Do not know how to serialize a BigInt".
+- A `Bytes` member is written as an object of byte indexes, such as `{"0":1,"1":2}`, not as bytes.
