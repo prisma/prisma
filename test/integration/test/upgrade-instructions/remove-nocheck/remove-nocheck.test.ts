@@ -1,11 +1,11 @@
-import { cpSync, mkdirSync, readFileSync, renameSync, symlinkSync, writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { cpSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
   appScript,
   copyFixture,
   extensionScript,
+  fixturesDir,
   fixtureTree,
   readTree,
   removeWorkDirs,
@@ -26,23 +26,25 @@ const HASHES: ReadonlyArray<readonly [string, string]> = [
 
 afterAll(removeWorkDirs);
 
-const POSTGRES_FACADE = fileURLToPath(
-  new URL('../../../../../packages/9-public/@prisma/orm-postgres', import.meta.url),
-);
 const OLD_DEFAULTS_HASH = 'a086c916bc6bf55a62e34ea3fc3c264634e3a078f3e00e99b0e3a332cd31ecc8';
+/** The storage hash `prisma contract emit` of 8.0.0-rc.19 gives the postgres-defaults schema. */
 const EMITTED_BY_RC19_HASH = '1dd0420f931282d68277216cdff0dc9059fde0f0e086bbc596cdf32675577e0b';
 
-/** A copy of the postgres-defaults fixture that can load `@prisma/orm-postgres`, as an upgraded project can. */
-function postgresDefaultsProject(): string {
-  const root = copyFixture('before', 'postgres-defaults');
-  mkdirSync(join(root, 'node_modules/@prisma'), { recursive: true });
-  symlinkSync(POSTGRES_FACADE, join(root, 'node_modules/@prisma/orm-postgres'));
-  return root;
+interface Rc19Forms {
+  readonly columns: readonly { readonly stored: unknown }[];
+  readonly list: { readonly stored: unknown };
+  readonly named: { readonly stored: unknown };
 }
 
-function withoutNodeModules(tree: Tree): Tree {
+const rc19Forms: Rc19Forms = JSON.parse(
+  readFileSync(join(fixturesDir, 'postgres-default-forms/rc19-forms.json'), 'utf8'),
+);
+
+function sampleDefaults(text: string): Record<string, unknown> {
+  const columns: Record<string, { default: { value: unknown } }> =
+    JSON.parse(text).storage.namespaces.public.entries.table.sample.columns;
   return Object.fromEntries(
-    Object.entries(tree).filter(([path]) => !path.startsWith('node_modules/')),
+    Object.entries(columns).map(([name, column]) => [name, column.default.value]),
   );
 }
 
@@ -142,8 +144,7 @@ describe('remove-nocheck', () => {
     const run = runScript(copyFixture('after'));
     expect({ status: run.status, stdout: run.stdout, tree: readTree(run.root) }).toEqual({
       status: 0,
-      stdout:
-        'No contract stores a noCheck key or a default in another spelling; nothing changed.\n',
+      stdout: 'No contract stores a noCheck key or a default in another form; nothing changed.\n',
       tree: fixtureTree('after'),
     });
   });
@@ -219,12 +220,12 @@ describe('remove-nocheck', () => {
   });
 
   it('writes each PostgreSQL default in the spelling this release stores, as contract emit does, and rewrites every hash that follows', () => {
-    const run = runScript(postgresDefaultsProject());
+    const run = runScript(copyFixture('before', 'postgres-defaults'));
     expect({
       status: run.status,
       stdout: run.stdout,
       stderr: run.stderr,
-      tree: withoutNodeModules(readTree(run.root)),
+      tree: readTree(run.root),
     }).toEqual({
       status: 0,
       stdout: [
@@ -252,18 +253,51 @@ describe('remove-nocheck', () => {
     });
   });
 
-  it('says it did not check the defaults of a contract that cannot load @prisma/orm-postgres, and changes nothing', () => {
-    const root = copyFixture('before', 'postgres-defaults');
-    const run = runScript(root);
-    expect({ status: run.status, stdout: run.stdout, tree: readTree(root) }).toEqual({
+  it('writes the default of each PostgreSQL data type in the form rc.19 stores, list and named types included', () => {
+    const run = runScript(copyFixture('before', 'postgres-default-forms'));
+    const tree = readTree(run.root);
+    expect({
+      status: run.status,
+      stderr: run.stderr,
+      tree,
+      defaults: sampleDefaults(tree['prisma/contract.json'] ?? '{}'),
+    }).toEqual({
       status: 0,
-      stdout: [
-        'migrations/snapshots/a086c916bc6bf55a62e34ea3fc3c264634e3a078f3e00e99b0e3a332cd31ecc8/contract.json: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked; install the upgraded packages and run the script again',
-        'src/prisma/contract.json: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked; install the upgraded packages and run the script again',
-        'No contract stores a noCheck key or a default in another spelling; nothing changed.',
-        '',
-      ].join('\n'),
-      tree: fixtureTree('before', 'postgres-defaults'),
+      stderr: '',
+      tree: fixtureTree('after', 'postgres-default-forms'),
+      defaults: {
+        ...Object.fromEntries(
+          rc19Forms.columns.map(({ stored }, index) => [
+            `c${String(index).padStart(2, '0')}`,
+            stored,
+          ]),
+        ),
+        list: rc19Forms.list.stored,
+        named: rc19Forms.named.stored,
+      },
+    });
+  });
+
+  it('stops without changing a file when a default is not a value of its column type', () => {
+    const root = copyFixture('before', 'postgres-defaults');
+    const path = join(root, 'src/prisma/contract.json');
+    writeFileSync(
+      path,
+      readFileSync(path, 'utf8').replace('"value": "12:34:00"', '"value": "12:34:00.1234567"'),
+    );
+    const before = readTree(root);
+    const run = runScript(root);
+    expect({
+      status: run.status,
+      stdout: run.stdout,
+      stderr: run.stderr,
+      tree: readTree(root),
+    }).toEqual({
+      status: 1,
+      stdout: '',
+      stderr:
+        'src/prisma/contract.json: namespace public, table product, column opensAt: the default "12:34:00.1234567" is not a value of pg/time (pg/time JSON value must be a time of day, as in "12:34:56": "12:34:00.1234567" has 7 digits after the decimal point, but pg/time holds microseconds, so at most 6. Round it, as in "12:34:56.123456".); write the value the database stores by hand\n',
+      tree: before,
     });
   });
 

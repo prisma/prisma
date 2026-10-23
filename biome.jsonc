@@ -89,9 +89,9 @@
         }
       }
     },
-    // An after tree records the upgrade script's output exactly as it writes it.
+    // An upgrade script fixture holds the files a script reads and writes, byte for byte.
     {
-      "includes": ["**/upgrade-instructions/client-takes-contract-value/fixtures/*/after/**"],
+      "includes": ["**/upgrade-instructions/*/fixtures/**"],
       "formatter": { "enabled": false }
     },
     // An upgrade script keeps the import order of each migration.ts it rewrites.

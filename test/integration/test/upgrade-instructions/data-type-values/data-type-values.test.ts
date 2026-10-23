@@ -3,8 +3,10 @@ import { join } from 'pathe';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
   ALREADY_IN_NEW_FORM,
+  appScript,
   copyFixture,
   expectedTree,
+  extensionScript,
   makeWorkDir,
   NEW_HASH,
   OLD_HASH,
@@ -188,5 +190,11 @@ describe('the fixture', () => {
     expect(
       contract.storage.namespaces.__unbound__.entries.table.events.columns.note.default,
     ).toEqual({ kind: 'literal', value: '2024-01-01T00:00:00Z' });
+  });
+});
+
+describe('the extension guide', () => {
+  it('ships the same script for extensions', () => {
+    expect(readFileSync(extensionScript, 'utf8')).toBe(readFileSync(appScript, 'utf8'));
   });
 });

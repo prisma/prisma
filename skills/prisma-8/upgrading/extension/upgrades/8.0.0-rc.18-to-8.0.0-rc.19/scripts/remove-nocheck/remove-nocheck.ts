@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Removes the `noCheck` key from every column of every SQL contract in a project. Where the key waived the element check of a list, the column and the field that maps it become lists whose elements may be null, in `contract.json` and `contract.d.ts`, because that is what the database enforces. The checks each contract declares are left as they are. In a PostgreSQL contract it also writes each literal default in the spelling this release stores, read with the data types of the `@prisma/orm-postgres` the contract's directory loads. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
+ * Removes the `noCheck` key from every column of every SQL contract in a project. Where the key waived the element check of a list, the column and the field that maps it become lists whose elements may be null, in `contract.json` and `contract.d.ts`, because that is what the database enforces. The checks each contract declares are left as they are. In a PostgreSQL contract it also writes each literal default in the contract form this release stores, as its column's data type and parameters give it. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
  *
  * Usage: node remove-nocheck.ts [project-root]
  *
  * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project already in this release's form is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, a default that is not a value of its column's type, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
  *
- * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools` because a project's strict `node_modules` does not expose them.
+ * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools`, and the PostgreSQL default rules from the data types of 8.0.0-rc.19, so the script gives the same result whatever is installed.
  */
 import { createHash } from 'node:crypto';
 import {
@@ -22,7 +22,6 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs';
-import { createRequire } from 'node:module';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 
 type Json = null | boolean | number | string | Json[] | JsonRecord;
@@ -422,42 +421,1139 @@ interface Rewrite {
   readonly changed: boolean;
   readonly columns: ReadonlySet<string>;
   readonly fields: ReadonlySet<string>;
-  readonly defaults: ReadonlyMap<string, readonly Respelling[]>;
-  readonly unreadable: readonly string[];
+  readonly defaults: ReadonlyMap<string, readonly DefaultRewrite[]>;
+  readonly notValues: readonly string[];
 }
 
-interface Respelling {
+interface DefaultRewrite {
   readonly from: string;
   readonly to: string;
 }
 
-type Spelling =
-  | { readonly kind: 'kept' }
-  | { readonly kind: 'respelled'; readonly value: Json }
-  | { readonly kind: 'unreadable'; readonly reason: string };
+type DefaultForm =
+  | { readonly kind: 'unchanged' }
+  | { readonly kind: 'rewritten'; readonly value: Json }
+  | { readonly kind: 'notAValue'; readonly reason: string };
 
-/** Spells a literal default of a column as this release stores it, by the column's data type and parameters. */
-type DefaultSpeller = (value: Json, column: JsonRecord, namedTypes: Json | undefined) => Spelling;
+type Params = Readonly<Record<string, Json>>;
 
-type Call = (...args: unknown[]) => unknown;
+class NotAValue extends Error {}
 
-function methodOf(target: unknown, name: string): Call | undefined {
-  if (typeof target !== 'object' || target === null) return undefined;
-  const member: unknown = Reflect.get(target, name);
-  return typeof member === 'function'
-    ? (...args: unknown[]): unknown => Reflect.apply(member, target, args)
-    : undefined;
+class CastRefused extends Error {}
+
+function refuseJsonValue(typeId: string, expected: string): never {
+  throw new NotAValue(`${typeId} JSON value must be ${expected}`);
 }
 
-function isJson(value: unknown): value is Json {
-  if (value === null || ['boolean', 'number', 'string'].includes(typeof value)) return true;
-  if (Array.isArray(value)) return value.every(isJson);
-  return isRecord(value) && Object.values(value).every(isJson);
+function withoutTrailing(text: string, character: string): string {
+  let end = text.length;
+  while (end > 0 && text[end - 1] === character) end -= 1;
+  return end === text.length ? text : text.slice(0, end);
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+function counted(amount: number, noun: string): string {
+  return `${amount} ${amount === 1 ? noun : `${noun}s`}`;
 }
+
+function integerParam(params: Params, name: string): number | undefined {
+  const value = params[name];
+  return typeof value === 'number' ? value : undefined;
+}
+
+function readJsonString(typeId: string, json: Json): string {
+  return typeof json === 'string' ? json : refuseJsonValue(typeId, 'a string');
+}
+
+function readJsonMatching(typeId: string, json: Json, pattern: RegExp, form: string): string {
+  return typeof json === 'string' && pattern.test(json) ? json : refuseJsonValue(typeId, form);
+}
+
+function readJsonInteger(typeId: string, json: Json, min: number, max: number): Json {
+  return typeof json === 'number' && Number.isInteger(json) && json >= min && json <= max
+    ? json
+    : refuseJsonValue(typeId, `an integer from ${min} to ${max}`);
+}
+
+const INT64_MIN = -(2n ** 63n);
+const INT64_MAX = 2n ** 63n - 1n;
+
+function readInt8(json: Json): Json {
+  const expected = `a decimal integer string from ${INT64_MIN} to ${INT64_MAX}`;
+  const value = BigInt(readJsonMatching('pg/int8', json, /^-?\d+$/, expected));
+  if (value < INT64_MIN || value > INT64_MAX) return refuseJsonValue('pg/int8', expected);
+  const written = value.toString();
+  if (json !== written)
+    return refuseJsonValue(
+      'pg/int8',
+      `"${written}", the integer's decimal text without leading zeros or a minus sign on zero`,
+    );
+  return json;
+}
+
+const NON_FINITE_TEXT: ReadonlySet<string> = new Set(['NaN', 'Infinity', '-Infinity']);
+
+function readJsonFloat(typeId: string, json: Json): number {
+  if (typeof json === 'number' && Number.isFinite(json)) return json;
+  if (typeof json === 'string' && NON_FINITE_TEXT.has(json)) return Number(json);
+  return refuseJsonValue(typeId, 'a finite number or the text NaN, Infinity or -Infinity');
+}
+
+const FLOAT4_MAX = 3.4028234663852886e38;
+
+function fitsFloat4(value: number): boolean {
+  const single = Math.fround(value);
+  return Number.isFinite(single) && (value === 0 || single !== 0);
+}
+
+function readFloat4(json: Json): Json {
+  const value = readJsonFloat('pg/float4', json);
+  if (Number.isFinite(value) && !fitsFloat4(value))
+    return refuseJsonValue(
+      'pg/float4',
+      `a number float4 holds, at most ${FLOAT4_MAX} in magnitude and not so small that it becomes 0, or the text NaN, Infinity or -Infinity`,
+    );
+  return json;
+}
+
+const DECIMAL_NUMERAL_TEXT = /^-?\d+(?:\.\d+)?$/;
+const STORED_NUMERIC_TEXT = /^(?:(?!-0(?:\.0+)?$)-?(?:0|[1-9]\d*)(?:\.\d+)?|NaN|-?Infinity)$/;
+
+function storedNumeralText(text: string): string {
+  const numeral = /^([+-]?)0*(\d+)(\.\d+)?$/.exec(text);
+  if (numeral === null) return text;
+  const [, sign = '', whole = '', fraction = ''] = numeral;
+  const digits = `${whole}${fraction}`;
+  return sign !== '-' || /^[0.]+$/.test(digits) ? digits : `-${digits}`;
+}
+
+function fitsNumeric(text: string, precision: number, scale: number): boolean {
+  if (text === 'NaN') return true;
+  if (text.endsWith('Infinity')) return false;
+  const [whole = '', fraction = ''] = text.replace(/^-/, '').split('.');
+  const significantFraction = withoutTrailing(fraction, '0');
+  const digits = `${whole}${significantFraction}`.replace(/^0+/, '');
+  if (digits === '') return true;
+  const shift = scale - significantFraction.length;
+  if (shift >= 0) return digits.length + shift <= precision;
+  const units = withoutTrailing(digits, '0');
+  const droppedZeros = digits.length - units.length;
+  if (droppedZeros < -shift) return false;
+  return digits.length + shift <= precision;
+}
+
+function readNumeric(json: Json, params: Params): Json {
+  if (typeof json !== 'string' || !STORED_NUMERIC_TEXT.test(json)) {
+    const printed =
+      typeof json === 'string' && DECIMAL_NUMERAL_TEXT.test(json)
+        ? storedNumeralText(json)
+        : undefined;
+    return refuseJsonValue(
+      'pg/numeric',
+      printed === undefined ? 'a decimal string' : `"${printed}", as PostgreSQL writes this value`,
+    );
+  }
+  const precision = integerParam(params, 'precision');
+  if (precision === undefined) return json;
+  const scale = integerParam(params, 'scale') ?? 0;
+  if (!fitsNumeric(json, precision, scale))
+    return refuseJsonValue(
+      'pg/numeric',
+      `a decimal string that numeric(${precision}, ${scale}) stores without rounding`,
+    );
+  return json;
+}
+
+function spellNumeric(json: Json, params: Params): Json {
+  const precision = integerParam(params, 'precision');
+  if (precision === undefined || typeof json !== 'string' || json === 'NaN') return json;
+  const scale = integerParam(params, 'scale') ?? 0;
+  const [whole = '', fraction = ''] = json.split('.');
+  return scale <= 0 ? whole : `${whole}.${fraction.slice(0, scale).padEnd(scale, '0')}`;
+}
+
+function fitsCharacterLength(text: string, length: number, blankPadded: boolean): boolean {
+  const significant = blankPadded ? withoutTrailing(text, ' ') : text;
+  return significant.length <= length || [...significant].length <= length;
+}
+
+function readCharacter(json: Json, params: Params): Json {
+  const length = integerParam(params, 'length') ?? 1;
+  if (!fitsCharacterLength(readJsonString('pg/char', json), length, true))
+    return refuseJsonValue(
+      'pg/char',
+      `a string of at most ${counted(length, 'character')} before any trailing spaces`,
+    );
+  return json;
+}
+
+function spellCharacter(json: Json): Json {
+  return typeof json === 'string' ? withoutTrailing(json, ' ') : json;
+}
+
+function readCharacterVarying(json: Json, params: Params): Json {
+  const length = integerParam(params, 'length');
+  const text = readJsonString('pg/varchar', json);
+  if (length !== undefined && !fitsCharacterLength(text, length, false))
+    return refuseJsonValue('pg/varchar', `a string of at most ${counted(length, 'character')}`);
+  return json;
+}
+
+const BIT_STRING = /^[01]*$/;
+
+function readBit(json: Json, params: Params): Json {
+  const length = integerParam(params, 'length') ?? 1;
+  const bits = readJsonMatching('pg/bit', json, BIT_STRING, 'a string of 0 and 1 digits');
+  if (bits.length !== length)
+    return refuseJsonValue('pg/bit', `a string of exactly ${counted(length, 'bit')}`);
+  return json;
+}
+
+function readBitVarying(json: Json, params: Params): Json {
+  const length = integerParam(params, 'length');
+  const bits = readJsonMatching('pg/varbit', json, BIT_STRING, 'a string of 0 and 1 digits');
+  if (length !== undefined && bits.length > length)
+    return refuseJsonValue('pg/varbit', `a string of at most ${counted(length, 'bit')}`);
+  return json;
+}
+
+function readTextArray(json: Json): Json {
+  const expected = 'an array of strings and nulls';
+  if (!Array.isArray(json)) return refuseJsonValue('pg/text-array', expected);
+  for (const entry of json)
+    if (entry !== null && typeof entry !== 'string')
+      return refuseJsonValue('pg/text-array', expected);
+  return json;
+}
+
+const UUID_INPUT = /^(?:\{[0-9a-f]{4}(?:-?[0-9a-f]{4}){7}\}|[0-9a-f]{4}(?:-?[0-9a-f]{4}){7})$/i;
+
+function storedUuid(text: string): string | undefined {
+  if (!UUID_INPUT.test(text)) return undefined;
+  const hex = text.replace(/[{}-]/g, '').toLowerCase();
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+interface InetValue {
+  readonly bytes: readonly number[];
+  readonly bits: number;
+}
+
+const isDigit = (ch: string | undefined): ch is string => ch !== undefined && /^[0-9]$/.test(ch);
+
+function storedInet(text: string): string | undefined {
+  if (text.includes(':')) {
+    const value = readIpv6(text);
+    return value === undefined ? undefined : printIpv6(value);
+  }
+  const value = readIpv4(text);
+  return value === undefined ? undefined : printIpv4(value);
+}
+
+function readIpv4(text: string): InetValue | undefined {
+  const octets: number[] = [];
+  let index = 0;
+  let ch = text[index++];
+  while (isDigit(ch)) {
+    let octet = 0;
+    do {
+      octet = octet * 10 + Number(ch);
+      if (octet > 255) return undefined;
+      ch = text[index++];
+    } while (isDigit(ch));
+    if (octets.length === 4) return undefined;
+    octets.push(octet);
+    if (ch === undefined || ch === '/') break;
+    if (ch !== '.') return undefined;
+    ch = text[index++];
+  }
+  let bits = -1;
+  if (ch === '/' && isDigit(text[index]) && octets.length > 0) {
+    ch = text[index++];
+    bits = 0;
+    do {
+      bits = bits * 10 + Number(ch);
+      ch = text[index++];
+    } while (isDigit(ch));
+    if (ch !== undefined || bits > 32) return undefined;
+  }
+  if (ch !== undefined) return undefined;
+  if (bits === -1) {
+    if (octets.length !== 4) return undefined;
+    bits = 32;
+  }
+  if (octets.length === 0 || Math.floor(bits / 8) > octets.length) return undefined;
+  return { bytes: [...octets, 0, 0, 0, 0].slice(0, 4), bits };
+}
+
+function readBits(text: string): number | undefined {
+  let bits = 0;
+  let digits = 0;
+  for (const ch of text) {
+    if (!isDigit(ch)) return undefined;
+    if (digits++ !== 0 && bits === 0) return undefined;
+    bits = bits * 10 + Number(ch);
+    if (bits > 128) return undefined;
+  }
+  return digits === 0 ? undefined : bits;
+}
+
+function readIpv4Tail(
+  text: string,
+): { readonly octets: readonly number[]; readonly bits: number | undefined } | undefined {
+  const octets: number[] = [];
+  let octet = 0;
+  let digits = 0;
+  for (const [index, ch] of [...text].entries()) {
+    if (isDigit(ch)) {
+      if (digits++ !== 0 && octet === 0) return undefined;
+      octet = octet * 10 + Number(ch);
+      if (octet > 255) return undefined;
+      continue;
+    }
+    if (ch !== '.' && ch !== '/') return undefined;
+    if (octets.length > 3) return undefined;
+    octets.push(octet);
+    if (ch === '/') {
+      const bits = readBits(text.slice(index + 1));
+      return bits === undefined ? undefined : { octets, bits };
+    }
+    octet = 0;
+    digits = 0;
+  }
+  if (digits === 0 || octets.length > 3) return undefined;
+  return { octets: [...octets, octet], bits: undefined };
+}
+
+function readIpv6(text: string): InetValue | undefined {
+  const bytes = new Array<number>(16).fill(0);
+  let filled = 0;
+  let compressedAt: number | undefined;
+  let index = 0;
+  if (text[0] === ':') {
+    if (text[1] !== ':') return undefined;
+    index = 1;
+  }
+  let tokenStart = index;
+  let sawHexDigit = false;
+  let group = 0;
+  let groupDigits = 0;
+  let bits = 128;
+  while (index < text.length) {
+    const ch = text[index++] ?? '';
+    if (/^[0-9a-fA-F]$/.test(ch)) {
+      group = (group << 4) | Number.parseInt(ch, 16);
+      if (++groupDigits > 4) return undefined;
+      sawHexDigit = true;
+      continue;
+    }
+    if (ch === ':') {
+      tokenStart = index;
+      if (!sawHexDigit) {
+        if (compressedAt !== undefined) return undefined;
+        compressedAt = filled;
+        continue;
+      }
+      if (index >= text.length || filled + 2 > 16) return undefined;
+      bytes[filled++] = group >> 8;
+      bytes[filled++] = group & 0xff;
+      sawHexDigit = false;
+      group = 0;
+      groupDigits = 0;
+      continue;
+    }
+    if (ch === '.' && filled + 4 <= 16) {
+      const tail = readIpv4Tail(text.slice(tokenStart));
+      if (tail !== undefined) {
+        tail.octets.forEach((octet, offset) => {
+          bytes[filled + offset] = octet;
+        });
+        filled += 4;
+        sawHexDigit = false;
+        bits = tail.bits ?? bits;
+        break;
+      }
+    }
+    if (ch === '/') {
+      const prefix = readBits(text.slice(index));
+      if (prefix !== undefined) {
+        bits = prefix;
+        break;
+      }
+    }
+    return undefined;
+  }
+  if (sawHexDigit) {
+    if (filled + 2 > 16) return undefined;
+    bytes[filled++] = group >> 8;
+    bytes[filled++] = group & 0xff;
+  }
+  if (compressedAt !== undefined) {
+    if (filled === 16) return undefined;
+    const shifted = bytes.slice(compressedAt, filled);
+    bytes.fill(0, compressedAt, filled);
+    bytes.splice(16 - shifted.length, shifted.length, ...shifted);
+    filled = 16;
+  }
+  return filled === 16 ? { bytes, bits } : undefined;
+}
+
+function printIpv4({ bytes, bits }: InetValue): string {
+  const address = bytes.join('.');
+  return bits === 32 ? address : `${address}/${bits}`;
+}
+
+function printIpv6({ bytes, bits }: InetValue): string {
+  const groups = Array.from(
+    { length: 8 },
+    (_, i) => ((bytes[2 * i] ?? 0) << 8) | (bytes[2 * i + 1] ?? 0),
+  );
+  const zeroRun = longestZeroRun(groups);
+  let text = '';
+  for (let i = 0; i < 8; i++) {
+    if (zeroRun !== undefined && i >= zeroRun.start && i < zeroRun.start + zeroRun.length) {
+      if (i === zeroRun.start) text += ':';
+      continue;
+    }
+    if (i !== 0) text += ':';
+    const ipv4Tail =
+      i === 6 &&
+      zeroRun?.start === 0 &&
+      (zeroRun.length === 6 || (zeroRun.length === 5 && groups[5] === 0xffff));
+    if (ipv4Tail) {
+      text += bytes.slice(12).join('.');
+      break;
+    }
+    text += (groups[i] ?? 0).toString(16);
+  }
+  if (zeroRun !== undefined && zeroRun.start + zeroRun.length === 8) text += ':';
+  return bits === 128 ? text : `${text}/${bits}`;
+}
+
+function longestZeroRun(
+  groups: readonly number[],
+): { readonly start: number; readonly length: number } | undefined {
+  let best: { start: number; length: number } | undefined;
+  let current: { start: number; length: number } | undefined;
+  for (const [i, group] of groups.entries()) {
+    if (group === 0) {
+      current =
+        current === undefined
+          ? { start: i, length: 1 }
+          : { ...current, length: current.length + 1 };
+      continue;
+    }
+    if (current !== undefined && (best === undefined || current.length > best.length))
+      best = current;
+    current = undefined;
+  }
+  if (current !== undefined && (best === undefined || current.length > best.length)) best = current;
+  return best !== undefined && best.length >= 2 ? best : undefined;
+}
+
+const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+function spellBytea(json: Json): Json {
+  return typeof json === 'string' ? Buffer.from(json, 'base64').toString('base64') : json;
+}
+
+const ISO_DURATION =
+  /^P(?!$)(-?\d+Y)?(-?\d+M)?(-?\d+D)?(?:T(?!$)(-?\d+H)?(-?\d+M)?(-?\d+(?:\.\d+)?S)?)?$/;
+const MICROS_PER_SECOND = 1_000_000n;
+
+interface IntervalFields {
+  readonly months: number;
+  readonly days: number;
+  readonly micros: bigint;
+}
+
+function microsFromFraction(fraction: string, negative: boolean): bigint {
+  if (fraction === '') return 0n;
+  const kept = BigInt(fraction.slice(0, 6).padEnd(6, '0'));
+  const rest = fraction.slice(6).replace(/0+$/, '');
+  if (rest === '') return kept;
+  const half = rest[0] === '5' && rest.length === 1;
+  const roundsUp = rest > '5' || (half && !negative);
+  return roundsUp ? kept + 1n : kept;
+}
+
+function intervalFieldsOf(match: RegExpExecArray): IntervalFields {
+  const [, years, months, days, hours, minutes, seconds] = match;
+  const wholeNumber = (part: string | undefined): number =>
+    part === undefined ? 0 : Number(part.slice(0, -1));
+  const secondsLiteral = seconds === undefined ? '0' : seconds.slice(0, -1);
+  const negative = secondsLiteral.startsWith('-');
+  const [whole = '0', fraction = ''] = secondsLiteral.replace('-', '').split('.');
+  const magnitude = BigInt(whole) * MICROS_PER_SECOND + microsFromFraction(fraction, negative);
+  return {
+    months: wholeNumber(years) * 12 + wholeNumber(months),
+    days: wholeNumber(days),
+    micros:
+      BigInt(wholeNumber(hours)) * 3_600n * MICROS_PER_SECOND +
+      BigInt(wholeNumber(minutes)) * 60n * MICROS_PER_SECOND +
+      (negative ? -magnitude : magnitude),
+  };
+}
+
+function secondsText(micros: bigint): string {
+  const sign = micros < 0n ? '-' : '';
+  const magnitude = micros < 0n ? -micros : micros;
+  const whole = (magnitude / MICROS_PER_SECOND) % 60n;
+  const fraction = magnitude % MICROS_PER_SECOND;
+  const fractionText =
+    fraction === 0n ? '' : `.${fraction.toString().padStart(6, '0').replace(/0+$/, '')}`;
+  return `${sign}${whole}${fractionText}`;
+}
+
+function formatIsoDuration({ months, days, micros }: IntervalFields): string {
+  const years = Math.trunc(months / 12);
+  const restMonths = months % 12;
+  const sign = micros < 0n ? '-' : '';
+  const magnitude = micros < 0n ? -micros : micros;
+  const hours = magnitude / (3_600n * MICROS_PER_SECOND);
+  const minutes = (magnitude / (60n * MICROS_PER_SECOND)) % 60n;
+  const hasSeconds = magnitude % (60n * MICROS_PER_SECOND) !== 0n;
+  const parts = [
+    years === 0 ? '' : `${years}Y`,
+    restMonths === 0 ? '' : `${restMonths}M`,
+    days === 0 ? '' : `${days}D`,
+  ];
+  const time = [
+    hours === 0n ? '' : `${sign}${hours}H`,
+    minutes === 0n ? '' : `${sign}${minutes}M`,
+    hasSeconds ? `${secondsText(micros)}S` : '',
+  ].join('');
+  const rendered = `P${parts.join('')}${time === '' ? '' : `T${time}`}`;
+  return rendered === 'P' ? 'PT0S' : rendered;
+}
+
+const POSTGRES_INTERVAL =
+  /^(?:([+-]?\d+) years? ?)?(?:([+-]?\d+) mons? ?)?(?:([+-]?\d+) days? ?)?(?:([+-])?(\d+):(\d{2}):(\d{2})(?:\.(\d+))?)?$/;
+
+function postgresIntervalFields(text: string): IntervalFields | undefined {
+  const match = POSTGRES_INTERVAL.exec(text);
+  if (match === null || text === '' || text.endsWith(' ')) return undefined;
+  const [, years = '0', months = '0', days = '0', sign, hours = '0', minutes = '0', seconds = '0'] =
+    match;
+  const fraction = match[8] ?? '';
+  const magnitude =
+    (BigInt(hours) * 3_600n + BigInt(minutes) * 60n + BigInt(seconds)) * MICROS_PER_SECOND +
+    microsFromFraction(fraction, sign === '-');
+  return {
+    months: Number(years) * 12 + Number(months),
+    days: Number(days),
+    micros: sign === '-' ? -magnitude : magnitude,
+  };
+}
+
+function intervalStoredText(text: string): string {
+  const fractionDigits = /\.(\d+)/.exec(text)?.[1]?.length ?? 0;
+  if (fractionDigits > 6)
+    throw new CastRefused(
+      `"${text}" has ${fractionDigits} digits after the decimal point, but pg/interval holds microseconds, so at most 6. Round it, as in "PT1.123456S".`,
+    );
+  const iso = ISO_DURATION.exec(text);
+  if (iso !== null) return formatIsoDuration(intervalFieldsOf(iso));
+  const fields = postgresIntervalFields(text);
+  if (fields === undefined)
+    throw new CastRefused(
+      `pg/interval cannot read "${text}". Write an ISO 8601 duration, as in "P1Y2M3DT4H5M6S".`,
+    );
+  return formatIsoDuration(fields);
+}
+
+function isoYearText(text: string): string {
+  const match = /^(\d{4,6})(-.*?)( BC)?$/.exec(text);
+  if (match === null) return text;
+  const [, digits = '', rest = '', bc] = match;
+  const year = Number(digits);
+  if (bc !== undefined) {
+    if (year === 0) return text;
+    return `${yearText(1 - year)}${rest}`;
+  }
+  return digits.length > 4 ? `${yearText(year)}${rest}` : text;
+}
+
+type DateTimeShape = 'date' | 'time' | 'timeWithOffset' | 'dateTime' | 'instant';
+
+interface DateTimeOptions {
+  readonly shape: DateTimeShape;
+  readonly typeId: string;
+  readonly maxOffsetHours?: number;
+  readonly range?: { readonly earliest: string; readonly latest: string };
+}
+
+interface DateFields {
+  readonly year: number;
+  readonly month: number;
+  readonly day: number;
+}
+
+interface TimeFields {
+  readonly hour: number;
+  readonly minute: number;
+  readonly second: number;
+  readonly fraction: string;
+}
+
+interface WrittenDateTime {
+  readonly date: DateFields | undefined;
+  readonly time: TimeFields | undefined;
+  readonly offsetSeconds: number | undefined;
+  readonly fractionDigits: number;
+}
+
+const SHAPES: Readonly<
+  Record<
+    DateTimeShape,
+    {
+      readonly description: string;
+      readonly plural: string;
+      readonly example: string;
+      readonly date: boolean;
+      readonly time: boolean;
+      readonly offset: boolean;
+    }
+  >
+> = {
+  date: {
+    description: 'a date',
+    plural: 'dates',
+    example: '2024-01-01',
+    date: true,
+    time: false,
+    offset: false,
+  },
+  time: {
+    description: 'a time of day',
+    plural: 'times of day',
+    example: '12:34:56',
+    date: false,
+    time: true,
+    offset: false,
+  },
+  timeWithOffset: {
+    description: 'a time of day with a UTC offset',
+    plural: 'times of day with a UTC offset',
+    example: '12:34:56+02:00',
+    date: false,
+    time: true,
+    offset: true,
+  },
+  dateTime: {
+    description: 'a date and time',
+    plural: 'dates and times',
+    example: '2024-01-01T12:34:56',
+    date: true,
+    time: true,
+    offset: false,
+  },
+  instant: {
+    description: 'a date and time with a UTC offset',
+    plural: 'instants',
+    example: '2024-01-01T12:34:56Z',
+    date: true,
+    time: true,
+    offset: true,
+  },
+};
+
+const DATE_PREFIX = /^([+-]\d{6}|\d{4})-(\d{2})-(\d{2})/;
+const TIME_PREFIX = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/;
+const OFFSET = /^([+-])(\d{2})(?::(\d{2})(?::(\d{2}))?)?$/;
+const MAX_FRACTION_DIGITS = 6;
+const SECONDS_PER_DAY = 86_400;
+const MIDNIGHT: TimeFields = { hour: 0, minute: 0, second: 0, fraction: '' };
+
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) return isLeapYear(year) ? 29 : 28;
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function daysFromCivil({ year, month, day }: DateFields): number {
+  const shifted = month <= 2 ? year - 1 : year;
+  const era = Math.floor(shifted / 400);
+  const yearOfEra = shifted - era * 400;
+  const dayOfYear = Math.floor((153 * (month + (month > 2 ? -3 : 9)) + 2) / 5) + day - 1;
+  const dayOfEra =
+    yearOfEra * 365 + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100) + dayOfYear;
+  return era * 146_097 + dayOfEra - 719_468;
+}
+
+function civilFromDays(days: number): DateFields {
+  const shifted = days + 719_468;
+  const era = Math.floor(shifted / 146_097);
+  const dayOfEra = shifted - era * 146_097;
+  const yearOfEra = Math.floor(
+    (dayOfEra -
+      Math.floor(dayOfEra / 1460) +
+      Math.floor(dayOfEra / 36_524) -
+      Math.floor(dayOfEra / 146_096)) /
+      365,
+  );
+  const dayOfYear =
+    dayOfEra - (365 * yearOfEra + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100));
+  const monthIndex = Math.floor((5 * dayOfYear + 2) / 153);
+  const day = dayOfYear - Math.floor((153 * monthIndex + 2) / 5) + 1;
+  const month = monthIndex < 10 ? monthIndex + 3 : monthIndex - 9;
+  return { year: yearOfEra + era * 400 + (month <= 2 ? 1 : 0), month, day };
+}
+
+function pad(value: number, width = 2): string {
+  return String(value).padStart(width, '0');
+}
+
+function yearText(year: number): string {
+  if (year >= 0 && year <= 9999) return pad(year, 4);
+  return `${year < 0 ? '-' : '+'}${pad(Math.abs(year), 6)}`;
+}
+
+function dateText(date: DateFields): string {
+  return `${yearText(date.year)}-${pad(date.month)}-${pad(date.day)}`;
+}
+
+function timeText(time: TimeFields): string {
+  const fraction = time.fraction.replace(/0+$/, '');
+  return `${pad(time.hour)}:${pad(time.minute)}:${pad(time.second)}${fraction === '' ? '' : `.${fraction}`}`;
+}
+
+function offsetText(seconds: number): string {
+  if (seconds === 0) return 'Z';
+  const magnitude = Math.abs(seconds);
+  const rest = magnitude % 60;
+  return `${seconds < 0 ? '-' : '+'}${pad(Math.floor(magnitude / 3600))}:${pad(Math.floor(magnitude / 60) % 60)}${rest === 0 ? '' : `:${pad(rest)}`}`;
+}
+
+function readWritten(text: string): WrittenDateTime | undefined {
+  let rest = text;
+  let date: DateFields | undefined;
+  let timeFollows = true;
+  const dateMatch = DATE_PREFIX.exec(rest);
+  if (dateMatch !== null) {
+    const [whole, yearDigits = '', month = '', day = ''] = dateMatch;
+    if (yearDigits === '-000000') return undefined;
+    date = { year: Number(yearDigits), month: Number(month), day: Number(day) };
+    rest = rest.slice(whole.length);
+    timeFollows = /^[Tt ]/.test(rest);
+    if (timeFollows) rest = rest.slice(1);
+  }
+  let time: TimeFields | undefined;
+  let fractionDigits = 0;
+  if (timeFollows) {
+    const timeMatch = TIME_PREFIX.exec(rest);
+    if (timeMatch === null) return undefined;
+    const [whole, hour = '', minute = '', second = '00', fraction = ''] = timeMatch;
+    time = { hour: Number(hour), minute: Number(minute), second: Number(second), fraction };
+    fractionDigits = fraction.length;
+    rest = rest.slice(whole.length);
+  }
+  let offsetSeconds: number | undefined;
+  if (rest === 'Z' || rest === 'z') {
+    offsetSeconds = 0;
+  } else if (rest !== '') {
+    const offset = OFFSET.exec(rest);
+    if (offset === null) return undefined;
+    const [, sign, hours = '', minutes = '00', seconds = '00'] = offset;
+    if (Number(minutes) > 59 || Number(seconds) > 59) return undefined;
+    const magnitude = Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+    offsetSeconds = sign === '-' ? -magnitude : magnitude;
+  }
+  return { date, time, offsetSeconds, fractionDigits };
+}
+
+type Position = readonly [days: number, seconds: number, fraction: string];
+
+interface NormalizedDateTime {
+  readonly date: DateFields | undefined;
+  readonly time: TimeFields;
+  readonly offsetSeconds: number;
+}
+
+function normalized(written: WrittenDateTime, shape: DateTimeShape): NormalizedDateTime {
+  const clock = written.time ?? MIDNIGHT;
+  const offsetSeconds = written.offsetSeconds ?? 0;
+  if (written.date === undefined || shape !== 'instant')
+    return { date: written.date, time: clock, offsetSeconds };
+  const utc =
+    daysFromCivil(written.date) * SECONDS_PER_DAY +
+    clock.hour * 3600 +
+    clock.minute * 60 +
+    clock.second -
+    offsetSeconds;
+  const days = Math.floor(utc / SECONDS_PER_DAY);
+  const secondOfDay = utc - days * SECONDS_PER_DAY;
+  return {
+    date: civilFromDays(days),
+    time: {
+      hour: Math.floor(secondOfDay / 3600),
+      minute: Math.floor(secondOfDay / 60) % 60,
+      second: secondOfDay % 60,
+      fraction: clock.fraction,
+    },
+    offsetSeconds: 0,
+  };
+}
+
+function position(value: NormalizedDateTime): Position {
+  const { time } = value;
+  return [
+    value.date === undefined ? 0 : daysFromCivil(value.date),
+    time.hour * 3600 + time.minute * 60 + time.second,
+    time.fraction.padEnd(MAX_FRACTION_DIGITS, '0'),
+  ];
+}
+
+function isBefore(left: Position, right: Position): boolean {
+  if (left[0] !== right[0]) return left[0] < right[0];
+  if (left[1] !== right[1]) return left[1] < right[1];
+  return left[2] < right[2];
+}
+
+function printed(value: NormalizedDateTime, shape: DateTimeShape): string {
+  const { date, time, offsetSeconds } = value;
+  if (date === undefined)
+    return shape === 'timeWithOffset'
+      ? `${timeText(time)}${offsetText(offsetSeconds)}`
+      : timeText(time);
+  if (shape === 'date') return dateText(date);
+  if (shape === 'dateTime') return `${dateText(date)}T${timeText(time)}`;
+  return `${dateText(date)}T${timeText(time)}Z`;
+}
+
+function boundPosition(text: string, shape: DateTimeShape): Position {
+  const written = readWritten(text);
+  if (written === undefined)
+    throw new Error(`The range bound "${text}" is not in its stored form.`);
+  return position(normalized(written, shape));
+}
+
+function dateTimeStoredText(text: string, options: DateTimeOptions, written: string): string {
+  const shape = SHAPES[options.shape];
+  const id = options.typeId;
+  const parts = readWritten(text);
+  if (parts === undefined)
+    throw new CastRefused(
+      `${id} cannot read "${written}". Write ${shape.description}, as in "${shape.example}".`,
+    );
+  if (parts.date !== undefined && !shape.date)
+    throw new CastRefused(
+      `${id} holds a time of day without a date, but "${written}" has a date. Write the time alone, as in "${shape.example}".`,
+    );
+  if (parts.date === undefined && shape.date)
+    throw new CastRefused(
+      shape.time
+        ? `${id} holds ${shape.description}, but "${written}" has no date. Write the date too, as in "${shape.example}".`
+        : `${id} holds a date, and "${written}" is a time of day. Write a date, as in "${shape.example}".`,
+    );
+  if (parts.time !== undefined && !shape.time)
+    throw new CastRefused(
+      `${id} holds a date without a time of day, but "${written}" has a time. Write the date alone, as in "${shape.example}".`,
+    );
+  if (parts.time === undefined && shape.offset)
+    throw new CastRefused(
+      `${id} holds ${shape.description}, but "${written}" has no time of day. Write the time too, as in "${shape.example}".`,
+    );
+  if (parts.offsetSeconds !== undefined && !shape.offset)
+    throw new CastRefused(
+      `${id} holds no UTC offset, but "${written}" has one. Leave it out, as in "${shape.example}".`,
+    );
+  if (parts.offsetSeconds === undefined && shape.offset)
+    throw new CastRefused(
+      `${id} needs a UTC offset, but "${written}" has none. Add Z for UTC or an offset such as +02:00, as in "${shape.example}".`,
+    );
+  if (parts.fractionDigits > MAX_FRACTION_DIGITS)
+    throw new CastRefused(
+      `"${written}" has ${parts.fractionDigits} digits after the decimal point, but ${id} holds microseconds, so at most ${MAX_FRACTION_DIGITS}. Round it, as in "${shape.example.replace(/(\d{2}:\d{2}:\d{2})/, '$1.123456')}".`,
+    );
+  const { date, time } = parts;
+  if (
+    date !== undefined &&
+    (date.month < 1 ||
+      date.month > 12 ||
+      date.day < 1 ||
+      date.day > daysInMonth(date.year, date.month))
+  )
+    throw new CastRefused(
+      `"${written}" is not a date that exists. Write a real date, as in "${shape.example}".`,
+    );
+  if (time !== undefined && (time.hour > 23 || time.minute > 59 || time.second > 59))
+    throw new CastRefused(
+      `"${written}" is not a time of day that exists: hours run from 00 to 23, and minutes and seconds from 00 to 59. Write one, as in "${shape.example}".`,
+    );
+  const offsetLimit = options.maxOffsetHours ?? 23;
+  if (
+    parts.offsetSeconds !== undefined &&
+    Math.abs(parts.offsetSeconds) >= (offsetLimit + 1) * 3600
+  )
+    throw new CastRefused(
+      `"${written}" has a UTC offset outside -${pad(offsetLimit)}:59 to +${pad(offsetLimit)}:59, which ${id} does not hold. Write a smaller offset, as in "${shape.example}".`,
+    );
+  const value = normalized(parts, options.shape);
+  const { range } = options;
+  if (range !== undefined) {
+    const at = position(value);
+    if (
+      isBefore(at, boundPosition(range.earliest, options.shape)) ||
+      isBefore(boundPosition(range.latest, options.shape), at)
+    )
+      throw new CastRefused(
+        `${id} holds ${shape.plural} from ${range.earliest} to ${range.latest}, and "${written}" is outside them.`,
+      );
+  }
+  return printed(value, options.shape);
+}
+
+const INFINITIES: ReadonlySet<string> = new Set(['infinity', '-infinity']);
+
+function postgresDateTime(
+  options: DateTimeOptions,
+  holdsInfinity: boolean,
+): (text: string) => string {
+  return (text) =>
+    holdsInfinity && INFINITIES.has(text)
+      ? text
+      : dateTimeStoredText(isoYearText(text), options, text);
+}
+
+function storedForm(
+  storedText: (text: string) => string,
+  text: string,
+): { readonly stored: string } | { readonly reason: string } {
+  try {
+    return { stored: storedText(text) };
+  } catch (error) {
+    if (error instanceof CastRefused) return { reason: error.message };
+    throw error;
+  }
+}
+
+const SECONDS_FRACTION = /:\d{2}\.(\d+)/;
+const INTERVAL_SECONDS_FRACTION = /\d\.(\d+)S$/;
+
+function storedTextType(
+  typeId: string,
+  storedText: (text: string) => string,
+  description: string,
+  fraction: RegExp,
+): Pick<PostgresDataType, 'read' | 'spell'> {
+  return {
+    read: (json, params) => {
+      if (typeof json !== 'string') return refuseJsonValue(typeId, description);
+      const form = storedForm(storedText, json);
+      if ('reason' in form) return refuseJsonValue(typeId, `${description}: ${form.reason}`);
+      const precision = integerParam(params, 'precision') ?? MAX_FRACTION_DIGITS;
+      if (withoutTrailing(fraction.exec(form.stored)?.[1] ?? '', '0').length > precision)
+        return refuseJsonValue(
+          typeId,
+          `a value with at most ${counted(precision, 'fraction digit')} of a second, which precision ${precision} holds without rounding`,
+        );
+      return json;
+    },
+    spell: (json) => {
+      if (typeof json !== 'string') return json;
+      const form = storedForm(storedText, json);
+      return 'stored' in form ? form.stored : json;
+    },
+  };
+}
+
+type ParamRule = (value: Json | undefined) => boolean;
+
+const optionalInteger =
+  (min: number, max: number): ParamRule =>
+  (value) =>
+    value === undefined ||
+    (typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max);
+
+interface PostgresDataType {
+  readonly params?: Readonly<Record<string, ParamRule>>;
+  readonly read: (json: Json, params: Params) => Json;
+  readonly spell?: (json: Json, params: Params) => Json;
+}
+
+const NUMERIC_PARAMS = {
+  precision: optionalInteger(1, 1000),
+  scale: optionalInteger(-1000, 1000),
+};
+const CHARACTER_LENGTH_PARAMS = { length: optionalInteger(1, 10485760) };
+const BIT_LENGTH_PARAMS = { length: optionalInteger(1, 83886080) };
+const PRECISION_PARAMS = { precision: optionalInteger(0, 6) };
+const readString =
+  (typeId: string): PostgresDataType['read'] =>
+  (json) =>
+    readJsonString(typeId, json);
+const anyJson: PostgresDataType['read'] = (json) => json;
+
+const POSTGRES_DATA_TYPES: ReadonlyMap<string, PostgresDataType> = new Map<
+  string,
+  PostgresDataType
+>([
+  ['pg/text', { read: readString('pg/text') }],
+  ['pg/text-array', { read: readTextArray }],
+  [
+    'pg/enum',
+    {
+      params: { typeName: (value) => typeof value === 'string' && value.length > 0 },
+      read: readString('pg/enum'),
+    },
+  ],
+  ['pg/int2', { read: (json) => readJsonInteger('pg/int2', json, -32768, 32767) }],
+  [
+    'pg/bool',
+    {
+      read: (json) => (typeof json === 'boolean' ? json : refuseJsonValue('pg/bool', 'a boolean')),
+    },
+  ],
+  ['pg/json', { read: anyJson }],
+  ['pg/tsquery', { read: readString('pg/tsquery') }],
+  ['pg/int4', { read: (json) => readJsonInteger('pg/int4', json, -(2 ** 31), 2 ** 31 - 1) }],
+  ['pg/int8', { read: readInt8 }],
+  ['pg/numeric', { params: NUMERIC_PARAMS, read: readNumeric, spell: spellNumeric }],
+  ['pg/float4', { read: readFloat4 }],
+  [
+    'pg/float8',
+    {
+      read: (json) => {
+        readJsonFloat('pg/float8', json);
+        return json;
+      },
+    },
+  ],
+  ['pg/jsonb', { read: anyJson }],
+  ['pg/char', { params: CHARACTER_LENGTH_PARAMS, read: readCharacter, spell: spellCharacter }],
+  ['pg/varchar', { params: CHARACTER_LENGTH_PARAMS, read: readCharacterVarying }],
+  [
+    'pg/uuid',
+    {
+      read: (json) =>
+        typeof json === 'string' && storedUuid(json) !== undefined
+          ? json
+          : refuseJsonValue(
+              'pg/uuid',
+              'a UUID in a spelling PostgreSQL reads: 32 hexadecimal digits in either case, with or without a hyphen after any group of four, optionally in braces',
+            ),
+      spell: (json) => (typeof json === 'string' ? (storedUuid(json) ?? json) : json),
+    },
+  ],
+  [
+    'pg/inet',
+    {
+      read: (json) =>
+        typeof json === 'string' && storedInet(json) !== undefined
+          ? json
+          : refuseJsonValue(
+              'pg/inet',
+              'an IP address or network in a spelling PostgreSQL reads, as in 10.0.0.1 or 2001:db8::/32',
+            ),
+      spell: (json) => (typeof json === 'string' ? (storedInet(json) ?? json) : json),
+    },
+  ],
+  ['pg/bit', { params: BIT_LENGTH_PARAMS, read: readBit }],
+  ['pg/varbit', { params: BIT_LENGTH_PARAMS, read: readBitVarying }],
+  [
+    'pg/timetz',
+    {
+      params: PRECISION_PARAMS,
+      ...storedTextType(
+        'pg/timetz',
+        postgresDateTime(
+          { shape: 'timeWithOffset', typeId: 'pg/timetz', maxOffsetHours: 15 },
+          false,
+        ),
+        'a time of day with its UTC offset, as in "12:34:56+02:00" or "12:34:56Z"',
+        SECONDS_FRACTION,
+      ),
+    },
+  ],
+  [
+    'pg/interval',
+    {
+      params: PRECISION_PARAMS,
+      ...storedTextType(
+        'pg/interval',
+        intervalStoredText,
+        'an ISO 8601 duration, as in "P1Y2M3DT4H5M6.5S"',
+        INTERVAL_SECONDS_FRACTION,
+      ),
+    },
+  ],
+  [
+    'pg/bytea',
+    {
+      read: (json) => readJsonMatching('pg/bytea', json, BASE64_TEXT, 'a base64 string'),
+      spell: spellBytea,
+    },
+  ],
+  [
+    'pg/date',
+    storedTextType(
+      'pg/date',
+      postgresDateTime(
+        {
+          shape: 'date',
+          typeId: 'pg/date',
+          range: { earliest: '-004713-11-24', latest: '+275760-09-13' },
+        },
+        true,
+      ),
+      'a date, as in "2024-01-01", or infinity or -infinity',
+      SECONDS_FRACTION,
+    ),
+  ],
+  [
+    'pg/time',
+    {
+      params: PRECISION_PARAMS,
+      ...storedTextType(
+        'pg/time',
+        postgresDateTime({ shape: 'time', typeId: 'pg/time' }, false),
+        'a time of day, as in "12:34:56"',
+        SECONDS_FRACTION,
+      ),
+    },
+  ],
+  [
+    'pg/timestamp',
+    {
+      params: PRECISION_PARAMS,
+      ...storedTextType(
+        'pg/timestamp',
+        postgresDateTime(
+          {
+            shape: 'dateTime',
+            typeId: 'pg/timestamp',
+            range: { earliest: '-004713-11-24T00:00:00', latest: '+275760-09-13T23:59:59.999999' },
+          },
+          true,
+        ),
+        'a date and time of day, as in "2024-01-01T12:34:56", or infinity or -infinity',
+        SECONDS_FRACTION,
+      ),
+    },
+  ],
+  [
+    'pg/timestamptz',
+    {
+      params: PRECISION_PARAMS,
+      ...storedTextType(
+        'pg/timestamptz',
+        postgresDateTime(
+          {
+            shape: 'instant',
+            typeId: 'pg/timestamptz',
+            range: { earliest: '-004713-11-24T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
+          },
+          true,
+        ),
+        'an instant in UTC, as in "2024-01-01T00:00:00Z", or infinity or -infinity',
+        SECONDS_FRACTION,
+      ),
+    },
+  ],
+]);
 
 function resolvedTypeParams(column: JsonRecord, namedTypes: Json | undefined): Json | undefined {
   const typeRef = column['typeRef'];
@@ -467,62 +1563,40 @@ function resolvedTypeParams(column: JsonRecord, namedTypes: Json | undefined): J
   return isRecord(typeParams) && Object.keys(typeParams).length > 0 ? typeParams : undefined;
 }
 
-/** The data types of the project's `@prisma/orm-postgres`, loaded from where `path` can load it, or undefined when it cannot. */
-function loadDefaultSpeller(path: string): DefaultSpeller | undefined {
-  const load = (specifier: string): unknown => {
-    try {
-      return createRequire(path)(specifier);
-    } catch {
-      return undefined;
-    }
-  };
-  const lookup = methodOf(
-    load('@prisma/orm-postgres/target/data-types'),
-    'createPostgresBuiltinDataTypeLookup',
-  )?.();
-  const dataTypeOf = methodOf(lookup, 'get');
-  if (dataTypeOf === undefined) return undefined;
-  const dataTypeParams = methodOf(load('@prisma/orm-postgres/components/codec'), 'dataTypeParams');
-  const validateParams = methodOf(
-    load('@prisma/orm-postgres/family-contract/data-type'),
-    'validateSqlTypeParams',
-  );
-  return (value, column, namedTypes) => {
-    const type = dataTypeOf(column['dataType']);
-    const fromContract = methodOf(type, 'fromContract');
-    const valueFrom = methodOf(type, 'valueFrom');
-    const toContract = methodOf(type, 'toContract');
-    if (fromContract === undefined || valueFrom === undefined || toContract === undefined)
-      return { kind: 'kept' };
-    const typeParams = resolvedTypeParams(column, namedTypes);
-    const params =
-      dataTypeParams === undefined ? (typeParams ?? {}) : dataTypeParams(type, typeParams);
-    try {
-      validateParams?.(type, params);
-    } catch {
-      return { kind: 'kept' };
-    }
-    try {
-      fromContract(value, params);
-      return { kind: 'kept' };
-    } catch {
-      try {
-        const respelled = toContract(valueFrom(value, params));
-        return isJson(respelled)
-          ? { kind: 'respelled', value: respelled }
-          : { kind: 'unreadable', reason: 'its data type gave no JSON value' };
-      } catch (error) {
-        return { kind: 'unreadable', reason: errorMessage(error) };
-      }
-    }
-  };
+/** The parameters of the column that its data type declares, or undefined when the type refuses them. */
+function declaredParams(type: PostgresDataType, typeParams: Json | undefined): Params | undefined {
+  const params: Record<string, Json> = {};
+  for (const [name, accepts] of Object.entries(type.params ?? {})) {
+    const value = isRecord(typeParams) ? typeParams[name] : undefined;
+    if (!accepts(value)) return undefined;
+    if (value !== undefined) params[name] = value;
+  }
+  if (params['scale'] !== undefined && params['precision'] === undefined) return undefined;
+  return params;
 }
 
-function hasLiteralDefault(contract: JsonRecord): boolean {
-  return columnsOf(contract).some(({ column }) => {
-    const columnDefault = column['default'];
-    return isRecord(columnDefault) && columnDefault['kind'] === 'literal';
-  });
+/** A literal default in the contract form this release stores, by the column's data type and parameters. A data type this release does not register, or parameters it refuses, leave the default unchanged. */
+function contractFormOfDefault(
+  value: Json,
+  column: JsonRecord,
+  namedTypes: Json | undefined,
+): DefaultForm {
+  const dataType = column['dataType'];
+  const type = typeof dataType === 'string' ? POSTGRES_DATA_TYPES.get(dataType) : undefined;
+  if (type === undefined) return { kind: 'unchanged' };
+  const params = declaredParams(type, resolvedTypeParams(column, namedTypes));
+  if (params === undefined) return { kind: 'unchanged' };
+  let stored: Json;
+  try {
+    const read = type.read(value, params);
+    stored = type.spell === undefined ? read : type.spell(read, params);
+  } catch (error) {
+    if (error instanceof NotAValue) return { kind: 'notAValue', reason: error.message };
+    throw error;
+  }
+  return canonicalizeJson(stored) === canonicalizeJson(value)
+    ? { kind: 'unchanged' }
+    : { kind: 'rewritten', value: stored };
 }
 
 interface ColumnEntry {
@@ -549,13 +1623,13 @@ function columnsOf(contract: JsonRecord): ColumnEntry[] {
   );
 }
 
-/** Mutates `copy`: each literal default the speller spells otherwise, element by element on a list column. */
-function respellDefaults(
-  copy: JsonRecord,
-  speller: DefaultSpeller,
-): { readonly defaults: Map<string, Respelling[]>; readonly unreadable: string[] } {
-  const defaults = new Map<string, Respelling[]>();
-  const unreadable: string[] = [];
+/** Mutates `copy`: each literal default in the contract form this release stores, element by element on a list column. */
+function rewriteDefaults(copy: JsonRecord): {
+  readonly defaults: Map<string, DefaultRewrite[]>;
+  readonly notValues: string[];
+} {
+  const defaults = new Map<string, DefaultRewrite[]>();
+  const notValues: string[] = [];
   const storage = copy['storage'];
   const namedTypes = isRecord(storage) ? storage['types'] : undefined;
   for (const { namespaceId, tableName, columnName, column } of columnsOf(copy)) {
@@ -565,26 +1639,26 @@ function respellDefaults(
     if (value === undefined || value === null) continue;
     const listed = isRecord(column['many']) && Array.isArray(value);
     const values = listed && Array.isArray(value) ? value : [value];
-    const respellings: Respelling[] = [];
-    const spelled = values.map((element) => {
+    const rewrites: DefaultRewrite[] = [];
+    const rewritten = values.map((element) => {
       if (element === null) return element;
-      const spelling = speller(element, column, namedTypes);
-      if (spelling.kind === 'unreadable') {
-        unreadable.push(
-          `namespace ${namespaceId}, table ${tableName}, column ${columnName}: the default ${JSON.stringify(element)} is not a value of ${String(column['dataType'])} (${spelling.reason}); write the value the database stores by hand`,
+      const form = contractFormOfDefault(element, column, namedTypes);
+      if (form.kind === 'notAValue') {
+        notValues.push(
+          `namespace ${namespaceId}, table ${tableName}, column ${columnName}: the default ${JSON.stringify(element)} is not a value of ${String(column['dataType'])} (${form.reason}); write the value the database stores by hand`,
         );
         return element;
       }
-      if (spelling.kind === 'kept') return element;
-      if (typeof element === 'string' && typeof spelling.value === 'string')
-        respellings.push({ from: element, to: spelling.value });
-      return spelling.value;
+      if (form.kind === 'unchanged') return element;
+      if (typeof element === 'string' && typeof form.value === 'string')
+        rewrites.push({ from: element, to: form.value });
+      return form.value;
     });
-    if (spelled.every((element, index) => element === values[index])) continue;
-    columnDefault['value'] = listed ? spelled : (spelled[0] ?? null);
-    defaults.set(listKey(namespaceId, tableName, columnName), respellings);
+    if (rewritten.every((element, index) => element === values[index])) continue;
+    columnDefault['value'] = listed ? rewritten : (rewritten[0] ?? null);
+    defaults.set(listKey(namespaceId, tableName, columnName), rewrites);
   }
-  return { defaults, unreadable };
+  return { defaults, notValues };
 }
 
 function allowNullElements(holder: JsonRecord): void {
@@ -621,8 +1695,8 @@ function fieldsMappingColumns(copy: JsonRecord, columns: ReadonlySet<string>): S
   return fields;
 }
 
-/** The contract with the key removed from each column, the lists whose element check it waived made element-nullable, and each default spelled as this release stores it. */
-function rewriteContract(contract: JsonRecord, speller: DefaultSpeller | undefined): Rewrite {
+/** The contract with the key removed from each column, the lists whose element check it waived made element-nullable, and each default in the contract form this release stores. */
+function rewriteContract(contract: JsonRecord): Rewrite {
   const copy = parseJson(JSON.stringify(contract));
   if (!isRecord(copy))
     return {
@@ -631,7 +1705,7 @@ function rewriteContract(contract: JsonRecord, speller: DefaultSpeller | undefin
       columns: new Set(),
       fields: new Set(),
       defaults: new Map(),
-      unreadable: [],
+      notValues: [],
     };
   let changed = false;
   const columns = new Set<string>();
@@ -656,17 +1730,17 @@ function rewriteContract(contract: JsonRecord, speller: DefaultSpeller | undefin
       }
     }
   }
-  const { defaults, unreadable } =
-    speller === undefined
-      ? { defaults: new Map(), unreadable: [] }
-      : respellDefaults(copy, speller);
+  const { defaults, notValues } =
+    contract['target'] === 'postgres'
+      ? rewriteDefaults(copy)
+      : { defaults: new Map<string, DefaultRewrite[]>(), notValues: [] };
   return {
     contract: copy,
     changed: changed || defaults.size > 0,
     columns,
     fields: fieldsMappingColumns(copy, columns),
     defaults,
-    unreadable,
+    notValues,
   };
 }
 
@@ -808,7 +1882,7 @@ function rewriteDts(
   text: string,
   columns: ReadonlySet<string>,
   fields: ReadonlySet<string>,
-  defaults: ReadonlyMap<string, readonly Respelling[]>,
+  defaults: ReadonlyMap<string, readonly DefaultRewrite[]>,
   hashes: ReadonlyMap<string, string>,
 ): string {
   const blocks = scanBlocks(text);
@@ -817,12 +1891,12 @@ function rewriteDts(
     const holder = innermostBlock(blocks, match.index);
     const column = holder?.label === 'default' ? holder.parent : undefined;
     const key = column === undefined ? undefined : columnBlockKey(column);
-    const respellings = key === undefined ? undefined : defaults.get(key);
+    const rewrites = key === undefined ? undefined : defaults.get(key);
     const end = typeArgumentEnd(text, match.index + match[0].length);
-    if (respellings === undefined || end === -1) continue;
+    if (rewrites === undefined || end === -1) continue;
     const start = match.index + match[0].length;
     let literal = text.slice(start, end);
-    for (const { from, to } of respellings)
+    for (const { from, to } of rewrites)
       for (const quote of ["'", '"'])
         literal = literal.replaceAll(quoted(from, quote), quoted(to, quote));
     edits.push({ start, end, text: literal });
@@ -876,7 +1950,7 @@ interface ContractPlan {
   readonly content: string;
   readonly columns: ReadonlySet<string>;
   readonly fields: ReadonlySet<string>;
-  readonly defaults: ReadonlyMap<string, readonly Respelling[]>;
+  readonly defaults: ReadonlyMap<string, readonly DefaultRewrite[]>;
 }
 
 function summary(
@@ -888,7 +1962,7 @@ function summary(
 ): readonly string[] {
   if (contractsFound === 0) return [`No SQL contract was found under ${root}; nothing changed.`];
   if (files === 0 && directories === 0)
-    return ['No contract stores a noCheck key or a default in another spelling; nothing changed.'];
+    return ['No contract stores a noCheck key or a default in another form; nothing changed.'];
   const renamed = count(directories, 'snapshot directory', 'snapshot directories');
   const changes = `Rewrote ${count(files, 'file', 'files')} and renamed ${renamed}.`;
   if (hashes.size === 0) return [changes];
@@ -926,7 +2000,6 @@ function main({
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
   const plans: ContractPlan[] = [];
-  const notices: string[] = [];
   const stops: string[] = [];
   let contractsFound = 0;
 
@@ -948,17 +2021,9 @@ function main({
     )
       continue;
     contractsFound++;
-    const speller =
-      contract['target'] === 'postgres' && hasLiteralDefault(contract)
-        ? loadDefaultSpeller(path)
-        : undefined;
-    if (speller === undefined && contract['target'] === 'postgres' && hasLiteralDefault(contract))
-      notices.push(
-        `${display(path)}: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked; install the upgraded packages and run the script again`,
-      );
-    const rewrite = rewriteContract(contract, speller);
-    for (const problem of rewrite.unreadable) stops.push(`${display(path)}: ${problem}`);
-    if (!rewrite.changed || rewrite.unreadable.length > 0) continue;
+    const rewrite = rewriteContract(contract);
+    for (const problem of rewrite.notValues) stops.push(`${display(path)}: ${problem}`);
+    if (!rewrite.changed || rewrite.notValues.length > 0) continue;
     const snapshot = isSnapshotContract(path);
     const stored = contract['storage']['storageHash'];
     const oldHash = snapshot ? basename(dirname(path)) : typeof stored === 'string' ? stored : '';
@@ -1099,10 +2164,7 @@ function main({
     return 1;
   }
   const rewrittenFiles = snapshotRewrites.length + referenceWrites.size + contractWrites.size;
-  const lines = [
-    ...notices,
-    ...summary(root, contractsFound, rewrittenFiles, removals.size, hashes),
-  ];
+  const lines = [...summary(root, contractsFound, rewrittenFiles, removals.size, hashes)];
   process.stdout.write(`${lines.join('\n')}\n`);
   return 0;
 }

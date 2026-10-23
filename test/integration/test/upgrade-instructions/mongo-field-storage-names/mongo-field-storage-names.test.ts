@@ -16,6 +16,8 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 const SCRIPT_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/mongo-field-storage-names/mongo-field-storage-names.ts',
+  extension:
+    'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.18-to-8.0.0-rc.19/scripts/mongo-field-storage-names/mongo-field-storage-names.ts',
 } as const;
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -232,5 +234,11 @@ describe('the arguments', () => {
         stderr: `${missing}: not a directory\nUsage: node mongo-field-storage-names.ts [project-root]\n`,
       },
     ]);
+  });
+
+  it('ships the same script for extensions', () => {
+    expect(readFileSync(join(repoRoot, SCRIPT_PATHS.extension), 'utf8')).toBe(
+      readFileSync(script, 'utf8'),
+    );
   });
 });

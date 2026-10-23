@@ -4,7 +4,7 @@ to: "8.0.0-rc.19"
 changes:
   - id: stored-contracts-drop-nocheck
     summary: |
-      A stored SQL contract that has a `noCheck` key on a column no longer loads. Before any other step of this change, run `scripts/remove-nocheck/remove-nocheck.ts` from the project root, then run `prisma db sign` against every database. The script removes the key from every stored contract, migration snapshots and the emitted `contract.json` included. A list whose element check was waived becomes a list whose elements may be null, which is what the database allows. The script also writes each PostgreSQL default in the spelling this release stores (`postgres-defaults-stored-in-another-spelling`), so run it after upgrading the packages. It refreshes every hash and reference that changes.
+      A stored SQL contract that has a `noCheck` key on a column no longer loads. Before any other step of this change, run `scripts/remove-nocheck/remove-nocheck.ts` from the project root, then run `prisma db sign` against every database. Sign a database that has not applied every migration with `prisma db sign --contract <the last migration it applied>`, and migrate it once each `ops.json` is written again. The script removes the key from every stored contract, migration snapshots and the emitted `contract.json` included. A list whose element check was waived becomes a list whose elements may be null, which is what the database allows. The script also writes each PostgreSQL default in the form this release stores (`postgres-defaults-stored-in-another-spelling`). It refreshes every hash and reference that changes.
     detection:
       glob: "**/*.json"
       matches:
@@ -59,7 +59,7 @@ changes:
         - '^\s*// *use +(?:prisma-8|prisma-next) *(?!\S)[\s\S]*\bBytes\??[^\n]*@default\(\s*"'
   - id: postgres-defaults-stored-in-another-spelling
     summary: |
-      The CLI refuses a PostgreSQL contract that an earlier release emitted when it stores a default in another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`, or a date or time default written as earlier releases stored it. Migration snapshots store such defaults too, and the CLI refuses to plan from them. Run `scripts/remove-nocheck/remove-nocheck.ts` after upgrading the packages (`stored-contracts-drop-nocheck`): it writes each stored default in the new spelling, migration snapshots included, and refreshes every hash that changes. Then run `prisma contract emit`, then `prisma db sign`.
+      The CLI refuses a PostgreSQL contract that an earlier release emitted when it stores a default in another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`, or a date or time default written as earlier releases stored it. Migration snapshots store such defaults too, and the CLI refuses to plan from them. Run `scripts/remove-nocheck/remove-nocheck.ts` (`stored-contracts-drop-nocheck`): it writes each stored default in the new form, migration snapshots included, and refreshes every hash that changes. Then run `prisma contract emit`, then `prisma db sign`.
     script: ./scripts/remove-nocheck/remove-nocheck.ts
   - id: prisma7-datetime-default-finer-than-column
     summary: |
@@ -85,7 +85,7 @@ changes:
       `min` and `max` of a `pg/text-array@1` column return an array of strings, as a row of the column does, instead of the array's text (`{a,b}`).
   - id: sign-databases-after-data-type-values
     summary: |
-      The upgrade changes the storage hash of every SQLite contract with a datetime or JSON column, and of every PostgreSQL contract you emit again. Run `prisma db sign` against every database before deploying the application built with the new contract.
+      The upgrade changes the storage hash of every SQLite contract with a datetime or JSON column, and of every PostgreSQL contract you emit again. Run `prisma db sign` against every database before deploying the application built with the new contract. Sign a database that has not applied every migration with `prisma db sign --contract <the last migration it applied>`.
   - id: client-functions-move-from-default-to-on-create
     summary: |
       `@default` now sets a database default only. `@default(uuid())`, `@default(cuid(2))`, `@default(ulid())` and `@default(nanoid())`, with any arguments, are refused with `PSL_GENERATOR_IN_DEFAULT`. Write `@onCreate(uuid())` and so on instead. Run `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` with every `.prisma` file of the project as arguments, including the schema copies in migration directories; it rewrites the Prisma 8 ones and leaves the others unchanged. The contract does not change, so there is nothing to re-emit, sign or migrate. The detection matches Prisma 8 schema files, those with the `// use prisma-8` directive, that write one of these functions in `@default`.
@@ -591,7 +591,7 @@ Several changes in this release rewrite stored contracts and change storage hash
 
 1. Commit your work, so every script's changes can be reviewed and undone with git. Then upgrade the Prisma packages.
 2. Rewrite the stored contracts, from the project root: first `scripts/remove-nocheck/remove-nocheck.ts` (`stored-contracts-drop-nocheck`), then `scripts/data-type-values/data-type-values.ts` (`sqlite-contracts-name-datetime-and-json-data-types`). Each script leaves a project it does not apply to unchanged and says so.
-3. If either script changed a storage hash, run `prisma db sign` against every database.
+3. If either script changed a storage hash, run `prisma db sign` against every database. Sign a database that has not applied every migration with `--contract <the last migration it applied>`, as `stored-contracts-drop-nocheck` describes, and migrate it in step 8.
 4. Change the contract source as the entries below say. `scripts/default-generators-to-on-create/rewrite-default-generators.mjs` rewrites `@default(uuid())` and the other client generators in Prisma 8 schema files (`client-functions-move-from-default-to-on-create`).
 5. Run `prisma contract emit`. In a MongoDB project, then run `scripts/mongo-field-storage-names/mongo-field-storage-names.ts` (`mongo-contracts-record-stored-field-names`).
 6. Change the application code and every `migration.ts`. `scripts/client-takes-contract-value/contract-from-json.ts` moves each client to a contract value (`client-takes-contract-value`); a `migration.ts` that builds a client from `contractJson` fails to load on this release until it is moved. In `migration.ts`, also delete `operationClass` from `setDefault` (`setdefault-operation-class-derived`) and rewrite an `alterColumnType` that `postgres-alter-column-type-unchanged-refused` refuses.
@@ -618,11 +618,11 @@ node <guide>/scripts/remove-nocheck/remove-nocheck.ts
 
 In each contract it removes the `noCheck` key from every column. Where the key waived the element check of a list, it also makes the column, the field that maps it and their types in `contract.d.ts`, the row types such as `ReadonlyArray<CodecTypes['pg/text@1']['output'] | null>` included, lists whose elements may be null. That is what the database allows, and it is what the source says after `psl-nocheck-removed` or `ts-nocheck-method-removed`. The script does not change which checks a contract declares: an enum column whose membership check was waived still has none until you migrate.
 
-In each PostgreSQL contract it also writes each literal default in the spelling this release stores, for example `"1.5"` on `numeric(10,2)` as `"1.50"` (`postgres-defaults-stored-in-another-spelling`). It reads the defaults with the data types of the project's installed `@prisma/orm-postgres`, loaded from the directory of each contract, so upgrade the packages before you run it. For a contract from which that package cannot be loaded, it prints `<file>: @prisma/orm-postgres cannot be loaded from here, so its defaults were not checked` and leaves its defaults as they are.
+In each PostgreSQL contract it also writes each literal default in the form this release stores, for example `"1.5"` on `numeric(10,2)` as `"1.50"` (`postgres-defaults-stored-in-another-spelling`). The script carries this release's rules for each PostgreSQL built-in data type, so its result does not depend on the installed packages. It leaves a default of any other data type, such as an extension's, as it is.
 
-The storage hash changes, so the script renames each changed snapshot directory to its new hash. It rewrites every `migration.json`, ref, `migration.ts` and `contract.d.ts` that names an old hash, and gives each changed migration a new `migrationHash`. When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A project with no `noCheck` key and no default in another spelling is left unchanged, and the script says so.
+The storage hash changes, so the script renames each changed snapshot directory to its new hash. It rewrites every `migration.json`, ref, `migration.ts` and `contract.d.ts` that names an old hash, and gives each changed migration a new `migrationHash`. When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A project with no `noCheck` key and no default in another form is left unchanged, and the script says so.
 
-It changes no file and exits 1 in three cases, and names the file:
+It changes no file and exits 1 in four cases, and names the file:
 
 - a `contract.json`, `migration.json` or ref is not valid JSON, or the `ops.json` of a migration whose hashes change is not;
 - a contract's stored storage hash, or the name of its snapshot directory, does not match its content. Restore that file from version control, or re-emit it, and run the script again;
@@ -638,6 +638,16 @@ prisma db sign --db "$DATABASE_URL"
 ```
 
 `db sign` checks the database against the rewritten contract and writes the new hash to its marker.
+
+A plain `prisma db sign` checks the database against the emitted contract, so it signs only a database that has applied every migration. A database that has not, such as production while the latest migrations wait for review, is refused: `db sign` says its schema does not satisfy the contract, and `prisma db migrate` stops with `MIGRATION.MARKER_MISMATCH`, because the marker holds an old hash that no migration names any more. Sign such a database with the contract of the last migration it applied:
+
+```sh
+prisma db sign --contract <the last migration it applied> --db "$DATABASE_URL"
+```
+
+Then apply the other migrations with `prisma db migrate` in step 8 of "Order of the steps", after step 7 has written their `ops.json` again.
+
+`--contract` takes the migration's directory name, such as `20260917T0818_add_post_expires_at`, or the new hash that migration goes to. To find it, run `prisma migration status` against the database. It prints the start of the old hash the marker holds: `Database marker <hash> is not in the on-disk migration graph`. The error of `prisma db migrate` prints the whole hash: `DB marker is <hash>`. Find the line of the script's `<old> -> <new>` list whose old hash is that one. The new hash on that line is the one to sign with, and the migration that goes to it is the last one the database applied.
 
 The script also gives each rewritten migration a new hash, and the database's migration history keeps the old ones. After the upgrade, `prisma migration status` therefore no longer marks the migrations applied before it as applied, although it still reports the database as up to date. Nothing else is affected: `prisma db migrate` runs none of them again, `prisma db verify` passes, and migrations you plan and apply after the upgrade are marked as usual.
 
@@ -794,7 +804,7 @@ The cases are:
 - a time default with more fraction digits than its column's precision;
 - a date or time default in a spelling earlier releases stored: an instant with `.000Z` (`"2024-01-01T00:00:00.000Z"` is now `"2024-01-01T00:00:00Z"`), an offset such as `+01:00` on a `timestamptz` (now converted to `Z`), a time without seconds (`"12:34"` is now `"12:34:00"`), or a space instead of `T` between date and time.
 
-Migration snapshots store defaults too. `migration plan`, `migration check` and every other command that reads a snapshot refuse an old one the same way, and name it (`Predecessor contract at migrations/snapshots/<hash>/contract.json failed to deserialize: ...`). A snapshot cannot be emitted again, so `scripts/remove-nocheck/remove-nocheck.ts` rewrites it (`stored-contracts-drop-nocheck`). Run it after you upgrade the packages, because it reads each default with the data types of the project's installed `@prisma/orm-postgres`. It writes each default of every stored PostgreSQL contract in the spelling this release stores, renames each changed snapshot directory to its new storage hash, and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old hash. A snapshot rewritten this way has the storage hash `contract emit` gives the same schema, so `migration plan` plans nothing for this change. If a default is not a value of its column's type at all, for example a time with more fraction digits than its column holds, the script changes no file, names the file and column, and exits 1: write in that file the value the database stores, and run it again.
+Migration snapshots store defaults too. `migration plan`, `migration check` and every other command that reads a snapshot refuse an old one the same way, and name it (`Predecessor contract at migrations/snapshots/<hash>/contract.json failed to deserialize: ...`). A snapshot cannot be emitted again, so `scripts/remove-nocheck/remove-nocheck.ts` rewrites it (`stored-contracts-drop-nocheck`). It writes each default of every stored PostgreSQL contract in the form this release stores, renames each changed snapshot directory to its new storage hash, and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old hash. A snapshot rewritten this way has the storage hash `contract emit` gives the same schema, so `migration plan` plans nothing for this change. If a default is not a value of its column's type at all, for example a time with more fraction digits than its column holds, the script changes no file, names the file and column, and exits 1: write in that file the value the database stores, and run it again.
 
 Then run `prisma contract emit`, which writes the default in the new spelling, then `prisma db sign` (`sign-databases-after-data-type-values`). Two kinds of default in the schema need rewriting first, or `contract emit` refuses them:
 
@@ -867,6 +877,8 @@ The upgrade gives every SQLite contract with a datetime or JSON column a new sto
 prisma contract emit
 prisma db sign --db "$DATABASE_URL"
 ```
+
+A database that has not applied every migration is refused by a plain `prisma db sign`. Sign it with `prisma db sign --contract <the last migration it applied>`, then migrate it, as `stored-contracts-drop-nocheck` describes. `data-type-values.ts` prints its `<old> -> <new>` list in the same form.
 
 ## Client generators are written `@onCreate(...)` and `@onUpdate(...)`
 
