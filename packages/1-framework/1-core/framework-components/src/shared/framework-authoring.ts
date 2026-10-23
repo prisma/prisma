@@ -1908,7 +1908,7 @@ export function validateAuthoringTypeChoiceParams(
     argumentIndex < 0
       ? `The type parameters of ${helperPath} are invalid: ${issue.message}`
       : `Argument "${name}" of ${helperPath} is invalid: ${issue.message}`,
-    { helperPath, ...(argumentIndex < 0 ? {} : { argumentIndex }) },
+    { helperPath, ...ifDefined('argumentIndex', argumentIndex < 0 ? undefined : argumentIndex) },
   );
 }
 

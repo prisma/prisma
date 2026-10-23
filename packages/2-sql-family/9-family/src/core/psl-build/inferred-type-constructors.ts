@@ -24,6 +24,7 @@ import {
   type SqlTypeParams,
 } from '@internal/sql-contract/data-type';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { isInternalError } from '@internal/utils/internal-error';
 import { writeDataTypeValue } from './default-mapping';
 
@@ -151,15 +152,17 @@ export function writtenTypeChoiceCall(input: {
   readonly authoringTypes: AuthoringTypeNamespace;
   readonly call: AuthoringTypeConstructorCall;
   readonly dataTypes: DataTypeSupport;
-  readonly sameOutput?: (
-    produced: AuthoringTypeConstructorOutput,
-    wanted: AuthoringTypeConstructorOutput,
-  ) => boolean;
+  readonly sameOutput:
+    | ((
+        produced: AuthoringTypeConstructorOutput,
+        wanted: AuthoringTypeConstructorOutput,
+      ) => boolean)
+    | undefined;
 }): WrittenTypeChoiceCall | undefined {
   const found = findAuthoringTypeChoiceCall({
     namespace: input.authoringTypes,
     call: input.call,
-    ...(input.sameOutput === undefined ? {} : { sameOutput: input.sameOutput }),
+    ...ifDefined('sameOutput', input.sameOutput),
   });
   const choice = found && getAuthoringTypeChoice({ type: input.authoringTypes }, found.path);
   if (found === undefined || choice === undefined) return undefined;

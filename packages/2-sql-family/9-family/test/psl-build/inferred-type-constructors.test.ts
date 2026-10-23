@@ -226,7 +226,12 @@ const catalog = (text: string): ReportedSqlType => ({
 
 describe('writtenTypeChoiceCall', () => {
   const write = (path: readonly string[], args: readonly unknown[]) =>
-    writtenTypeChoiceCall({ authoringTypes, call: { path, args }, dataTypes });
+    writtenTypeChoiceCall({
+      authoringTypes,
+      call: { path, args },
+      dataTypes,
+      sameOutput: undefined,
+    });
 
   it('writes the type choice call that becomes the constructor call, each argument by name', () => {
     expect([

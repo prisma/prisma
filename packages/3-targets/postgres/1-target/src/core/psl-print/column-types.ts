@@ -148,6 +148,7 @@ export function buildColumnType(input: {
       authoringTypes,
       call,
       dataTypes: input.dataTypes,
+      sameOutput: undefined,
     });
     return convenience !== undefined
       ? typeCall(convenience.path, convenience.args)
