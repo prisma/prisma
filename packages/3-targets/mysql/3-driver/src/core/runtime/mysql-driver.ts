@@ -15,6 +15,7 @@ import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from
 import { mysqlConnectionOptions, mysqlPoolSettings } from '../connection-options';
 import { connectionLost, isFatal, normalizeMysqlError, statementError } from '../normalize-error';
 import { positionalParams } from '../positional-params';
+import { assertPreparedCount } from '../prepared-count';
 import { SESSION_SETUP } from '../session-setup';
 
 /** Where the runtime driver connects: a `mysql://` URL. */
@@ -28,9 +29,29 @@ function notConnected(message: string) {
   });
 }
 
+/** Prepares `sql`, which mysql2 caches for the `execute()` that follows, and checks MySQL's placeholder count against the values. */
+function prepareChecked(
+  connection: PoolConnection,
+  sql: string,
+  values: readonly unknown[],
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    connection.prepare(sql, (error, statement) => {
+      if (error) return reject(statementError(error, sql));
+      try {
+        assertPreparedCount(statement, values.length);
+        resolve();
+      } catch (mismatch) {
+        reject(mismatch);
+      }
+    });
+  });
+}
+
 /** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
-function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
+async function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
+  await prepareChecked(connection, sql, values);
   return new Promise((resolve, reject) => {
     connection.execute({ sql, values }, (error, result) =>
       error ? reject(statementError(error, sql)) : resolve(result),
@@ -99,6 +120,7 @@ async function* streamRows<Row>(
   { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
+  await prepareChecked(connection, sql, values);
   const command = connection.execute({ sql, values });
   let settle: () => void = () => {};
   const finished = new Promise<void>((resolve) => {

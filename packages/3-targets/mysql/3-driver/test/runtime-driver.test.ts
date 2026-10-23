@@ -12,6 +12,10 @@ class FakeConnection extends EventEmitter {
     return new EventEmitter();
   }
 
+  prepare(_sql: unknown, callback: (error: unknown, statement: unknown) => void) {
+    queueMicrotask(() => callback(null, { parameters: [] }));
+  }
+
   execute(_options: unknown) {
     const command = new EventEmitter();
     return Object.assign(command, {

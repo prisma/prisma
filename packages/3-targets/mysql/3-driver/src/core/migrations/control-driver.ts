@@ -11,6 +11,7 @@ import { mysqlConnectionOptions, mysqlPoolSettings } from '../connection-options
 import { mysqlDriverDescriptorMeta } from '../descriptor-meta';
 import { connectionLost, isFatal, normalizeMysqlError, statementError } from '../normalize-error';
 import { positionalParams } from '../positional-params';
+import { assertPreparedCount } from '../prepared-count';
 import { serverText } from '../server-text';
 import { SESSION_SETUP } from '../session-setup';
 
@@ -39,7 +40,7 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
       const [result] =
         statement.values.length === 0
           ? await this.connection.query({ sql: statement.sql, typeCast: serverText })
-          : await this.connection.execute(statement);
+          : await this.#executeChecked(statement.sql, statement.values);
       return {
         rows: Array.isArray(result)
           ? blindCast<Row[], 'mysql2 returns the rows a SELECT produces, shaped by the query'>(
@@ -54,6 +55,11 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
       }
       throw statementError(error, sql);
     }
+  }
+
+  async #executeChecked(sql: string, values: unknown[]) {
+    assertPreparedCount(await this.connection.prepare(sql), values.length);
+    return this.connection.execute({ sql, values });
   }
 
   async databaseName(): Promise<string | undefined> {

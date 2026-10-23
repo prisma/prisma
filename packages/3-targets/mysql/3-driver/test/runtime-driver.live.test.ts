@@ -225,6 +225,28 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('refuses a statement whose placeholder count MySQL reads differently from the values, before running it', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        const connection = await driver.acquireConnection();
+        try {
+          await connection.execute({ sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'" });
+          await expect(
+            collect(connection.query({ sql: "SELECT 'x\\' AS a, ? AS b" })),
+          ).rejects.toMatchObject({
+            code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
+            meta: expect.objectContaining({ prepared: 1, params: 0 }),
+          });
+          await expect(
+            connection.execute({ sql: "SELECT 'x\\' AS a, ? AS b" }),
+          ).rejects.toMatchObject({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' });
+        } finally {
+          await connection.destroy();
+        }
+      }),
+    );
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
