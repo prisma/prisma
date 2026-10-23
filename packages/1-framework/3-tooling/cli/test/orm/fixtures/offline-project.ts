@@ -329,10 +329,27 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
 
 const SQL_POSTGRES = { familyId: 'sql', targetId: 'postgres', version: '1.0.0' };
 
+/** Storage hydrated into a class instance, as a real family's `deserializeContract` returns it. */
+class HydratedFixtureStorage {
+  constructor(json: object) {
+    Object.assign(this, json);
+  }
+}
+
+function deserializeIntoStorageInstance(json: unknown): unknown {
+  if (json === null || typeof json !== 'object' || !('storage' in json)) return json;
+  const { storage } = json;
+  return storage === null || typeof storage !== 'object'
+    ? json
+    : { ...json, storage: new HydratedFixtureStorage(storage) };
+}
+
 export function offlineConfig(options: {
   readonly project: OfflineProject;
   readonly script?: FakePlannerScript;
   readonly targetSupportsMigrations?: boolean;
+  /** Hydrate storage into a class instance, as real families do, instead of returning the JSON. */
+  readonly storageAsClassInstance?: boolean;
 }): Record<string, unknown> {
   const migrations = {
     contractToSchema: () => ({}),
@@ -344,7 +361,11 @@ export function offlineConfig(options: {
       kind: 'family',
       id: 'sql',
       emission: {},
-      create: () => ({ deserializeContract: (json: unknown) => json }),
+      create: () => ({
+        deserializeContract: options.storageAsClassInstance
+          ? deserializeIntoStorageInstance
+          : (json: unknown) => json,
+      }),
     },
     target: {
       ...SQL_POSTGRES,

@@ -16,11 +16,7 @@ import {
   type ResolvedMigrationStatement,
   type SchemaOwnership,
 } from '@internal/framework-components/control';
-import {
-  changedElementCoordinates,
-  isPlainRecord,
-  UNBOUND_NAMESPACE_ID,
-} from '@internal/framework-components/ir';
+import { changedElementCoordinates, UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   snapshotsImportPathFrom,
   writeContractSnapshot,
@@ -1141,7 +1137,7 @@ function withNoOperationsReport(
 /** The top-level storage keys whose content differs between two contracts, such as `storage.types`, in key order. */
 function changedStorageKeys(fromContract: Contract | null, toContract: Contract): string[] {
   const plain = (storage: unknown): Record<string, unknown> =>
-    isPlainRecord(storage) ? JSON.parse(JSON.stringify(storage)) : {};
+    typeof storage === 'object' && storage !== null ? JSON.parse(JSON.stringify(storage)) : {};
   const from = plain(fromContract?.storage);
   const to = plain(toContract.storage);
   return [...new Set([...Object.keys(from), ...Object.keys(to)])]

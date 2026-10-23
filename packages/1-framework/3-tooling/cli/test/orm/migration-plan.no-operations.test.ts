@@ -25,16 +25,20 @@ const HASH_OTHER = `dead${'2'.repeat(60)}`;
 beforeEach(resetRenderContractDtsMock);
 afterEach(removeOfflineProjects);
 
-function cli(project: OfflineProject) {
+function cli(project: OfflineProject, options: { readonly storageAsClassInstance?: boolean } = {}) {
   return createOrmTestCli({
     commands: OFFLINE_COMMANDS,
     groups: BIN_GROUPS,
-    orm: offlineConfig({ project, script: { operations: [] } }),
+    orm: offlineConfig({ project, script: { operations: [] }, ...options }),
   });
 }
 
-async function run(project: OfflineProject, args: readonly string[]) {
-  const result = await cli(project).run([...args, '--json'], { cwd: project.dir });
+async function run(
+  project: OfflineProject,
+  args: readonly string[],
+  options: { readonly storageAsClassInstance?: boolean } = {},
+) {
+  const result = await cli(project, options).run([...args, '--json'], { cwd: project.dir });
   const terminal = result.json.at(-1);
   return {
     exitCode: result.exitCode,
@@ -179,34 +183,42 @@ describe('migration plan when the planner produces no operations', () => {
       );
     });
 
-    it('names the storage keys that changed when no storage entity did', async () => {
-      const project = await createOfflineProject({
-        storageHash: HASH_TO,
-        storageNamespaces: STORAGE_FROM,
-        storageTypes: { Short: { codecId: 'sql/varchar@1' } },
-      });
-      await seedMigrationPackage({
-        appMigrationsDir: project.appMigrationsDir,
-        dirName: '20260101T0000_initial',
-        from: null,
-        to: HASH_FROM,
-      });
-      await seedContractSnapshot({
-        migrationsDir: project.migrationsDir,
-        storageHash: HASH_FROM,
-        storageNamespaces: STORAGE_FROM,
-      });
-      await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_FROM });
+    it.each([
+      { storage: 'plain JSON', storageAsClassInstance: false },
+      { storage: 'a class instance, as real families hydrate it', storageAsClassInstance: true },
+    ])(
+      'names the storage keys that changed when no storage entity did, with storage as $storage',
+      async ({ storageAsClassInstance }) => {
+        const project = await createOfflineProject({
+          storageHash: HASH_TO,
+          storageNamespaces: STORAGE_FROM,
+          storageTypes: { Short: { codecId: 'sql/varchar@1' } },
+        });
+        await seedMigrationPackage({
+          appMigrationsDir: project.appMigrationsDir,
+          dirName: '20260101T0000_initial',
+          from: null,
+          to: HASH_FROM,
+        });
+        await seedContractSnapshot({
+          migrationsDir: project.migrationsDir,
+          storageHash: HASH_FROM,
+          storageNamespaces: STORAGE_FROM,
+        });
+        await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_FROM });
 
-      expect(await run(project, ['migration', 'plan'])).toMatchObject({
-        exitCode: 0,
-        data: {
-          changedStorageEntities: [],
-          summary:
-            'Planned 0 operation(s). The storage the contract describes changed, but the database needs no operation for it, so the migration has none. No storage entity changed; what changed is storage.types.',
-        },
-      });
-    });
+        expect(await run(project, ['migration', 'plan'], { storageAsClassInstance })).toMatchObject(
+          {
+            exitCode: 0,
+            data: {
+              changedStorageEntities: [],
+              summary:
+                'Planned 0 operation(s). The storage the contract describes changed, but the database needs no operation for it, so the migration has none. No storage entity changed; what changed is storage.types.',
+            },
+          },
+        );
+      },
+    );
 
     it('says so in a warning, above the contract edge', async () => {
       const project = await projectWithHistory();
