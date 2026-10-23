@@ -285,12 +285,12 @@ describe('value objects', () => {
         nullable: false,
         type: { kind: 'union', members: [{ kind: 'scalar', codecId: 'pg/text@1' }] },
       }),
-    ).toThrow('value object member "street" is a union');
+    ).toThrow('value object "public:Address" member "street" is a union');
   });
 
   it('never reaches a value-object member that is a dictionary, which deserializing refuses', () => {
     expect(() => addressContract({ ...TEXT_FIELD, dict: true })).toThrow(
-      'value object member "street" is a dictionary',
+      'value object "public:Address" member "street" is a dictionary',
     );
   });
 

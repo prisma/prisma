@@ -178,7 +178,7 @@ function memberJsonType(
     'CONTRACT.CODEC_JSON_TYPE_MISSING',
     `The codec "${codecId}" of value object "${valueObject}" member "${member.name}" declares no jsonType, so the check of the value object cannot be derived.`,
     {
-      why: 'The check of a value object column requires each member to be of the JSON type its codec declares, and this codec was built against a release before codecs declared one.',
+      why: 'The check of a value object column requires each member to be of the JSON type its codec declares, and this codec declares none.',
       fix: `The author of the codec "${codecId}" adds a jsonType to its descriptor, the JSON type its value is written as inside a JSON document.`,
       meta: { codecId, valueObject, member: member.name, property: 'jsonType' },
     },
