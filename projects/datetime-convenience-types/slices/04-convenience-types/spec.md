@@ -8,23 +8,23 @@
 model Order {
   id        Int      @id
   paidAt    DateTime                                  // TimestamptzJsDate(3): timestamptz(3), a JavaScript Date
-  settledAt DateTime(value: temporal)                 // TimestamptzTemporal: timestamptz, Temporal.Instant
-  legacyAt  DateTime(column: timestamp)               // TimestampJsDate(3): timestamp(3), a Date stored as UTC
-  textAt    DateTime(value: string, precision: 6)     // TimestamptzString(6)
+  settledAt DateTime(as: temporal)                 // TimestamptzTemporal: timestamptz, Temporal.Instant
+  legacyAt  DateTime(storage: timestamp)               // TimestampJsDate(3): timestamp(3), a Date stored as UTC
+  textAt    DateTime(as: string, precision: 6)     // TimestamptzString(6)
   shipBy    Date                                      // DateString: date, "2024-02-29"
   opensAt   Time(precision: 0)                        // TimeString(0): time(0), "09:30:00"
-  localAt   Time(column: timetz)                      // Timetz: timetz, "09:30:00+02:00"
+  localAt   Time(storage: timetz)                      // Timetz: timetz, "09:30:00+02:00"
   period    Duration                                  // IntervalString: interval, "P1M"
-  parts     Duration(value: parts)                    // IntervalParts: interval, { months, days, micros }
+  parts     Duration(as: parts)                    // IntervalParts: interval, { months, days, micros }
   updatedAt DateTime @onCreate(now()) @onUpdate(now()) // generator chosen for TimestamptzJsDate
 }
 ```
 
-`Time(value: temporal, column: timetz)` and `Date(value: jsDate)` are refused at the argument, naming the accepted choices. The contract stores only the explicit type each field becomes.
+`Time(as: temporal, storage: timetz)` and `Date(as: jsDate)` are refused at the argument, naming the accepted choices. The contract stores only the explicit type each field becomes.
 
 ## Chosen design
 
-1. **A convenience type is a new authoring descriptor kind, a type choice.** It declares its arguments (option arguments with a fixed set of bare-name values and a default each, plus value arguments passed through such as `precision`) and a table from each allowed combination of option values to the **name of an explicit type constructor** in the same namespace, with any parameter defaults for that combination (for example precision 3 when `value: jsDate`). Resolving a call looks up the combination, then instantiates the named explicit constructor with the passed-through arguments. A combination missing from the table is refused at the argument that makes it invalid, listing the values that would be accepted.
+1. **A convenience type is a new authoring descriptor kind, a type choice.** It declares its arguments (option arguments with a fixed set of bare-name values and a default each, plus value arguments passed through such as `precision`) and a table from each allowed combination of option values to the **name of an explicit type constructor** in the same namespace, with any parameter defaults for that combination (for example precision 3 when `as: jsDate`). Resolving a call looks up the combination, then instantiates the named explicit constructor with the passed-through arguments. A combination missing from the table is refused at the argument that makes it invalid, listing the values that would be accepted.
    - Rationale: ADR 279 says each convenience type becomes exactly one explicit type; naming the explicit constructor makes that literal, supports defaults and refusals directly, and needs none of the field-preset `option`/`select` template machinery that the field-preset removal project deletes. ADR 279's "How it works" is updated to this shape (an orchestrator representation decision).
 2. **Every reader resolves the field's call.** The PSL column resolution, the TypeScript builder's runtime and type-level resolution (`type.*` helpers), the contract-prisma7 values path, and every place that today reads a constructor's fixed `output.codecId` without the call's arguments: `@default` literal admission (`receivingDataType`) and the `@onCreate`/`@onUpdate` generator lookup (`generatorCallArm`) must use the codec the field's call resolves to, including through a `types {}` alias. The control stack checks every reachable explicit constructor at assembly.
 3. **Bare names are scalars.** `DateTime`, `Date`, `Time` and `Duration` work bare and called; the scalar view treats them like any all-optional constructor.
@@ -51,10 +51,10 @@ One PR: the descriptor kind and its resolution in every reader exist only to car
 | --- | --- |
 | Field typed by a `types {}` alias whose right-hand side is a convenience call | Resolves through the alias; `@default` and `@onCreate` use the resolved codec |
 | `DateTime[]`, `DateTime?` | Same resolution as any constructor |
-| `@default(timestamptz\`…\`)` on `DateTime(column: timestamp)` | Refused by the existing cast rule (wrong tag), naming `timestamp` |
+| `@default(timestamptz\`…\`)` on `DateTime(storage: timestamp)` | Refused by the existing cast rule (wrong tag), naming `timestamp` |
 | `@onCreate(now())` on each convenience default | Generator resolved for the explicit codec (`timestampNow` for `TimestamptzJsDate`, `dateStringNow` for `DateString`, …) |
 | Positional arguments, e.g. `DateTime(temporal)` | Accepted in declaration order, like any constructor |
-| Precision on `Date` or `Duration` with `value: string` | Refused unless the explicit type takes it (`IntervalString(p)` does, `DateString` does not) |
+| Precision on `Date` or `Duration` with `as: string` | Refused unless the explicit type takes it (`IntervalString(p)` does, `DateString` does not) |
 | A pack declaring a choice that names a constructor no component registers | Assembly error naming the pack and the name |
 
 ## Slice-specific done conditions
