@@ -41,7 +41,7 @@ The `ext-*` pattern is deprecated and should not be used for new packages.
 
 3. **Clarity over brevity**: The few extra characters in `extension-` vs `ext-` provide clearer intent and are negligible in practice.
 
-4. **npm search and discovery**: Users can search for `@internal/extension-` to find all extensions reliably.
+4. **Search and discovery**: Searching this repository for `@internal/extension-` finds every extension pack.
 
 ## Consequences
 
