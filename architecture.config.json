@@ -1597,6 +1597,12 @@
       "plane": "runtime"
     },
     {
+      "glob": "packages/3-targets/mongo/9-facade/src/exports/query-builder.ts",
+      "domain": "extensions",
+      "layer": "adapters",
+      "plane": "runtime"
+    },
+    {
       "glob": "packages/3-targets/mongo/9-facade/src/exports/target.ts",
       "domain": "extensions",
       "layer": "adapters",
