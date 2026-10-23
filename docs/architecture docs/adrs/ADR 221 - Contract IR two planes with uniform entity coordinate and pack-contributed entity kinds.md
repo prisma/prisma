@@ -3,6 +3,8 @@
 **Status:** Accepted
 **Date:** 2026-05-20
 
+> **Note:** value objects have since moved out of the domain plane. They are storage entities, at `storage.namespaces.<ns>.entries.valueObject`, and a domain field refers to one by coordinate ([ADR 309](ADR%20309%20-%20Value%20objects%20are%20storage%20entities%2C%20and%20a%20discriminator%20column%20names%20a%20value%20set.md)). The domain `valueObjects` key shown below no longer exists.
+
 ---
 
 ## A concrete example

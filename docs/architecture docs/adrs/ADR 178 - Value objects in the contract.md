@@ -2,7 +2,7 @@
 
 ## At a glance
 
-> **Note:** this ADR describes value objects in the domain plane, where they first lived. They are now storage entities ([ADR 309](ADR%20309%20-%20Value%20objects%20are%20storage%20entities%2C%20and%20a%20discriminator%20column%20names%20a%20value%20set.md)); the field shapes below are unchanged.
+> **Note:** this ADR describes value objects in the domain plane, where they first lived. They are now storage entities ([ADR 309](ADR%20309%20-%20Value%20objects%20are%20storage%20entities%2C%20and%20a%20discriminator%20column%20names%20a%20value%20set.md)); the shapes of their members below are unchanged, and a field now refers to its value object by storage coordinate rather than by name.
 
 A User model with scalar fields and value object fields. Value objects are defined in a separate `valueObjects` section — they share the same field descriptor shape (`{ nullable, codecId }`) as models, but the framework makes fundamentally different promises about them.
 

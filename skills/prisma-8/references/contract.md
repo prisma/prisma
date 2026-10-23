@@ -162,7 +162,7 @@ Values the client generates are written `@onCreate(fn())` and `@onUpdate(fn())`:
 
 In the TS builder, an alias is a constant passed as the field, because field builders are immutable: `const Slug = field.column(type.VarChar(64))`, `const UpdatedAt = field.column(type.TimestampString(3)).onCreate(gen.now()).onUpdate(gen.now())`, then `slug: Slug, updatedAt: UpdatedAt.default(now())`. `type.*` has a helper for every PSL type constructor, and the contributed aliases are `type.temporal.CreatedAt()` and `type.temporal.UpdatedAt()`, used as `field.column(type.temporal.UpdatedAt())`. A definition has no `types` key (`CONTRACT.TYPES_KEY_REMOVED`), and `field.namedType(...)` takes only an enum handle.
 
-Note: scalar lists (e.g. `String[]`) are gated on the target's `sql.scalarList` capability — PostgreSQL declares it, so `tags String[]` lowers to an array column (with a generated no-NULL-elements check; write `tags String?[]` for a list whose elements may be null, which gets no such check); SQLite does not, and rejects the field with `PSL_SCALAR_LIST_UNSUPPORTED_TARGET`. Implicit Prisma-ORM many-to-many (list navigation on both sides without a join model) is rejected by the SQL interpreter — declare the join model explicitly and the ORM traverses it for you (`references/queries.md`). Composite/embeddable types (`type Address { ... }` with `address Address` on a model) are supported: the interpreter lowers them to `valueObjects` in the domain and stores them as `jsonb` columns. See *Workflow — Value objects* below.
+Note: scalar lists (e.g. `String[]`) are gated on the target's `sql.scalarList` capability — PostgreSQL declares it, so `tags String[]` lowers to an array column (with a generated no-NULL-elements check; write `tags String?[]` for a list whose elements may be null, which gets no such check); SQLite does not, and rejects the field with `PSL_SCALAR_LIST_UNSUPPORTED_TARGET`. Implicit Prisma-ORM many-to-many (list navigation on both sides without a join model) is rejected by the SQL interpreter — declare the join model explicitly and the ORM traverses it for you (`references/queries.md`). Composite/embeddable types (`type Address { ... }` with `address Address` on a model) are supported: the interpreter lowers them to storage value objects, at `storage.namespaces.<ns>.entries.valueObject`, and stores them as `jsonb` columns. See *Workflow — Value objects* below.
 
 ## Workflow — Edit a model / field / relation (TS builder)
 
@@ -299,7 +299,7 @@ Querying the variants is a runtime concern — see `references/queries.md`.
 
 ## Workflow — Value objects (composite types)
 
-The concept: `type Foo { ... }` blocks declare value-object shapes. The interpreter lowers them to `valueObjects` in the contract domain and stores them as `jsonb` columns. Nested value-object references are supported.
+The concept: `type Foo { ... }` blocks declare value-object shapes. The interpreter lowers them to storage value objects, at `storage.namespaces.<ns>.entries.valueObject`, and stores them as `jsonb` columns; a domain field refers to one by coordinate. Nested value-object references are supported.
 
 ```prisma
 type Address {
