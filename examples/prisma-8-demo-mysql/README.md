@@ -12,15 +12,18 @@ as each lands, and each is done only when this example runs it in CI.
 
 ## Setup
 
-You need a MySQL 8 server with an empty database. The repository's
-`docker-compose.yaml` starts one on port 3307.
+You need a MySQL 8 server and an empty application database for the example.
+The repository's `docker-compose.yaml` starts a server on port 3307; create the
+`prisma_demo` database on it before running anything. `MYSQL_URL` must name
+that database, never MySQL's own `mysql` system database, or the CLI creates
+the example's tables inside it.
 
 ```bash
 docker compose up -d mysql
-docker compose exec mysql mysql -uroot -proot -e 'CREATE DATABASE demo'
+docker compose exec mysql mysql -uroot -proot -e 'CREATE DATABASE prisma_demo'
 pnpm install
 pnpm emit                                   # generates src/prisma/contract.json + contract.d.ts
-export MYSQL_URL=mysql://root:root@127.0.0.1:3307/demo
+export MYSQL_URL=mysql://root:root@127.0.0.1:3307/prisma_demo
 pnpm db:migrate                             # applies migrations/ to the database
 pnpm db:verify                              # checks the database matches the contract
 pnpm db:sign                                # records the contract the database now satisfies
@@ -41,9 +44,8 @@ which contract the database is at.
 | `db:sign` | `prisma db sign` | Signs a database whose schema satisfies the contract |
 | `test` | `vitest run` | The whole flow against a fresh database at `MYSQL_URL` |
 
-`pnpm test` creates a uniquely named database on the server at `MYSQL_URL`
-(for example `mysql://root:root@127.0.0.1:3307/mysql`),
-runs `db migrate`, `db verify`, `db sign` and `migration plan` against it
+`pnpm test` uses only the server part of `MYSQL_URL`: it creates a uniquely
+named database on that server, runs `db migrate`, `db verify`, `db sign` and `migration plan` against it
 through the `prisma` CLI, and drops the database. Without `MYSQL_URL` the tests
 are skipped.
 
