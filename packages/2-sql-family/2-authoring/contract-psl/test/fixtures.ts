@@ -4,10 +4,7 @@ import type {
   ContractSourceDiagnostics,
 } from '@internal/config/config-types';
 import type { Contract, JsonValue } from '@internal/contract/types';
-import {
-  domainModelsAtDefaultNamespace,
-  domainValueObjectsAtDefaultNamespace,
-} from '@internal/contract/types';
+import { type ContractValueObject, domainModelsAtDefaultNamespace } from '@internal/contract/types';
 import {
   type AuthoringContributions,
   type AuthoringEntityContext,
@@ -598,8 +595,25 @@ export function modelsOf(contract: Contract) {
   return domainModelsAtDefaultNamespace(contract.domain);
 }
 
-export function valueObjectsOf(contract: Contract) {
-  return domainValueObjectsAtDefaultNamespace(contract.domain);
+/** A field type that refers to the storage value object `entityName` in `namespaceId`. */
+export function valueObjectRef(entityName: string, namespaceId = 'public') {
+  return {
+    kind: 'valueObject',
+    plane: 'storage',
+    namespaceId,
+    entityKind: 'valueObject',
+    entityName,
+  } as const;
+}
+
+/** The storage value objects of every namespace, as plain JSON; `undefined` when the contract has none. */
+export function valueObjectsOf(
+  contract: Contract,
+): Record<string, ContractValueObject> | undefined {
+  const slots = Object.values(contract.storage.namespaces).flatMap((namespace) =>
+    namespace.entries['valueObject'] === undefined ? [] : [namespace.entries['valueObject']],
+  );
+  return slots.length === 0 ? undefined : JSON.parse(JSON.stringify(Object.assign({}, ...slots)));
 }
 
 export function documentScopedTypes(contract: { readonly storage?: unknown }) {

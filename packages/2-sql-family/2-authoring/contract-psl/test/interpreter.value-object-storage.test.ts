@@ -13,6 +13,7 @@ import {
   sqliteScalarAuthoringTypes,
   sqliteScalarColumnDescriptors,
   sqliteTarget,
+  valueObjectRef,
 } from './fixtures';
 
 function userFieldsAndColumns(contract: Contract) {
@@ -58,14 +59,16 @@ model User {
 
 const idField = { nullable: false, type: { kind: 'scalar', codecId: 'pg/int4@1' }, many: false };
 const idColumn = { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
-const addressFields = {
-  home: { nullable: true, type: { kind: 'valueObject', name: 'Address' }, many: false },
-  addresses: {
-    nullable: false,
-    type: { kind: 'valueObject', name: 'Address' },
-    many: { elementNullable: false },
-  },
-};
+function addressFields(namespaceId = 'public') {
+  return {
+    home: { nullable: true, type: valueObjectRef('Address', namespaceId), many: false },
+    addresses: {
+      nullable: false,
+      type: valueObjectRef('Address', namespaceId),
+      many: { elementNullable: false },
+    },
+  };
+}
 
 describe('interpretPslDocumentToSqlContract value-object storage', () => {
   describe('value-object fields keep the target-declared storage column', () => {
@@ -75,7 +78,7 @@ describe('interpretPslDocumentToSqlContract value-object storage', () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(userFieldsAndColumns(result.value)).toEqual({
-        fields: { id: idField, ...addressFields },
+        fields: { id: idField, ...addressFields() },
         columns: {
           id: idColumn,
           home: { many: false, dataType: 'pg/jsonb', codecId: 'pg/jsonb@1', nullable: true },
@@ -108,7 +111,7 @@ describe('interpretPslDocumentToSqlContract value-object storage', () => {
             type: { kind: 'scalar', codecId: 'sqlite/integer@1' },
             many: false,
           },
-          ...addressFields,
+          ...addressFields('__unbound__'),
         },
         columns: {
           id: {
@@ -143,7 +146,7 @@ model User {
       expect(userFieldsAndColumns(result.value)).toEqual({
         fields: {
           id: idField,
-          home: { nullable: false, type: { kind: 'valueObject', name: 'Address' }, many: false },
+          home: { nullable: false, type: valueObjectRef('Address'), many: false },
         },
         columns: {
           id: idColumn,

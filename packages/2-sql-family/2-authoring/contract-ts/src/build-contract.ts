@@ -46,7 +46,7 @@ import type { ContractDefinition } from './contract-definition';
 import { contractError } from './contract-errors';
 import { describeModel, type ModelDescription } from './describe-model';
 import { describeTableNode } from './describe-table-node';
-import { buildDomainField } from './domain-fields';
+import { buildValueObjectMember } from './domain-fields';
 import { lowerTable, type TableLoweringContext } from './lower-table';
 import { mergeTables } from './merge-tables';
 import { modelLookupsOf, modelNamespaceId } from './model-references';
@@ -152,6 +152,87 @@ function enabledCapabilities(
   return enabled;
 }
 
+/** The value objects of a definition as storage entities, all in the default namespace; `undefined` when it has none. */
+function storageValueObjects(
+  definition: ContractDefinition,
+  defaultNamespaceId: string,
+): Record<string, ContractValueObject> | undefined {
+  if (definition.valueObjects === undefined || definition.valueObjects.length === 0) {
+    return undefined;
+  }
+  return Object.fromEntries(
+    definition.valueObjects.map((valueObject) => [
+      valueObject.name,
+      {
+        fields: Object.fromEntries(
+          valueObject.fields.map((field) => [
+            field.fieldName,
+            buildValueObjectMember(field, defaultNamespaceId),
+          ]),
+        ),
+      },
+    ]),
+  );
+}
+
+/**
+ * Writes the value set of each discriminator, keyed `<Base>.<field>` in the base table's namespace and holding the variants' values as the column stores them, and points the discriminator column at it (ADR 278). A column an enum types keeps the enum's value set. An enum with the same name is refused, since the two value sets would share one entry.
+ */
+function writeDiscriminatorValueSets(
+  definition: ContractDefinition,
+  tablesByNamespace: Record<string, Record<string, StorageTableInput>>,
+  storageValueSetsByNs: Record<string, Record<string, StorageValueSetInput>>,
+): void {
+  const defaultNamespaceId = definition.target.defaultNamespaceId;
+  for (const model of definition.models) {
+    const { discriminator, variants } = model;
+    if (discriminator === undefined || variants === undefined) continue;
+    const namespaceId = modelNamespaceId(model, defaultNamespaceId);
+    const table = tablesByNamespace[namespaceId]?.[model.tableName];
+    const columnName = model.fields.find(
+      (field) => field.fieldName === discriminator.field,
+    )?.columnName;
+    const column = columnName === undefined ? undefined : table?.columns[columnName];
+    if (table === undefined || columnName === undefined || column === undefined) continue;
+    if (column.valueSet !== undefined) continue;
+    const valueSetName = `${model.modelName}.${discriminator.field}`;
+    if (Object.hasOwn(definition.enums ?? {}, valueSetName)) {
+      throw contractError(
+        'CONTRACT.ENUM_INVALID',
+        `enumType("${valueSetName}") has the name of the value set that the discriminator field "${discriminator.field}" of model "${model.modelName}" writes. Rename the enum.`,
+        {
+          meta: {
+            enumName: valueSetName,
+            model: model.modelName,
+            field: discriminator.field,
+            reason: 'discriminator-value-set-name',
+          },
+        },
+      );
+    }
+    const namespaceValueSets = storageValueSetsByNs[namespaceId] ?? {};
+    namespaceValueSets[valueSetName] = { kind: 'valueSet', values: Object.keys(variants) };
+    storageValueSetsByNs[namespaceId] = namespaceValueSets;
+    const namespaceTables = tablesByNamespace[namespaceId] ?? {};
+    namespaceTables[model.tableName] = {
+      ...table,
+      columns: {
+        ...table.columns,
+        [columnName]: {
+          ...column,
+          valueSet: {
+            plane: 'storage',
+            entityKind: 'valueSet',
+            namespaceId,
+            entityName: valueSetName,
+          },
+        },
+      },
+    };
+    tablesByNamespace[namespaceId] = namespaceTables;
+  }
+}
+
 export function buildSqlContractFromDefinition(
   definition: ContractDefinition,
   codecLookup: CodecLookupWithDescriptors,
@@ -246,6 +327,8 @@ export function buildSqlContractFromDefinition(
     namespaceTables[table.tableName] = lowerTable(table, tableLoweringContext);
     tablesByNamespace[table.namespaceId] = namespaceTables;
   }
+  writeDiscriminatorValueSets(definition, tablesByNamespace, storageValueSetsByNs);
+  const valueObjects = storageValueObjects(definition, defaultNamespaceId);
 
   const executionDefaults: ExecutionMutationDefault[] = components.flatMap(
     (c) => c.domain.executionDefaults,
@@ -300,6 +383,9 @@ export function buildSqlContractFromDefinition(
           ...entitiesForNs,
           ...(valueSetEntries !== undefined && Object.keys(valueSetEntries).length > 0
             ? { valueSet: valueSetEntries }
+            : {}),
+          ...(id === defaultNamespaceId && valueObjects !== undefined
+            ? { valueObject: valueObjects }
             : {}),
         },
       };
@@ -362,25 +448,8 @@ export function buildSqlContractFromDefinition(
     defaults: executionDefaults,
   });
 
-  const valueObjects: Record<string, ContractValueObject> | undefined =
-    definition.valueObjects && definition.valueObjects.length > 0
-      ? Object.fromEntries(
-          definition.valueObjects.map((vo) => [
-            vo.name,
-            {
-              fields: Object.fromEntries(
-                vo.fields.map((f) => [f.fieldName, buildDomainField(f, defaultNamespaceId)]),
-              ),
-            },
-          ]),
-        )
-      : undefined;
-
   const domainNamespaceIds = new Set(Object.keys(modelsByNamespace));
   if (domainNamespaceIds.size === 0) {
-    domainNamespaceIds.add(defaultNamespaceId);
-  }
-  if (valueObjects !== undefined) {
     domainNamespaceIds.add(defaultNamespaceId);
   }
   for (const nsId of Object.keys(domainEnumsByNs)) {
@@ -392,9 +461,6 @@ export function buildSqlContractFromDefinition(
       const enumsInNs = domainEnumsByNs[namespaceId];
       const namespaceSlice = {
         models: modelsInNs,
-        ...(namespaceId === defaultNamespaceId && valueObjects !== undefined
-          ? { valueObjects }
-          : {}),
         ...(enumsInNs !== undefined && Object.keys(enumsInNs).length > 0
           ? { enum: enumsInNs }
           : {}),
