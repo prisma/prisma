@@ -1,8 +1,12 @@
+import { generatedIdColumnAliases } from '@internal/sql-contract/generated-id-column-aliases';
 import { describe, expect, it } from 'vitest';
-import sqlFamilyPack, { sqlTargetTypeConstructors } from '../src/exports/pack';
+import sqlFamilyPack, {
+  generatedIdColumnAliases as exportedAliases,
+  sqlTargetTypeConstructors,
+} from '../src/exports/pack';
 
 describe('sql family pack authoring contributions', () => {
-  it('contributes Raw, whose argument is a sql expression', () => {
+  it('contributes Raw, whose argument is a sql expression, and the generated id column aliases in sql', () => {
     expect(sqlFamilyPack.authoring.type).toEqual({
       Raw: {
         kind: 'typeConstructor',
@@ -11,7 +15,12 @@ describe('sql family pack authoring contributions', () => {
         args: [{ kind: 'value', dataType: 'sql/expression', name: 'sql' }],
         output: { codecId: 'sql/raw@1', typeParams: { sql: { kind: 'arg', index: 0 } } },
       },
+      sql: generatedIdColumnAliases,
     });
+  });
+
+  it('exports the generated id column aliases a target also names at the top level', () => {
+    expect(exportedAliases).toBe(generatedIdColumnAliases);
   });
 
   it('registers sql/expression with its authoring entry, so the TypeScript builder reads sql values', () => {
@@ -21,7 +30,7 @@ describe('sql family pack authoring contributions', () => {
     }).toEqual({ dataTypes: ['sql/expression'], entries: ['sql/expression'] });
   });
 
-  it('builds sql.String for a target, whose length is a value of the target’s size type', () => {
+  it('builds sql.String and sql.Char for a target, whose length is a value of the target’s size type', () => {
     expect(sqlTargetTypeConstructors({ sizeType: 'pg/int4' })).toEqual({
       sql: {
         String: {
@@ -29,6 +38,12 @@ describe('sql family pack authoring contributions', () => {
           documentation: 'Variable-length text with a required maximum character length.',
           args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
           output: { codecId: 'sql/varchar@1', typeParams: { length: { kind: 'arg', index: 0 } } },
+        },
+        Char: {
+          kind: 'typeConstructor',
+          documentation: 'Fixed-length text with a required character length.',
+          args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
+          output: { codecId: 'sql/char@1', typeParams: { length: { kind: 'arg', index: 0 } } },
         },
       },
     });

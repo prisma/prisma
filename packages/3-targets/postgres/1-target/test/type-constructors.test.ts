@@ -1,7 +1,9 @@
+import { generatedIdColumnAliases } from '@internal/family-sql/pack';
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import {
   collectScalarTypeConstructors,
   findAuthoringTypeConstructorCall,
+  instantiateAuthoringTypeAlias,
   instantiateAuthoringTypeConstructor,
   validateAuthoringTypeParams,
 } from '@internal/framework-components/authoring';
@@ -42,6 +44,11 @@ describe('the type constructors the target contributes', () => {
     });
     expect(Object.keys(postgresAuthoringTypes)).toEqual([
       'sql',
+      'UuidString',
+      'Ulid',
+      'Nanoid',
+      'Cuid2',
+      'Ksuid',
       'BigIntNumber',
       'UnboundedInt',
       'pg',
@@ -53,6 +60,36 @@ describe('the type constructors the target contributes', () => {
     expect(postgresAuthoringTypes.sql.String.args).toEqual([
       { kind: 'value', dataType: 'pg/int4', name: 'length' },
     ]);
+  });
+
+  it('contributes the identifier type aliases as top-level names, beside Char and Uuid', () => {
+    const { UuidString, Ulid, Nanoid, Cuid2, Ksuid } = postgresAuthoringTypes;
+    expect({ UuidString, Ulid, Nanoid, Cuid2, Ksuid }).toEqual(generatedIdColumnAliases);
+  });
+
+  it.each([
+    ['UuidString', 36],
+    ['Ulid', 26],
+    ['Nanoid', 21],
+    ['Cuid2', 24],
+    ['Ksuid', 27],
+  ] as const)('stores %s as Char(%i) stores it, with params its codec accepts', (name, length) => {
+    const alias = instantiateAuthoringTypeAlias(postgresAuthoringTypes[name]);
+    expect(alias).toEqual({
+      type: instantiateAuthoringTypeConstructor(postgresNativeAuthoringTypes.Char, [length]),
+    });
+    const paramsSchema = createPostgresBuiltinCodecLookup().descriptorFor?.(
+      alias.type.codecId,
+    )?.paramsSchema;
+    expect(paramsSchema).toBeDefined();
+    expect(() =>
+      validateAuthoringTypeParams(
+        name,
+        postgresAuthoringTypes[name].output.type,
+        alias.type.typeParams,
+        paramsSchema,
+      ),
+    ).not.toThrow();
   });
 
   it.each([

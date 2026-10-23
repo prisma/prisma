@@ -1,4 +1,5 @@
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import { generatedIdColumnAliases } from '@internal/sql-contract/generated-id-column-aliases';
 
 export const sqlFamilyAuthoringTypes = {
   Raw: {
@@ -11,6 +12,7 @@ export const sqlFamilyAuthoringTypes = {
       typeParams: { sql: { kind: 'arg', index: 0 } },
     },
   },
+  sql: generatedIdColumnAliases,
 } as const satisfies AuthoringTypeNamespace;
 
 /**
@@ -27,6 +29,17 @@ export function sqlTargetTypeConstructors<const SizeType extends string>(input: 
         args: [{ kind: 'value', dataType: input.sizeType, name: 'length' }],
         output: {
           codecId: 'sql/varchar@1',
+          typeParams: {
+            length: { kind: 'arg', index: 0 },
+          },
+        },
+      },
+      Char: {
+        kind: 'typeConstructor',
+        documentation: 'Fixed-length text with a required character length.',
+        args: [{ kind: 'value', dataType: input.sizeType, name: 'length' }],
+        output: {
+          codecId: 'sql/char@1',
           typeParams: {
             length: { kind: 'arg', index: 0 },
           },
