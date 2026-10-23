@@ -53,9 +53,11 @@ async function run(connection: PoolConnection, request: SqlExecuteRequest): Prom
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
   await prepareChecked(connection, sql, values);
   return new Promise((resolve, reject) => {
-    connection.execute({ sql, values }, (error, result) =>
-      error ? reject(statementError(error, sql)) : resolve(result),
-    );
+    connection.execute({ sql, values }, (error, result) => {
+      if (error) return reject(statementError(error, sql));
+      noteSessionChange(connection, result);
+      resolve(result);
+    });
   });
 }
 
@@ -68,6 +70,25 @@ function runConstant(connection: PoolConnection, sql: string): Promise<void> {
 
 function isResultSetHeader(result: unknown): result is ResultSetHeader {
   return typeof result === 'object' && result !== null && 'affectedRows' in result;
+}
+
+/** Connections whose session a statement changed, which run the session setup again before their next borrower. */
+const changedSessions = new WeakSet<PoolConnection>();
+
+/** Notes that `connection`'s session changed when a statement's result reports a change to a setting the session setup writes. */
+function noteSessionChange(connection: PoolConnection, result: unknown): void {
+  if (!isResultSetHeader(result) || !('stateChanges' in result)) return;
+  const { stateChanges } = result;
+  if (
+    typeof stateChanges === 'object' &&
+    stateChanges !== null &&
+    'systemVariables' in stateChanges &&
+    typeof stateChanges.systemVariables === 'object' &&
+    stateChanges.systemVariables !== null &&
+    Object.keys(stateChanges.systemVariables).length > 0
+  ) {
+    changedSessions.add(connection);
+  }
 }
 
 /** Counts what the driver has handed out, a connection or a stream, so `close()` can wait until every one is back. */
@@ -139,6 +160,7 @@ async function* streamRows<Row>(
   let failed = false;
   try {
     for await (const row of stream) {
+      noteSessionChange(connection, row);
       yield blindCast<Row, 'mysql2 streams the rows the statement produces, shaped by the query'>(
         row,
       );
@@ -282,7 +304,7 @@ type DriverState =
   | { readonly kind: 'closed' };
 
 /**
- * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup once, before its first statement. `close()` waits for every connection and stream it has handed out before it ends the pool.
+ * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement, and again before its next borrower once a statement changed a setting the setup writes, which MySQL reports in that statement's result. `close()` waits for every connection and stream it has handed out before it ends the pool.
  */
 export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
   readonly familyId = 'sql' as const;
@@ -355,13 +377,14 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
       );
     }
     const connection = await waitForConnection(this.#state.pool, this.#state.poolTimeoutMs);
-    if (this.#setUp.has(connection)) return connection;
+    if (this.#setUp.has(connection) && !changedSessions.has(connection)) return connection;
     try {
       for (const sql of SESSION_SETUP) await runConstant(connection, sql);
     } catch (error) {
       connection.destroy();
       throw normalizeMysqlError(error);
     }
+    changedSessions.delete(connection);
     this.#setUp.add(connection);
     return connection;
   }

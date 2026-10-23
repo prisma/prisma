@@ -247,6 +247,39 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('restores the session settings a statement changed before the connection serves another borrower', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const single = new URL(url);
+      single.searchParams.set('connectionLimit', '1');
+      await withDriver(single.toString(), async (driver) => {
+        const session = async () =>
+          (
+            await collect(
+              driver.query<Record<string, string>>({
+                sql: "SELECT FIND_IN_SET('NO_BACKSLASH_ESCAPES', @@SESSION.sql_mode) AS nbe, @@SESSION.time_zone AS tz, @@SESSION.character_set_client AS cs",
+              }),
+            )
+          )[0];
+        const held = await driver.acquireConnection();
+        await held.execute({ sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'" });
+        await held.execute({ sql: "SET time_zone = '+05:00'" });
+        await held.release();
+        const afterHeld = await session();
+        await driver.execute({ sql: 'SET NAMES latin1' });
+        const afterPooled = await session();
+        for await (const _row of driver.query({ sql: "SET time_zone = '+03:00'" })) {
+        }
+        const afterStream = await session();
+        const restored = { nbe: '0', tz: '+00:00', cs: 'utf8mb4' };
+        expect({ afterHeld, afterPooled, afterStream }).toEqual({
+          afterHeld: restored,
+          afterPooled: restored,
+          afterStream: restored,
+        });
+      });
+    });
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
