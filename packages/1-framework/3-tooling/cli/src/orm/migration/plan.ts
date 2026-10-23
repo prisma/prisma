@@ -9,6 +9,7 @@ import { createControlClient } from '../../control-api/client';
 import type { ContractSpaceSeedPhaseRecord } from '../../control-api/operations/contract-space-seed-phase';
 import type { MigrationPlanResult } from '../../control-api/operations/migration-plan';
 import { executeMigrationPlanCommand } from '../../control-api/operations/migration-plan';
+import { renamedAndDeleted } from '../../control-api/statements/resolve-statements';
 import { statementFlag } from '../../control-api/statements/statement-flag';
 import { convertAndDelete, isStatementVerb } from '../../control-api/statements/statement-text';
 import type { CreateControlClient } from '../../control-api/types';
@@ -339,6 +340,12 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
       if (conflicting !== undefined) {
         return notOk(normalizeError(errorConvertAndDelete(conflicting)));
       }
+      const contradicted = renamedAndDeleted(
+        ctx.statements
+          .values()
+          .flatMap(({ verb, text }) => (isStatementVerb(verb) ? [{ verb, text }] : [])),
+      );
+      if (contradicted !== undefined) return notOk(normalizeError(contradicted));
       const planned = await executeMigrationPlanCommand(
         {
           config: ctx.config,

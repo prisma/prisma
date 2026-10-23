@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { detectionPatterns } from '../guide-detections';
 
 const GUIDE_PATHS = {
   app: 'skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
@@ -9,17 +7,8 @@ const GUIDE_PATHS = {
     'skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.19-to-8.0.0-rc.20/instructions.md',
 } as const;
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
-
 function detectionOf(audience: keyof typeof GUIDE_PATHS, id: string): readonly RegExp[] {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-  const entry = guide.split(/\n {2}- id: /).find((block) => block.startsWith(`${id}\n`));
-  if (entry === undefined) throw new Error(`The ${audience} guide has no change ${id}`);
-  const patterns = [...entry.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-  );
-  if (patterns.length === 0) throw new Error(`The ${audience} change ${id} has no detection`);
-  return patterns;
+  return detectionPatterns(GUIDE_PATHS[audience], id);
 }
 
 function detects(audience: keyof typeof GUIDE_PATHS, id: string, content: string): boolean {

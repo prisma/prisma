@@ -153,7 +153,7 @@ export function createFailingPlan() {
         operationClass: 'additive',
         target: {
           id: 'sqlite',
-          details: { schema: 'main', objectType: 'table', name: 'user' },
+          details: { objectType: 'table', name: 'user' },
         },
         precheck: [{ description: 'always false', sql: 'SELECT 0' }],
         execute: [],

@@ -15,6 +15,8 @@ import {
   convertedColumnOf,
   fieldOfColumn,
   requiredColumnsOfMigration,
+  rowsHoldingValueOf,
+  rowsHoldingValueSummary,
   rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
@@ -23,6 +25,7 @@ import {
 import type {
   FailedConversion,
   MigrationRunnerResult,
+  RowsHoldingValue,
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
@@ -33,7 +36,7 @@ import {
   withFailingSpace,
 } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
-import { SqlQueryError } from '@internal/sql-errors';
+import { SqlConnectionError, SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -45,6 +48,7 @@ import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
 import { affinityStorageClasses, conversionCopyOf, rebuiltTableName } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
+import { keepRowsEdit } from './stored-value-calls';
 
 const NOT_NULL_VIOLATION_SQLSTATE = '23502';
 
@@ -182,25 +186,50 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       await driver.query('PRAGMA foreign_keys = OFF');
     }
 
+    let result: MigrationRunnerResult;
     try {
-      await this.beginExclusiveTransaction(driver);
-      let committed = false;
-      try {
-        const result = await this.executeSpaces(driver, perSpaceOptions, fkWasEnabled);
-        if (!result.ok) return notOk(withDatabaseUnchanged(result.failure, true));
-        await this.commitTransaction(driver);
-        committed = true;
-        return result;
-      } finally {
-        if (!committed) {
-          await this.rollbackTransaction(driver);
-        }
-      }
-    } finally {
-      if (fkWasEnabled) {
-        await driver.query('PRAGMA foreign_keys = ON');
-      }
+      result = await this.executeInTransaction(driver, perSpaceOptions, fkWasEnabled);
+    } catch (error) {
+      if (fkWasEnabled) await this.afterFailure(driver.query('PRAGMA foreign_keys = ON'));
+      throw error;
     }
+    if (fkWasEnabled) {
+      const restore = driver.query('PRAGMA foreign_keys = ON');
+      await (result.ok ? restore : this.afterFailure(restore));
+    }
+    return result;
+  }
+
+  private async executeInTransaction(
+    driver: SqlControlDriverInstance<string>,
+    perSpaceOptions: ReadonlyArray<SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>>,
+    fkWasEnabled: boolean,
+  ): Promise<MigrationRunnerResult> {
+    await this.beginExclusiveTransaction(driver);
+    let result: MigrationRunnerResult;
+    try {
+      result = await this.executeSpaces(driver, perSpaceOptions, fkWasEnabled);
+    } catch (error) {
+      await this.afterFailure(this.rollbackTransaction(driver));
+      throw error;
+    }
+    if (!result.ok) {
+      await this.afterFailure(this.rollbackTransaction(driver));
+      return notOk(withDatabaseUnchanged(result.failure, true));
+    }
+    try {
+      await this.commitTransaction(driver);
+    } catch (error) {
+      await this.afterFailure(this.rollbackTransaction(driver));
+      throw error;
+    }
+    return result;
+  }
+
+  // Cleanup that runs only after a failure, which is what the caller reports: cleanup that also
+  // fails, for example on a closed database, must not replace it.
+  private async afterFailure(cleanup: Promise<unknown>): Promise<void> {
+    await cleanup.catch(() => undefined);
   }
 
   private async executeSpaces(
@@ -306,6 +335,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             operation.precheck,
             operation,
             'precheck',
+            { contract: options.destinationContract, operationIndex: ops.indexOf(operation) },
           );
           if (!precheckResult.ok) {
             return precheckResult;
@@ -375,6 +405,16 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           description: step.description,
           ...ifDefined('expectation', step.expectation),
         };
+        const holding =
+          phase === 'precheck' && plan !== undefined
+            ? await this.rowsHoldingValue(driver, step, operation, plan.operationIndex)
+            : undefined;
+        if (holding !== undefined) {
+          return runnerFailure(code, holding.summary, {
+            why: `Operation ${operation.id} failed during ${phase}: ${step.description}`,
+            meta: { failedCheck, rowsHoldingValue: holding.report },
+          });
+        }
         const unconverted =
           converted === undefined ? undefined : await this.unconvertedValueText(driver, converted);
         return runnerFailure(
@@ -416,6 +456,43 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     return okVoid();
   }
 
+  /**
+   * Counts the rows that hold the stored value a removal check guards, as `rowsHoldingValueMeta`
+   * marks the check. A count that fails leaves the failure without it.
+   */
+  private async rowsHoldingValue(
+    driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
+    step: SqlMigrationPlanOperationStep,
+    operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
+    operationIndex: number,
+  ): Promise<{ readonly summary: string; readonly report: RowsHoldingValue } | undefined> {
+    const mark = rowsHoldingValueOf(step);
+    const details = operation.target.details;
+    const stored = step.params?.[0];
+    if (mark === undefined || details?.table === undefined) return undefined;
+    if (typeof stored !== 'string' && typeof stored !== 'number') return undefined;
+    let rows: number;
+    try {
+      const counted = await driver.query<{ rows: number }>(
+        `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(details.table)} WHERE ${quoteIdentifier(details.name)} = ?`,
+        [stored],
+      );
+      rows = Number(counted.rows[0]?.rows ?? 0);
+    } catch {
+      return undefined;
+    }
+    return {
+      summary: rowsHoldingValueSummary(details.table, details.name, stored, rows),
+      report: {
+        enumValue: mark.enumValue,
+        value: stored,
+        rows,
+        operationIndex,
+        keepDataEdit: keepRowsEdit(details.table, details.name, mark),
+      },
+    };
+  }
+
   /** Names the first value of a retyped column that kept a storage class its new type does not hold. */
   private async unconvertedValueText(
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
@@ -451,6 +528,19 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
+        if (SqlConnectionError.is(error)) {
+          // A transient connection error (a busy or locked database) leaves the connection open.
+          return runnerFailure('MIGRATION.EXECUTION_FAILED', failed, {
+            why: message,
+            meta: {
+              operationId: operation.id,
+              stepDescription: step.description,
+              sql: step.sql,
+              connectionLost: error.transient === false,
+              transient: error.transient,
+            },
+          });
+        }
         const rowsWithoutValue = await this.rowsWithoutValue(driver, error, plan);
         const failedConversion =
           rowsWithoutValue === undefined

@@ -298,6 +298,30 @@ describe('db update questions', () => {
     ]);
   });
 
+  it('refuses a --delete of what a --rename of the same run renames, before it plans anything', async () => {
+    const run = await harness().run(
+      [
+        'db',
+        'update',
+        '--rename',
+        'Status.ARCHIVED:Status.RETIRED',
+        '--delete',
+        'Status.ARCHIVED',
+        '--json',
+      ],
+      { cwd: projectDir },
+    );
+
+    expect(run.exitCode).not.toBe(0);
+    expect(envelopeOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.STATEMENT_INVALID',
+        why: '--delete Status.ARCHIVED names what --rename Status.ARCHIVED:Status.RETIRED renames in the same run, so it cannot also be deleted.',
+      },
+    });
+    expect(mocks.dbUpdate).not.toHaveBeenCalled();
+  });
+
   it('refuses --convert and --backfill before it plans anything, naming migration plan', async () => {
     mocks.readMarker.mockResolvedValueOnce({ storageHash: 'c'.repeat(64) });
     const run = await harness().run(

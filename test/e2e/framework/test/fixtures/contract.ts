@@ -116,7 +116,7 @@ export const contract = defineContract(
             name: field.column(textColumn),
             scheduledAt: field
               .column(timestamptzStringColumn)
-              .default({ kind: 'literal', value: '2024-01-15 10:30:00+00' })
+              .default({ kind: 'literal', value: '2024-01-15T10:30:00Z' })
               .column('scheduled_at'),
             createdAt: field.column(timestamptzTemporalColumn).default(now()).column('created_at'),
           },

@@ -163,7 +163,7 @@ describe('postgres close()', () => {
     expect(order).toEqual(['pool ended', 'first close', 'second close']);
   });
 
-  it('with a caller-supplied pg.Pool, ends nothing and leaves the runtime open', async () => {
+  it('with a caller-supplied pg.Pool, ends nothing and closes the runtime', async () => {
     const pool = new Pool({ connectionString: 'postgres://localhost:5432/db' });
     const ownEndSpy = vi.fn().mockResolvedValue(undefined);
     (pool as unknown as { end: typeof vi.fn }).end = ownEndSpy;
@@ -179,7 +179,7 @@ describe('postgres close()', () => {
           .where((f, fns) => fns.eq(f.id, 1))
           .build(),
       ),
-    ).resolves.toEqual({ affectedRows: 0 });
+    ).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
     expect(ownEndSpy).not.toHaveBeenCalled();
   });
 

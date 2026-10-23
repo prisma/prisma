@@ -72,17 +72,21 @@ export class SqlConnectionError extends Error implements SqlDriverError<'sql_con
   static readonly ERROR_NAME = 'SqlConnectionError' as const;
   readonly kind = 'sql_connection' as const;
   readonly transient: boolean | undefined;
+  /** The SQLSTATE the server sent when it ended the connection, when there was one. */
+  readonly sqlState: string | undefined;
 
   constructor(
     message: string,
     options?: {
       readonly cause?: Error;
       readonly transient?: boolean;
+      readonly sqlState?: string;
     },
   ) {
     super(message, { cause: options?.cause });
     this.name = SqlConnectionError.ERROR_NAME;
     this.transient = options?.transient;
+    this.sqlState = options?.sqlState;
   }
 
   /**

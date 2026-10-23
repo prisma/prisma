@@ -80,8 +80,8 @@ function activitySourceOf(target: RuntimeScope): ActivitySource {
 /** An activity source that calls `source()` each time it is used, for an object whose source is created later, such as on the first query. */
 export function lazyActivitySource(source: () => ActivitySource): ActivitySource {
   return {
-    startActivity: (activity) => source().startActivity(activity),
-    planContentHash: (plan) => source().planContentHash(plan),
+    startActivity: async (activity) => source().startActivity(activity),
+    planContentHash: async (plan) => source().planContentHash(plan),
   };
 }
 

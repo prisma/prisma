@@ -111,9 +111,15 @@ await driver.connect({ kind: 'url', url: process.env.DATABASE_URL });
 
 Binding variants:
 
-- `{ kind: 'url', url }`: Driver creates a Pool from the connection string
-- `{ kind: 'pgPool', pool }`: Use an existing pg Pool
-- `{ kind: 'pgClient', client }`: Use an existing pg Client (direct connection)
+- `{ kind: 'url', url }`: Driver creates a Pool from the connection string and ends it on `close()`
+- `{ kind: 'pgPool', pool, ownedByDriver }`: Use an existing pg Pool
+- `{ kind: 'pgClient', client, ownedByDriver }`: Use an existing pg Client (direct connection)
+
+`ownedByDriver` says whether the driver ends the pool or client on `close()`. With `false` (a pool or client the caller supplied) the driver never ends it. A client that has not started connecting is connected on first use, whoever owns it; pg has no public flag for this, so the driver reads pg's `_connected`, `_connecting`, `_ending` and `_queryable` fields, and treats a client that is ending or no longer queryable as lost. A client whose connect failed or whose connection dropped cannot be reused: the driver rejects every later use.
+
+When a direct driver gives up a supplied client (for example after a failed rollback), it marks the client unusable, sends a `ROLLBACK` for any transaction it opened on it, and never ends it. Binding that client again fails: create a new client.
+
+The driver ensures the session settings the stack's target declares on every connection it uses; the PostgreSQL target declares `DateStyle=ISO`, which every date and time codec that reads a date or timestamp needs. A pool or client made by `createPgPool` or `createPgClient`, as a `url` binding's pool is, starts each session with the settings as startup options, after any `options` the URL or `PGOPTIONS` gives, and reads its connection string, `PGOPTIONS` and certificate files when it opens each connection, as pg does. On any other pool or client, the driver sets the settings with one statement on each connection before first use, and again after a connection from `acquireConnection()` is released.
 
 With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level pool queries return their connection after fetching, before yielding buffered rows for decoding or consumption. Cursor streams retain the connection until completion or iterator cleanup. Queries on caller-owned connections and transactions never release the caller's lease.
 
@@ -121,6 +127,7 @@ With `cursor: { disabled: true }` (or buffered cursor fallback), driver-level po
 
 - `./runtime`: Runtime entry point for driver implementation
   - Default: `postgresRuntimeDriverDescriptor` — use `create()` for unbound driver, then `connect(binding)`
+  - `createPgPool(config, sessionSettings)` and `createPgClient(config, sessionSettings)`: a pg pool or client whose sessions start with the session settings
   - Types: `PostgresBinding`, `PostgresDriverCreateOptions`, `QueryResult`
 - `./control`: Control plane entry point for driver descriptors
   - Default export: `DriverDescriptor` for use in `prisma.config.ts`

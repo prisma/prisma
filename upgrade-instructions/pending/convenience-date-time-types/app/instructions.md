@@ -9,7 +9,7 @@ changes:
         - '(?<![\s\S])(?![\s\S]*(?<![\w$])datasource[ \t]+\w+[ \t]*\{)[\s\S]*\n[ \t]+[A-Za-z_]\w*[ \t]+(?:=[ \t]*)?(?:DateTime|Date|Time)(?![\w$])'
   - id: ts-date-time-helpers-are-convenience-types
     summary: |
-      In a TypeScript contract on PostgreSQL, `type.DateTime(...)`, `type.Date(...)` and `type.Time(...)` are now the convenience types, whose arguments are `value`, `column` and `precision` in that order, so `type.Time(3)` no longer compiles. To keep what a field reads today, call `type.TimestamptzTemporal(...)`, `type.DateTemporal()` and `type.TimeTemporal(...)` with the same arguments.
+      In a TypeScript contract on PostgreSQL, `type.DateTime(...)`, `type.Date(...)` and `type.Time(...)` are now the convenience types, whose arguments are one object with the keys `as`, `storage` and `precision`, so `type.Time(3)` no longer compiles. To keep what a field reads today, call `type.TimestamptzTemporal(...)`, `type.DateTemporal()` and `type.TimeTemporal(...)` with the same arguments.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -18,7 +18,7 @@ changes:
 
 # `DateTime`, `Date` and `Time` are convenience types on PostgreSQL
 
-On PostgreSQL, Prisma 8 has two layers of date and time types. The explicit types name the column type and the kind of value the application reads, such as `TimestamptzTemporal` or `DateString`. The convenience types `DateTime`, `Date`, `Time` and the new `Duration` are named for what a field means, and each becomes one explicit type, chosen by its optional `value` and `column` arguments. Their defaults need no `Temporal` polyfill:
+On PostgreSQL, Prisma 8 has two layers of date and time types. The explicit types name the column type and the kind of value the application reads, such as `TimestamptzTemporal` or `DateString`. The convenience types `DateTime`, `Date`, `Time` and the new `Duration` are named for what a field means, and each becomes one explicit type, chosen by its optional `as` and `storage` arguments. Their defaults need no `Temporal` polyfill:
 
 | Written | Becomes | Column | The application reads |
 | --- | --- | --- | --- |
@@ -57,7 +57,7 @@ To move a field to the new defaults instead, keep the name, update the applicati
 - **`Date` and `Time`** keep their `date` and `time(p)` columns, when a precision is written by name (`Time(precision: 0)` for `Time(0)`), and change only the codec, so the database does not change, but the contract hash does.
   - With migrations: `prisma migration plan` refuses, because it finds nothing to change, and names the command to run instead. Run `prisma migration new --from <hash>` with the hash it gives, which writes a migration with no operations, then `prisma db migrate`.
   - With `prisma db update`: run it. It applies no operations and records the new contract on the database.
-- **`DateTime`** makes the column `timestamptz(3)`, and a schema that wrote `DateTime` before had a `timestamptz` column, which holds microseconds. Lowering the precision rounds stored values to milliseconds, so both commands ask before they change it. Run `prisma migration plan --delete <Model>.<field>` and then `prisma db migrate`, or `prisma db update --delete <Model>.<field>`, which accepts the rounding. A JavaScript `Date` holds milliseconds only, so to keep microseconds, keep the `Temporal.Instant` field: write `DateTime(value: temporal)`, which is exactly `TimestamptzTemporal`.
+- **`DateTime`** makes the column `timestamptz(3)`, and a schema that wrote `DateTime` before had a `timestamptz` column, which holds microseconds. Lowering the precision rounds stored values to milliseconds, so both commands ask before they change it. Run `prisma migration plan --delete <Model>.<field>` and then `prisma db migrate`, or `prisma db update --delete <Model>.<field>`, which accepts the rounding. A JavaScript `Date` holds milliseconds only, so to keep microseconds, keep the `Temporal.Instant` field: write `DateTime(as: temporal)`, which is exactly `TimestamptzTemporal`.
 
 ## `ts-date-time-helpers-are-convenience-types`
 

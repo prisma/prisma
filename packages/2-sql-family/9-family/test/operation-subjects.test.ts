@@ -84,6 +84,37 @@ describe('subjectsOfCalls', () => {
     });
   });
 
+  it('names the enum value a removal is about, with the advice the target gives', () => {
+    const enumValue = { namespaceId: app, enum: 'Status', member: 'ARCHIVED' };
+    expect(
+      subjectsOfCalls(
+        [
+          {
+            ...unchanged,
+            label: 'Remove value',
+            dataLoss: [
+              {
+                ...column('user', 'full_name'),
+                enumValue,
+                loss: 'drop',
+                keepDataEdit: { remove: 'this.remove()', replaceWith: 'this.replace()' },
+              },
+            ],
+          },
+        ],
+        { fromContract: origin, contract: origin, byHand, origins: NO_RENAMED_ORIGINS },
+      ).dataLoss,
+    ).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'enumValue', ...enumValue },
+        loss: 'drop',
+        label: 'Remove value',
+        keepDataEdit: { remove: 'this.remove()', replaceWith: 'this.replace()' },
+      },
+    ]);
+  });
+
   it('counts every operation of a call with companions before the next call', () => {
     expect(
       subjectsOfCalls(

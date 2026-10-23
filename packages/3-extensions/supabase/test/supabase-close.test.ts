@@ -188,3 +188,22 @@ describe('the pg option', () => {
     });
   });
 });
+
+describe('tx.prepare on a role-bound transaction still open after close()', () => {
+  it('does not throw at the call, and prepares, because preparing sends nothing to the database', async () => {
+    const { db, anon } = await openClient();
+
+    const outcome = await anon.transaction(async (tx) => {
+      const closing = db.close();
+      let prepared: Promise<unknown> | undefined;
+      expect(() => {
+        prepared = tx.prepare({}, () => tx.sql.public.profile.select('id').build());
+      }).not.toThrow();
+      const result = await Promise.resolve(prepared).catch((error: unknown) => error);
+      return { result, closing };
+    });
+    await outcome.closing;
+
+    expect(outcome.result).toMatchObject({ query: expect.any(Function) });
+  });
+});

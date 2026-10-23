@@ -4,7 +4,7 @@
 
 Four pull requests, in the order the spec gives. This plan covers PR 1. Each later PR gets its dispatches added here when the one before it is queued. One implementer and one reviewer, both on Opus, resumed across every dispatch of a PR. Briefs are in `dispatches/`.
 
-## PR 1 — namespaces, and the access question
+## PR 1 — namespaces, and the access question (merged, prisma/orm#30823)
 
 **Branch:** `tml-3537-namespaces`, from `tml-3537-remaining-nouns-spec` (the spec and ADR 278 ride in this PR). Postgres only for the namespace work; the access rename touches every target.
 
@@ -37,3 +37,22 @@ Four pull requests, in the order the spec gives. This plan covers PR 1. Each lat
 - **Renaming the target's default namespace (`public`).** The spec allows it when no other contract space declares it. Dispatch 4 checks whether Postgres lets an ordinary database owner run `ALTER SCHEMA public RENAME` on PGlite and on a managed Postgres; if not, the planner refuses it with advice, and the spec's edge case row is corrected.
 - **Names of the three facade methods.** Named after the SQL they run, as `createSchema` and `renameTable` are. The reviewer checks them against the existing facade.
 - **For PR 3: three points on ADR 278 from PR 1's system-design review.** (1) The storage value object keeps domain field names; state that value object fields have no mapped names, or store the stored key. (2) The discriminator value set is keyed `<Base>.<field>` and relies on enum names never containing a dot; use a key the column's coordinate determines, or state the rule where entity names are validated. (3) The ADR has no **Status** or **Date** header, unlike its neighbours.
+
+## PR 2 — enum values
+
+**Branch:** `tml-3537-enum-values`, from `origin/main` after PR 1 merged. Postgres and SQLite. Package paths moved on main (#30829: one folder per database, such as `packages/3-targets/postgres/1-target`, and `packages/2-sql-family`); use the paths in the current tree, not the ones in older notes.
+
+Scope, from the spec: enum values that a contract declares (a domain enum, stored as a column with a derived check on Postgres and a plain column on SQLite). Native Postgres enums keep their existing refusal. Enum values inside value object JSON come in PR 4.
+
+### Gate for every dispatch
+
+As for PR 1, with `pnpm lint:ratchets` in place of the separate cast, throw and vocabulary lints.
+
+### Dispatches
+
+| # | Outcome | Builds on |
+| --- | --- | --- |
+| 1 (done) | `--rename Status.ARCHIVED:Status.RETIRED` and `--delete Status.ARCHIVED` resolve as enum values in the framework resolver, with a new resolved statement kind and a new data-loss subject kind; every exhaustive switch over subjects handles it; MongoDB refuses enum value statements with one message | — |
+| 2 (done) | Postgres and SQLite operations that rewrite stored values: change a stored value to another in a column, and set it to NULL or remove it from a list. Postgres handles scalar and list columns; SQLite has no list columns, so scalar only. Usable from a hand-written `migration.ts`, with checks that let a re-run skip finished work; a re-run of the file reproduces `ops.json` | — |
+| 3 (done) | The SQL planner compares the origin and destination enums by stored value: a removed or changed stored value in a column that holds it is data loss, asked about as an enum value; `--rename` plans the rewrite, ordered on Postgres after the old check's drop and before the new check's creation; `--delete` sets it to NULL where the column is optional, removes it from lists, and for a required scalar column applies when no row holds the value and otherwise fails at apply with next actions that keep the rows; a member-name-only rename plans nothing and is reported as applied | 1, 2 |
+| 4 (done) | Journeys on Postgres and SQLite through both commands; docs (Migration System § Statements, error reference, CLI README, skill); spec rows updated; the PR text | 3 |

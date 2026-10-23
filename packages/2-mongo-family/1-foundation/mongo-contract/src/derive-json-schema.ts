@@ -1,13 +1,14 @@
 import type {
   ContractEmbedRelation,
   ContractField,
+  ContractModel,
   ContractRelation,
   ContractValueObject,
   JsonValue,
 } from '@internal/contract/types';
 import type { TypeLookups } from '@internal/framework-components/codec';
 import { assertDefined } from '@internal/utils/assertions';
-import type { MongoModelDefinition } from './contract-types';
+import type { MongoModelStorage } from './contract-types';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
@@ -28,7 +29,7 @@ import {
 export type FieldValueSets = Record<string, { readonly values: readonly JsonValue[] }>;
 
 export type ValidatorModel = Pick<
-  MongoModelDefinition,
+  ContractModel<MongoModelStorage>,
   'fields' | 'relations' | 'discriminator' | 'variants' | 'storage'
 >;
 

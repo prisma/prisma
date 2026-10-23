@@ -260,6 +260,13 @@ describe('SqliteControlAdapter.introspect', () => {
   });
 });
 
+describe('SqliteControlAdapter.markerLocation', () => {
+  it('names its marker table', () => {
+    const adapter = createTestSqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    expect(adapter.markerLocation).toBe('_prisma_marker');
+  });
+});
+
 describe('SqliteControlAdapter.readMarker', () => {
   it('throws CONTRACT.MARKER_ROW_CORRUPT when marker row fails validation', async () => {
     const driver = createMemoryDriver();

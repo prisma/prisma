@@ -45,7 +45,7 @@ describe('SqliteMigrationRunner - Idempotency', { timeout: timeouts.databaseOper
           label: 'Create user table',
           summary: 'Skipped because postcheck is already satisfied',
           operationClass: 'additive',
-          target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'user' } },
+          target: { id: 'sqlite', details: { objectType: 'table', name: 'user' } },
           precheck: [
             {
               description: 'would fail if evaluated',
@@ -244,7 +244,7 @@ describe('SqliteMigrationRunner - Idempotency', { timeout: timeouts.databaseOper
           operationClass: 'data',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'self_edge_proof' },
+            details: { objectType: 'table', name: 'self_edge_proof' },
           },
           precheck: [],
           execute: [

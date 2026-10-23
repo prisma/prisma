@@ -2,6 +2,7 @@ import { isDeepStrictEqual } from 'node:util';
 import {
   type ApplicationDomainNamespace,
   asNamespaceId,
+  type ContractEnum,
   type ContractField,
   type ContractFieldType,
   type ContractModelBase,
@@ -9,6 +10,7 @@ import {
 } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
+  type EnumValueCoordinate,
   type FieldCoordinate,
   fieldStatementText,
   type ModelCoordinate,
@@ -33,7 +35,7 @@ import {
   type StatementSide,
 } from './parse-rename';
 import { statementFlag } from './statement-flag';
-import type { StatementText } from './statement-text';
+import { ENTITY_WORDS, type StatementText } from './statement-text';
 
 /**
  * The origin contract statements resolve against, or where the command looked
@@ -96,7 +98,23 @@ interface FieldReading {
   readonly destinationModel: ModelCoordinate | undefined;
 }
 
-type SideReading = ModelReading | FieldReading;
+interface EnumValueReading {
+  readonly entity: 'enumValue';
+  readonly coordinate: EnumValueCoordinate;
+  /** The members of the enum on the side the reading is of. */
+  readonly members: readonly string[];
+}
+
+type SideReading = ModelReading | FieldReading | EnumValueReading;
+
+interface FoundEnum {
+  readonly namespaceId: string;
+  readonly members: readonly string[];
+}
+
+type EnumLookup =
+  | ({ readonly kind: 'found' } & FoundEnum)
+  | ({ readonly kind: 'missing' | 'refused' } & Refusal);
 
 interface ResolutionState {
   readonly origin: NamedContract;
@@ -113,6 +131,7 @@ interface ResolutionState {
 }
 
 const NAMESPACE_RENAMES = 'namespace';
+const ENUM_VALUE_RENAMES = 'enumValue';
 const MODEL_RENAMES = 'model';
 const FIELD_RENAMES = 'field';
 const LISTED_LIMIT = 20;
@@ -123,7 +142,7 @@ const STORED_NAME_ONLY =
   'If only the stored name changed (@map or @@map), a statement cannot state that in this release, and a plan without it drops and creates what the model or field is stored in, with its data. With migration plan, edit the planned migration.ts to rename the stored name instead of dropping and creating it. With db update, rename it in the database yourself first, then run db update, which then finds nothing that loses data.';
 const VALUE_OBJECT_FIX = 'Leave value objects and their fields out of the statements.';
 const REPEATED_NAME_FIX =
-  'Give each model or field at most one statement, and each new name to one model or field only.';
+  'Give each model, field or enum value at most one statement, and each new name to one model, field or enum value only.';
 
 function qualifiedModel(coordinate: ModelCoordinate): string {
   return modelDisplayName(coordinate);
@@ -135,6 +154,18 @@ function displayName(namespaceId: string, name: string): string {
 
 function qualifiedField(coordinate: FieldCoordinate): string {
   return `${qualifiedModel(coordinate)}.${coordinate.field}`;
+}
+
+/** An enum as a contract names it in messages: with its namespace only when the contract has several. */
+function enumText(contract: NamedContract, namespaceId: string, name: string): string {
+  return modelStatementText(contract.contract, {
+    namespaceId: asNamespaceId(namespaceId),
+    model: name,
+  });
+}
+
+function qualifiedEnumValue(coordinate: EnumValueCoordinate): string {
+  return `${displayName(coordinate.namespaceId, coordinate.enum)}.${coordinate.member}`;
 }
 
 function listed(names: readonly string[]): string {
@@ -273,6 +304,139 @@ function lookupModel(
   };
 }
 
+function enumsOf(namespace: ApplicationDomainNamespace): Readonly<Record<string, ContractEnum>> {
+  return namespace.enum ?? {};
+}
+
+function lookupEnum(
+  contract: NamedContract,
+  namespaceId: string | undefined,
+  name: string,
+): EnumLookup {
+  const namespaces = contract.contract.domain.namespaces;
+  const declaring = Object.entries(namespaces).filter(
+    ([id, namespace]) =>
+      (namespaceId === undefined || id === namespaceId) && Object.hasOwn(enumsOf(namespace), name),
+  );
+  const [only] = declaring;
+  if (only !== undefined && declaring.length === 1) {
+    const members = enumsOf(only[1])[name]?.members.map((member) => member.name) ?? [];
+    return { kind: 'found', namespaceId: only[0], members };
+  }
+  if (declaring.length > 1) {
+    const candidates = declaring.map(([id]) => `${id}.${name}`).sort();
+    return {
+      kind: 'refused',
+      reason: `"${name}" is an enum in more than one namespace of the ${contract.name} contract (${listed(candidates)})`,
+      fix: `Name the enum with its namespace, for example ${candidates[0]}.`,
+    };
+  }
+  const enums = Object.entries(namespaces).flatMap(([id, namespace]) =>
+    namespaceId === undefined || id === namespaceId ? Object.keys(enumsOf(namespace)) : [],
+  );
+  const within = namespaceId === undefined ? '' : ` in namespace "${namespaceId}"`;
+  const there = namespaceId === undefined ? '' : ' there';
+  const known = enums.length === 0 ? '' : ` (enums${there}: ${listed([...new Set(enums)])})`;
+  return {
+    kind: 'missing',
+    ...missing(`the ${contract.name} contract has no enum "${name}"${within}${known}`),
+  };
+}
+
+function readEnumValue(
+  state: ResolutionState,
+  side: Side,
+  namespaceId: string | undefined,
+  name: string,
+  member: string,
+): Result<EnumValueReading, Refusal> {
+  const contract = side === 'old' ? state.origin : state.destination;
+  const renamedFrom =
+    side === 'old' && namespaceId !== undefined
+      ? state.originOfRenamedNamespace.get(namespaceId)
+      : undefined;
+  const lookup = lookupEnum(contract, renamedFrom ?? namespaceId, name);
+  if (lookup.kind !== 'found') return notOk(lookup);
+  if (!lookup.members.includes(member)) {
+    return notOk(
+      missing(
+        `the ${contract.name} enum "${enumText(contract, lookup.namespaceId, name)}" has no value "${member}" (values: ${listed(lookup.members)})`,
+      ),
+    );
+  }
+  return ok({
+    entity: 'enumValue',
+    coordinate: { namespaceId: asNamespaceId(lookup.namespaceId), enum: name, member },
+    members: lookup.members,
+  });
+}
+
+function declaresEnums(contract: NamedContract): boolean {
+  return Object.values(contract.contract.domain.namespaces).some(
+    (namespace) => Object.keys(enumsOf(namespace)).length > 0,
+  );
+}
+
+function readingText(reading: SideReading): string {
+  switch (reading.entity) {
+    case 'model':
+      return `namespace "${reading.coordinate.namespaceId}" model "${reading.coordinate.model}"`;
+    case 'field':
+      return `model "${reading.coordinate.model}" field "${reading.coordinate.field}"`;
+    case 'enumValue':
+      return `enum "${reading.coordinate.enum}" value "${reading.coordinate.member}"`;
+  }
+}
+
+function qualifiedReading(reading: SideReading): string {
+  switch (reading.entity) {
+    case 'model':
+      return qualifiedModel(reading.coordinate);
+    case 'field':
+      return qualifiedField(reading.coordinate);
+    case 'enumValue':
+      return qualifiedEnumValue(reading.coordinate);
+  }
+}
+
+/** What a reading sits in, which a rename can give another name so that the reading stops colliding. */
+function readingContainer(reading: SideReading): string {
+  switch (reading.entity) {
+    case 'model':
+      return `namespace "${reading.coordinate.namespaceId}"`;
+    case 'field':
+      return `model "${reading.coordinate.model}"`;
+    case 'enumValue':
+      return `enum "${reading.coordinate.enum}"`;
+  }
+}
+
+/**
+ * An enum value reading beside the model and field readings of the same name: the one that
+ * resolves, or a refusal naming each reading when more than one does.
+ */
+function withEnumValueReading(
+  text: string,
+  other: Result<SideReading, Refusal>,
+  enumValue: Result<EnumValueReading, Refusal>,
+): Result<SideReading, Refusal> {
+  if (!enumValue.ok) return other;
+  if (!other.ok) return enumValue;
+  const readings = [other.value, enumValue.value];
+  const nameable = readings.filter((reading) => qualifiedReading(reading) !== text);
+  const unnameable = readings.find((reading) => qualifiedReading(reading) === text);
+  const written = nameable.map(
+    (reading) => `${qualifiedReading(reading)} for the ${ENTITY_WORDS[reading.entity]}`,
+  );
+  return notOk({
+    reason: `"${text}" resolves both as ${readingText(other.value)} and as ${readingText(enumValue.value)}`,
+    fix:
+      unnameable === undefined
+        ? `Name it with its namespace: ${written.join(', ')}.`
+        : `Write ${written.join(', ')}. The ${ENTITY_WORDS[unnameable.entity]} cannot be named apart from it: rename ${readings.map(readingContainer).join(' or ')} so that only one reading resolves.`,
+  });
+}
+
 function readModel(
   state: ResolutionState,
   side: Side,
@@ -382,6 +546,7 @@ function readSide(
   segments: StatementSide,
 ): Result<SideReading, Refusal> {
   if (segments.length === 1) return readModel(state, side, undefined, segments[0]);
+  const contract = side === 'old' ? state.origin : state.destination;
   if (segments.length === 3) {
     const [first, second, third] = segments;
     const qualified = readField(state, side, first, second, third);
@@ -392,30 +557,69 @@ function readSide(
         fix: `Give the field a stored name without "." with @map, or rename namespace "${first}" or model "${first}", so that only one reading resolves.`,
       });
     }
-    return qualified.ok || !dotted.ok ? qualified : dotted;
+    const asField = qualified.ok || !dotted.ok ? qualified : dotted;
+    const asEnumValue = readEnumValue(state, side, first, second, third);
+    if (asField.ok || asEnumValue.ok || !declaresEnums(contract)) {
+      return withEnumValueReading(segments.join('.'), asField, asEnumValue);
+    }
+    return notOk({
+      ...missing(
+        `"${segments.join('.')}" resolves neither as namespace.Model.field (${asField.failure.reason}) nor as namespace.Enum.value (${asEnumValue.failure.reason})`,
+      ),
+      ...ifDefined('modelWithoutCounterpart', asField.failure.modelWithoutCounterpart),
+    });
   }
   const [first, second] = segments;
   const asModel = readModel(state, side, first, second);
   const asField = readField(state, side, undefined, first, second);
+  const asEnumValue = readEnumValue(state, side, undefined, first, second);
   if (asModel.ok && asField.ok) {
     return notOk({
       reason: `"${first}.${second}" resolves both as namespace "${first}" model "${second}" and as model "${first}" field "${second}"`,
       fix: 'Write the field as namespace.Model.field if you mean the field.',
     });
   }
-  if (asModel.ok) return asModel;
-  if (asField.ok) return asField;
-  const contract = side === 'old' ? state.origin : state.destination;
-  const hasNamespaces = Object.keys(contract.contract.domain.namespaces).some(
-    (id) => id !== UNBOUND_NAMESPACE_ID,
+  if (asModel.ok || asField.ok) {
+    return withEnumValueReading(`${first}.${second}`, asModel.ok ? asModel : asField, asEnumValue);
+  }
+  if (asEnumValue.ok) return asEnumValue;
+  const names = containerNames(contract);
+  if (names.enums.has(first) && !names.namespaces.has(first) && !names.models.has(first)) {
+    return asEnumValue;
+  }
+  const hasNamespaces = names.namespaces.size > 0;
+  const hasEnums = declaresEnums(contract);
+  if (!hasNamespaces && !hasEnums) return asField;
+  const readings = [
+    ...(hasNamespaces ? [`as namespace.Model (${asModel.failure.reason})`] : []),
+    `as Model.field (${asField.failure.reason})`,
+    ...(hasEnums ? [`as Enum.value (${asEnumValue.failure.reason})`] : []),
+  ];
+  const sameButCase = [...names.namespaces, ...names.models, ...names.enums].find(
+    (name) => name !== first && name.toLowerCase() === first.toLowerCase(),
   );
-  if (!hasNamespaces) return asField;
   return notOk({
-    ...missing(
-      `"${first}.${second}" resolves neither as namespace.Model (${asModel.failure.reason}) nor as Model.field (${asField.failure.reason})`,
-    ),
+    reason: `"${first}.${second}" resolves neither ${readings.slice(0, -1).join(', ')}${readings.length > 2 ? ',' : ''} nor ${readings.at(-1)}`,
+    fix:
+      sameButCase === undefined
+        ? CHECK_NAMES_FIX
+        : `Names match exactly, including case: write ${sameButCase}, not ${first}.`,
     ...ifDefined('modelWithoutCounterpart', asField.failure.modelWithoutCounterpart),
   });
+}
+
+/** The names a side's first segment can be: a namespace, a model, or an enum of the contract. */
+function containerNames(contract: NamedContract): {
+  readonly namespaces: ReadonlySet<string>;
+  readonly models: ReadonlySet<string>;
+  readonly enums: ReadonlySet<string>;
+} {
+  const namespaces = Object.entries(contract.contract.domain.namespaces);
+  return {
+    namespaces: new Set(namespaces.flatMap(([id]) => (id === UNBOUND_NAMESPACE_ID ? [] : [id]))),
+    models: new Set(namespaces.flatMap(([, namespace]) => Object.keys(namespace.models))),
+    enums: new Set(namespaces.flatMap(([, namespace]) => Object.keys(enumsOf(namespace)))),
+  };
 }
 
 function resolveModelRename(
@@ -633,13 +837,96 @@ function resolveFieldRename(
   return ok({ kind: 'rename', entity: 'field', from: from.coordinate, to: to.coordinate });
 }
 
+function resolveEnumValueRename(
+  state: ResolutionState,
+  statement: ParsedRename,
+  from: EnumValueReading,
+  to: EnumValueReading,
+): Result<ResolvedMigrationStatement, CliStructuredError> {
+  const oldEnum = enumText(state.origin, from.coordinate.namespaceId, from.coordinate.enum);
+  const newEnum = enumText(state.destination, to.coordinate.namespaceId, to.coordinate.enum);
+  const toNamespaceInOrigin =
+    state.originOfRenamedNamespace.get(to.coordinate.namespaceId) ?? to.coordinate.namespaceId;
+  if (
+    from.coordinate.namespaceId !== toNamespaceInOrigin ||
+    from.coordinate.enum !== to.coordinate.enum
+  ) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `The old name is a value of enum "${oldEnum}" and the new name a value of enum "${newEnum}"; a value cannot move between enums.`,
+        `Rename a value within one enum: --${statement.verb} ${statement.from.join('.')}:${statement.from.slice(0, -1).join('.')}.<new name>.`,
+      ),
+    );
+  }
+  const oldMember = from.coordinate.member;
+  const newMember = to.coordinate.member;
+  const fromKey = `${ENUM_VALUE_RENAMES}:${qualifiedEnumValue(from.coordinate)}`;
+  const toKey = `${ENUM_VALUE_RENAMES}:${qualifiedEnumValue(to.coordinate)}`;
+  if (state.renamedFrom.has(fromKey)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already renames "${qualifiedEnumValue(from.coordinate)}".`,
+        REPEATED_NAME_FIX,
+      ),
+    );
+  }
+  if (state.renamedTo.has(toKey)) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `An earlier statement already renames a value to "${qualifiedEnumValue(to.coordinate)}".`,
+        REPEATED_NAME_FIX,
+      ),
+    );
+  }
+  if (oldMember === newMember) {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        `The statement renames enum value "${qualifiedEnumValue(from.coordinate)}" to itself.`,
+        `Leave out --${statement.verb} ${statement.text}.`,
+      ),
+    );
+  }
+  const newInOrigin = from.members.includes(newMember);
+  const oldInDestination = to.members.includes(oldMember);
+  if (newInOrigin && oldInDestination) {
+    return notOk(
+      swapRefusal(statement, 'enumValue', `${newEnum}.${oldMember}`, `${newEnum}.${newMember}`),
+    );
+  }
+  if (newInOrigin) {
+    return notOk(
+      errorStatementUnresolved(
+        statement,
+        `The value "${newMember}" already exists in the origin enum "${oldEnum}", so it cannot be the new name of a value.`,
+        CHECK_NAMES_FIX,
+      ),
+    );
+  }
+  if (oldInDestination) {
+    return notOk(
+      errorStatementUnresolved(
+        statement,
+        `The value "${oldMember}" still exists in the destination enum "${newEnum}", so it was not renamed.`,
+        CHECK_NAMES_FIX,
+      ),
+    );
+  }
+  state.renamedFrom.add(fromKey);
+  state.renamedTo.add(toKey);
+  return ok({ kind: 'rename', entity: 'enumValue', from: from.coordinate, to: to.coordinate });
+}
+
 /**
  * Two names that trade places: each is an old name and a new name, which one plan cannot do.
  * Statements resolve against contracts, so the swap takes three plans through a temporary name.
  */
 function swapRefusal(
   statement: ParsedRename,
-  entity: 'model' | 'field',
+  entity: 'model' | 'field' | 'enumValue',
   first: string,
   second: string,
 ): CliStructuredError {
@@ -647,13 +934,17 @@ function swapRefusal(
   const oldName = statement.from.join('.');
   const newName = statement.to.join('.');
   const temporary =
-    entity === 'field'
-      ? `${statement.to.slice(0, -1).join('.')}.<temporary name>`
-      : '<temporary name>';
+    entity === 'model'
+      ? '<temporary name>'
+      : `${statement.to.slice(0, -1).join('.')}.<temporary name>`;
+  const keptNames =
+    entity === 'enumValue'
+      ? ' If the members keep their names and only their stored values trade places, leave out the statement: the plan asks about each value and names the edits that keep its data.'
+      : '';
   return errorStatementInvalid(
     statement,
     `"${first}" and "${second}" swap names: each is both an old name and a new name, and statements cannot swap names in one plan.`,
-    `Make the swap in three plans. First change the contract so that "${first}" has a temporary name, and plan it with --${verb} ${oldName}:${temporary}. Then give "${second}" the name "${first}", and plan it with --${verb} ${newName}:${oldName}. Then give the temporary name the name "${second}", and plan it with --${verb} ${temporary}:${newName}.`,
+    `Make the swap in three plans. First change the contract so that "${first}" has a temporary name, and plan it with --${verb} ${oldName}:${temporary}. Then give "${second}" the name "${first}", and plan it with --${verb} ${newName}:${oldName}. Then give the temporary name the name "${second}", and plan it with --${verb} ${temporary}:${newName}.${keptNames}`,
   );
 }
 
@@ -881,12 +1172,34 @@ function resolveStatement(
   const from = readSide(state, 'old', statement.from);
   if (!from.ok) return notOk(oldSideRefusal(state, statement, later, from.failure));
   const to = readSide(state, 'new', statement.to);
+  if (!to.ok && from.value.entity === 'enumValue' && statement.to.length === 1) {
+    const enumPart = statement.from.slice(0, -1).join('.');
+    return notOk(
+      errorStatementUnresolved(
+        statement,
+        sentence(to.failure.reason),
+        `Write the new name with its enum: --${statement.verb} ${statement.from.join('.')}:${enumPart}.${statement.to[0]}.`,
+      ),
+    );
+  }
   if (!to.ok) return notOk(unresolved(statement, to.failure));
   if (from.value.entity === 'model' && to.value.entity === 'model') {
     return resolveModelRename(state, statement, from.value.coordinate, to.value.coordinate);
   }
   if (from.value.entity === 'field' && to.value.entity === 'field') {
     return resolveFieldRename(state, statement, from.value, to.value);
+  }
+  if (from.value.entity === 'enumValue' && to.value.entity === 'enumValue') {
+    return resolveEnumValueRename(state, statement, from.value, to.value);
+  }
+  if (from.value.entity === 'enumValue' || to.value.entity === 'enumValue') {
+    return notOk(
+      errorStatementInvalid(
+        statement,
+        'The statement names an enum value on one side and a model or field on the other.',
+        'Rename an enum value to another value of the same enum, as Enum.value:Enum.<new name>.',
+      ),
+    );
   }
   return notOk(
     errorStatementInvalid(
@@ -1036,6 +1349,24 @@ function deleteOfRenamed(
     );
   }
   return undefined;
+}
+
+/**
+ * A delete that names what a rename among `statements` renames, which contradict each other: the
+ * commands check it before they plan, since they hand the deletes to their questions, not here.
+ */
+export function renamedAndDeleted(
+  statements: readonly StatementText[],
+): CliStructuredError | undefined {
+  const renames = statements.flatMap((entry) => {
+    if (entry.verb !== 'rename') return [];
+    const parsed = parseRenameStatement({ ...entry, verb: entry.verb });
+    return parsed.ok ? [parsed.value] : [];
+  });
+  return deleteOfRenamed(
+    statements.filter(({ verb }) => verb === 'delete'),
+    renames,
+  );
 }
 
 /**

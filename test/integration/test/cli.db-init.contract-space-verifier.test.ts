@@ -59,6 +59,7 @@ withTempDir(({ createTempDir }) => {
 
           expect(errorJson).toMatchObject({
             code: 'MIGRATION.CONTRACT_SPACE_VIOLATION',
+            why: expect.stringContaining('`prisma_contract.marker` rows'),
           });
           const meta = errorJson['meta'] as
             | { violations?: Array<{ kind: string; spaceId: string }> }

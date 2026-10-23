@@ -66,25 +66,25 @@ Two limitations to know about:
 
 These are the current names. The Postgres and SQLite rename project will change several of them to the target's own type names and update this table.
 
-The date and time types have two layers ([ADR 279](../architecture%20docs/adrs/ADR%20279%20-%20Convenience%20date%20and%20time%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md)). Each explicit type in the table below names one column type and one kind of value. The convenience types `DateTime`, `Date`, `Time` and `Duration` are named for what a field means, and each becomes one explicit type, chosen by its optional `value` and `column` arguments; `precision` is passed on to the explicit type. The contract stores only the explicit type, so `DateTime(value: temporal)` and `TimestamptzTemporal` emit the same contract.
+The date and time types have two layers ([ADR 279](../architecture%20docs/adrs/ADR%20279%20-%20Convenience%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md)). Each explicit type in the table below names one column type and one kind of value. The convenience types `DateTime`, `Date`, `Time` and `Duration` are named for what a field means, and each becomes one explicit type, chosen by its optional `as` and `storage` arguments: `as` is the value the application reads, and `storage` is the database type that stores it; `precision` is passed on to the explicit type. The contract stores only the explicit type, so `DateTime(as: temporal)` and `TimestamptzTemporal` emit the same contract.
 
-| Convenience type | `value` | `column` | Becomes |
+| Convenience type | `as` | `storage` | Becomes |
 | --- | --- | --- | --- |
-| `DateTime(value?, column?, precision?)` | `jsDate` (default) | `timestamptz` (default) | `TimestamptzJsDate`, precision 3 unless written |
+| `DateTime(as?, storage?, precision?)` | `jsDate` (default) | `timestamptz` (default) | `TimestamptzJsDate`, precision 3 unless written |
 | | `temporal` | `timestamptz` | `TimestamptzTemporal` |
 | | `string` | `timestamptz` | `TimestamptzString` |
 | | `jsDate` | `timestamp` | `TimestampJsDate`, precision 3 unless written |
 | | `temporal` | `timestamp` | `TimestampInstant` |
 | | `string` | `timestamp` | `TimestampString` |
-| `Date(value?, column?)` | `string` (default) | `date` (default) | `DateString` |
+| `Date(as?, storage?)` | `string` (default) | `date` (default) | `DateString` |
 | | `temporal` | `date` | `DateTemporal` |
-| `Time(value?, column?, precision?)` | `string` (default) | `time` (default) | `TimeString` |
+| `Time(as?, storage?, precision?)` | `string` (default) | `time` (default) | `TimeString` |
 | | `temporal` | `time` | `TimeTemporal` |
 | | `string` | `timetz` | `Timetz` |
-| `Duration(value?, column?, precision?)` | `string` (default) | `interval` (default) | `IntervalString` |
+| `Duration(as?, storage?, precision?)` | `string` (default) | `interval` (default) | `IntervalString` |
 | | `parts` | `interval` | `IntervalParts` |
 
-The arguments are written as bare names, by name or in this order: `DateTime(value: string, precision: 6)`, `DateTime(temporal, timestamp)`. A combination the table does not list, such as `Time(value: temporal, column: timetz)` or `Date(value: jsDate)`, is refused at the argument that makes it invalid, naming the values it accepts; so is a `precision` the chosen type does not take. No default needs a global `Temporal`. In a TypeScript contract the helpers take the same arguments in the same order, `type.DateTime('string', undefined, 6)`, and are typed as the explicit type they choose.
+The arguments are written as bare names, by name or in this order: `DateTime(as: string, precision: 6)`, `DateTime(temporal, timestamp)`. A combination the table does not list, such as `Time(as: temporal, storage: timetz)` or `Date(as: jsDate)`, is refused at the argument that makes it invalid, naming the values it accepts; so is a `precision` the chosen type does not take. No default needs a global `Temporal`. In a TypeScript contract the helpers take the same arguments as one object, `type.DateTime({ as: 'string', precision: 6 })`, and are typed as the explicit type they choose; a combination the table does not list, or an argument the chosen type does not take, does not compile.
 
 | PSL name | TS helper | Codec id | Storage type | Application type |
 | --- | --- | --- | --- | --- |
@@ -102,16 +102,16 @@ The arguments are written as bare names, by name or in this order: `DateTime(val
 | `Decimal`, `Numeric(p?, s?)` | `field.decimal()` | `pg/numeric@1` | `numeric` | `string` (decimal text) |
 | `TimestamptzTemporal(p?)` | `field.dateTime()` | `pg/timestamptz-temporal@1` | `timestamptz` | `Temporal.Instant` |
 | `TimestamptzJsDate(p?)` | — | `pg/timestamptz-date@1` | `timestamptz` | `Date` |
-| `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` |
+| `TimestamptzString(p?)` | — | `pg/timestamptz-string@1` | `timestamptz` | `string` (ISO 8601) |
 | `TimestampTemporal(p?)` | — | `pg/timestamp-temporal@1` | `timestamp` | `Temporal.PlainDateTime` |
-| `TimestampString(p?)` | — | `pg/timestamp-string@1` | `timestamp` | `string` |
+| `TimestampString(p?)` | — | `pg/timestamp-string@1` | `timestamp` | `string` (ISO 8601) |
 | `TimestampJsDate(p?)` | — | `pg/timestamp-date@1` | `timestamp` | `Date`, the stored date and time read as UTC |
 | `TimestampInstant(p?)` | — | `pg/timestamp-instant@1` | `timestamp` | `Temporal.Instant`, the stored date and time read as UTC |
 | `DateTemporal` | — | `pg/date-temporal@1` | `date` | `Temporal.PlainDate` |
-| `DateString` | — | `pg/date-string@1` | `date` | `string` |
+| `DateString` | — | `pg/date-string@1` | `date` | `string` (ISO 8601) |
 | `TimeTemporal(p?)` | — | `pg/time-temporal@1` | `time` | `Temporal.PlainTime` |
-| `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` |
-| `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` |
+| `TimeString(p?)` | — | `pg/time-string@1` | `time` | `string` (ISO 8601) |
+| `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` (ISO 8601) |
 | `Uuid` | `field.uuidNative()` | `pg/uuid@1` | `uuid` | `string` |
 | `Inet` | — | `pg/inet@1` | `inet` | `string` |
 | `IntervalParts(p?)` | — | `pg/interval@1` | `interval` | `{ months: number; days: number; micros: bigint }` |
@@ -137,6 +137,10 @@ The tools that write a schema for you write the convenience types, with only the
 On a column read as a `Date` (`TimestamptzJsDate`, `TimestampJsDate`, and `DateTime` at its default), a default with digits below a millisecond is refused: write it with a string or `Temporal` type, or as a `sql` expression. A TypeScript contract cannot write one, because its `.default()` takes a `Date`. `db verify` compares a default on such a column as the application reads it, so it does not see a difference smaller than a millisecond.
 
 `temporal.CreatedAt` is `DateTime @onCreate(now())` and `temporal.UpdatedAt` is `DateTime @onCreate(now()) @onUpdate(now())`. Five types read and write `Temporal` values: `TimestamptzTemporal`, `TimestampTemporal`, `TimestampInstant`, `DateTemporal` and `TimeTemporal`, which the convenience types choose with `value: temporal`. Their TypeScript types come from `temporal-spec`, so a project needs no global `Temporal` declarations to type them. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
+
+A text date or time type reads and writes ISO 8601, the form its data type stores: `TimestamptzString` reads `2024-01-01T00:00:00Z`, the instant in UTC, whatever the session's time zone; `TimestampString` reads `2024-01-01T12:34:56.5`; `DateString` reads `2024-01-01`; `TimeString` reads `12:34:56`; and `Timetz` reads `12:34:56+02:00`, or `12:34:56Z` for a zero offset. A year before 1 or after 9999 is a sign and six digits, as in `-000043-03-15` for 44 BC. `infinity` and `-infinity` read as those words. A value PostgreSQL holds beyond the range of the `Temporal` and `Date` types reads in the same shape: the time `24:00:00`, and a date with a seven-digit year, such as `+5874897-12-31`. A value written in another form PostgreSQL reads is stored as the value it names and reads back in ISO 8601: `2024-01-01 01:00:00+01` written to a `TimestamptzString` column reads back as `2024-01-01T00:00:00Z`; a literal default or enum member must be written in the stored form.
+
+PostgreSQL prints a date or timestamp in the connection's `DateStyle`. The PostgreSQL target requires `DateStyle=ISO` on every session, and the PostgreSQL driver ensures it on every connection it uses: it starts each connection it opens with `DateStyle=ISO` as a startup option, after any `options` the URL or `PGOPTIONS` gives, which a `RESET ALL` keeps; on a `pg.Pool` or `pg.Client` you pass to Prisma, it sets `DateStyle=ISO` on each connection before first use, and again after a connection held for a transaction, an ORM operation or a Supabase role scope is released, one statement each time. When the driver could not ensure it, because a statement set a `DateStyle` other than `ISO` on a connection Prisma uses or a connection pooler dropped the startup option, every date and time codec that reads a date or timestamp, text, `Temporal` or `Date`, fails with `RUNTIME.DATE_STYLE_NOT_ISO`. Behind a connection pooler that refuses startup options, pass Prisma your own `pg.Pool`, which the driver sets with a statement instead; behind one that runs each statement on another server connection, also set `DateStyle=ISO` on the role or database (`ALTER ROLE <role> SET DateStyle = 'ISO'`).
 
 ## SQLite
 

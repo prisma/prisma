@@ -367,6 +367,51 @@ describe('contract emit', () => {
       ).toEqual([]);
     });
 
+    it.each([false, true])(
+      'are reported with the failure of a source that then refused, for json=%s',
+      async (json) => {
+        const refusal = {
+          code: 'CONTRACT.SOURCE_DIAGNOSTIC' as const,
+          severity: 'error' as const,
+          summary:
+            'prisma/schema.prisma:5:3 PSL_DUPLICATE_STORED_NAME: Field "Dog.label" is stored as "name"',
+          nextActions: [],
+          where: { path: 'prisma/schema.prisma', line: 5 },
+          meta: { code: 'PSL_DUPLICATE_STORED_NAME' },
+        };
+        const warningFinding = {
+          ...diagnostic,
+          code: 'CONTRACT.SOURCE_DIAGNOSTIC' as const,
+          severity: 'warn' as const,
+          nextActions: [],
+        };
+        executeContractEmit.mockRejectedValue(
+          new CliStructuredError(
+            'CONTRACT.SOURCE_LOAD_FAILED',
+            'Failed to resolve contract source',
+            {
+              why: 'Source interpretation failed',
+              diagnostics: [refusal, warningFinding],
+            },
+          ),
+        );
+
+        const run = await harness().run(['contract', 'emit', ...(json ? ['--json'] : [])], {
+          cwd: PROJECT_DIR,
+          isTty: { stdout: true, stderr: true },
+        });
+
+        expect(run.exitCode).toBe(2);
+        if (json) {
+          expect(erroredEnvelope(run).diagnostics).toEqual([refusal, warningFinding]);
+        } else {
+          const stderr = stripAnsi(run.stderr);
+          expect(stderr).toContain('PSL_DUPLICATE_STORED_NAME');
+          expect(stderr).toContain('Scalar type "Int" is deprecated');
+        }
+      },
+    );
+
     it('name a file under the working directory by its relative path', async () => {
       executeContractEmit.mockResolvedValue(
         emitResult({ sourceWarnings: [warning(`${PROJECT_DIR}/prisma/schema.prisma`)] }),

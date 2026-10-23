@@ -130,7 +130,7 @@ The same command with `--from 20260707T1005_init` (a migration directory name) s
 
 **Cause.** Prisma 8's temporal codecs return `Temporal.PlainDateTime` (`timestamp`) and `Temporal.Instant` (`timestamptz`); nothing in the client installs a polyfill. A Prisma 7 user expects a `Date`.
 
-**Workaround.** `import 'temporal-polyfill/full/global'` before the client is created (the example did so in `src/db.ts` before the fix), or author the column with the `*String` presets to receive PostgreSQL's text.
+**Workaround.** `import 'temporal-polyfill/full/global'` before the client is created (the example did so in `src/db.ts` before the fix), or author the column with the `*String` presets to receive ISO 8601 text.
 
 **Resolved.** `prisma7Schema(...)` and `contract infer` now write the convenience types' defaults for these columns: `DateTime(column: timestamp)` (`TimestampJsDate(3)`) and `DateTime(precision: p)` (`TimestamptzJsDate(p)`), which read a JavaScript `Date` as Prisma 7 did, and `Date`, `Time(precision: p)` and `Time(column: timetz)`, which read ISO strings. `@updatedAt` writes a `Date`, and the application needs no `Temporal`. A column written by hand as `TimestamptzTemporal(p)`, `TimestampTemporal(p)`, `DateTemporal` or `TimeTemporal(p)`, or as a convenience type with `value: temporal`, still reads as a `Temporal` value and still needs one; the convenience types `DateTime`, `Date` and `Time` need none at their defaults.
 

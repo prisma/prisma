@@ -1,3 +1,5 @@
+import type { SessionSettings } from '@internal/framework-components/components';
+import { SqlQueryError } from '@internal/sql-errors';
 import type {
   PreparedStatementHandle,
   SqlConnection,
@@ -20,13 +22,23 @@ import type {
   QueryConfig,
   QueryResultRow,
 } from 'pg';
-import { Pool } from 'pg';
 import Cursor from 'pg-cursor';
 import { callbackToPromise } from './callback-to-promise';
 import { type DriverRuntimeError, driverError } from './driver-error';
 import { NamedCursor } from './named-cursor';
-import { isAlreadyConnectedError, isPostgresError, normalizePgError } from './normalize-error';
+import {
+  isPostgresError,
+  normalizePgClientError,
+  normalizePgConnectFailure,
+} from './normalize-error';
+import {
+  hasLostConnection,
+  hasStartedConnecting,
+  markClientAbandoned,
+  watchClientLoss,
+} from './pg-client-state';
 import { serverTextTypes } from './server-text-types';
+import { createPgPool, SessionSettingsGuard } from './session-settings';
 
 export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResult<T>;
 
@@ -44,8 +56,18 @@ export type QueryResult<T extends QueryResultRow = QueryResultRow> = PgQueryResu
  */
 export type PostgresBinding =
   | { readonly kind: 'url'; readonly url: string }
-  | { readonly kind: 'pgPool'; readonly pool: PoolType }
-  | { readonly kind: 'pgClient'; readonly client: Client };
+  | {
+      readonly kind: 'pgPool';
+      readonly pool: PoolType;
+      /** Whether the driver ends the pool on close. False for a pool the caller supplied. */
+      readonly ownedByDriver: boolean;
+    }
+  | {
+      readonly kind: 'pgClient';
+      readonly client: Client;
+      /** Whether the driver ends the client on close. False for a client the caller supplied. */
+      readonly ownedByDriver: boolean;
+    };
 
 export interface PostgresCursorOptions {
   readonly batchSize?: number;
@@ -53,7 +75,9 @@ export interface PostgresCursorOptions {
 }
 
 interface PostgresDriverOptions {
-  readonly connect: { client: Client } | { pool: PoolType };
+  readonly connect:
+    | { readonly client: Client; readonly ownedByDriver: boolean }
+    | { readonly pool: PoolType; readonly ownedByDriver: boolean };
   readonly cursor?: PostgresCursorOptions | undefined;
   /**
    * Use server-side prepared statements for `query()` requests with a
@@ -63,6 +87,8 @@ interface PostgresDriverOptions {
    * transaction mode).
    */
   readonly preparedStatements?: boolean | undefined;
+  /** The session settings the stack's target declares, which the driver ensures on every connection it uses. */
+  readonly sessionSettings?: SessionSettings | undefined;
 }
 
 export type PostgresDriverCreateOptions = Omit<PostgresDriverOptions, 'connect'>;
@@ -106,11 +132,12 @@ function buildConnectionOptions(options: PostgresDriverOptions): ConnectionOptio
   };
 }
 
+/** Reads the normalized error that runExecute and runQuery throw; a raw pg error is never stale. */
 function isStalePreparedStatementError(error: unknown): boolean {
-  if (!(error instanceof Error) || !('code' in error) || typeof error.code !== 'string') {
+  if (!SqlQueryError.is(error)) {
     return false;
   }
-  const code = error.code;
+  const code = error.sqlState;
   // 26000 — invalid_sql_statement_name (server lost the named statement,
   //         e.g. after DEALLOCATE ALL).
   // 0A000 — cached plan invalidated by DDL (row shape changed).
@@ -164,35 +191,29 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     this.options = options;
   }
 
+  // runQuery and runExecute normalize every error from the client, and acquireClient throws only
+  // normalized or driver errors, so nothing here normalizes again.
   async *query<Row = Record<string, unknown>>(request: SqlExecuteRequest): AsyncIterable<Row> {
-    try {
-      const preparedStatementHandle = request.preparedStatementHandle;
-      if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
-        yield* this.runQuery<Row>(request);
-        return;
-      }
-      const name = this.preparedStatementName(preparedStatementHandle);
-      yield* this.withStaleHandleStreamRetry<Row>(preparedStatementHandle, name, (name) =>
-        this.runQuery<Row>(request, name),
-      );
-    } catch (error) {
-      throw normalizePgError(error);
+    const preparedStatementHandle = request.preparedStatementHandle;
+    if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
+      yield* this.runQuery<Row>(request);
+      return;
     }
+    const name = this.preparedStatementName(preparedStatementHandle);
+    yield* this.withStaleHandleStreamRetry<Row>(preparedStatementHandle, name, (name) =>
+      this.runQuery<Row>(request, name),
+    );
   }
 
   async execute(request: SqlExecuteRequest): Promise<SqlStatementStats> {
-    try {
-      const preparedStatementHandle = request.preparedStatementHandle;
-      if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
-        return await this.runExecute(request);
-      }
-      const name = this.preparedStatementName(preparedStatementHandle);
-      return await this.withStaleHandleRetry(preparedStatementHandle, name, (name) =>
-        this.runExecute(request, name),
-      );
-    } catch (error) {
-      throw normalizePgError(error);
+    const preparedStatementHandle = request.preparedStatementHandle;
+    if (preparedStatementHandle === undefined || !this.options.preparedStatementsEnabled) {
+      return await this.runExecute(request);
     }
+    const name = this.preparedStatementName(preparedStatementHandle);
+    return await this.withStaleHandleRetry(preparedStatementHandle, name, (name) =>
+      this.runExecute(request, name),
+    );
   }
 
   private preparedStatementName(handle: PreparedStatementHandle): string {
@@ -277,6 +298,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       } finally {
         releaseLock();
       }
+    } catch (error) {
+      throw normalizePgClientError(client, error);
     } finally {
       await this.releaseClient(client);
     }
@@ -291,8 +314,6 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
     return false;
   }
 
-  // Errors propagate as raw pg errors so the caller can read SQLSTATE before
-  // normalising (the prepared-statement retry layer needs the original code).
   private async *runQuery<Row>(request: SqlExecuteRequest, name?: string): AsyncIterable<Row> {
     const client = await this.acquireClient();
     let rows: ReadonlyArray<Record<string, unknown>>;
@@ -315,8 +336,12 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
           return;
         } catch (cursorError) {
           // Non-pg cursor-specific errors fall through to the buffered path;
-          // real pg errors propagate.
-          if (!(cursorError instanceof Error) || isPostgresError(cursorError)) {
+          // real pg errors and errors from a lost connection propagate.
+          if (
+            hasLostConnection(client) ||
+            !(cursorError instanceof Error) ||
+            isPostgresError(cursorError)
+          ) {
             throw cursorError;
           }
         } finally {
@@ -325,6 +350,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       }
 
       rows = await this.executeBuffered(client, request.sql, request.params, name);
+    } catch (error) {
+      throw normalizePgClientError(client, error);
     } finally {
       await this.releaseClient(client);
     }
@@ -343,7 +370,7 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
       try {
         const result = await client
           .query(text, request.params === undefined ? undefined : [...request.params])
-          .catch(rethrowNormalizedError);
+          .catch(rethrowClientError(client));
         return {
           rows: blindCast<ReadonlyArray<Record<string, unknown>>, 'pg does not type query rows'>(
             result.rows,
@@ -487,6 +514,8 @@ abstract class PostgresQueryable<C extends PoolClient | Client = PoolClient | Cl
  */
 interface SharedTransactionState {
   open: boolean;
+  /** A BEGIN the driver sent has not been ended by a COMMIT or ROLLBACK that succeeded. */
+  unfinishedOnServer: boolean;
 }
 
 class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection {
@@ -506,7 +535,7 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
     this.#connection = connection;
     this.#onRelease = onRelease;
     this.#onDestroy = onDestroy;
-    this.#txState = txState ?? { open: false };
+    this.#txState = txState ?? { open: false, unfinishedOnServer: false };
   }
 
   override acquireClient(): Promise<PoolClient | Client> {
@@ -524,14 +553,22 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
   async beginTransaction(): Promise<SqlTransaction> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection.query('BEGIN').catch(rethrowNormalizedError);
+      await this.#connection.query('BEGIN').catch(rethrowClientError(this.#connection));
     } finally {
       releaseLock();
     }
     this.#txState.open = true;
-    return new PostgresTransactionImpl(this.#connection, this.options, () => {
-      this.#txState.open = false;
-    });
+    this.#txState.unfinishedOnServer = true;
+    return new PostgresTransactionImpl(
+      this.#connection,
+      this.options,
+      () => {
+        this.#txState.open = false;
+      },
+      () => {
+        this.#txState.unfinishedOnServer = false;
+      },
+    );
   }
 
   async release(): Promise<void> {
@@ -575,11 +612,18 @@ class PostgresConnectionImpl extends PostgresQueryable implements SqlConnection 
 class PostgresTransactionImpl extends PostgresQueryable implements SqlTransaction {
   #connection: PoolClient | Client;
   #onSettled: (() => void) | undefined;
+  readonly #onEnded: () => void;
 
-  constructor(connection: PoolClient | Client, options: ConnectionOptions, onSettled?: () => void) {
+  constructor(
+    connection: PoolClient | Client,
+    options: ConnectionOptions,
+    onSettled: () => void,
+    onEnded: () => void,
+  ) {
     super(options);
     this.#connection = connection;
     this.#onSettled = onSettled;
+    this.#onEnded = onEnded;
   }
 
   override acquireClient(): Promise<PoolClient | Client> {
@@ -608,7 +652,8 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   async commit(): Promise<void> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection.query('COMMIT').catch(rethrowNormalizedError);
+      await this.#connection.query('COMMIT').catch(rethrowClientError(this.#connection));
+      this.#onEnded();
     } finally {
       releaseLock();
       this.#settle();
@@ -618,7 +663,8 @@ class PostgresTransactionImpl extends PostgresQueryable implements SqlTransactio
   async rollback(): Promise<void> {
     const releaseLock = await acquireClientQueryLock(this.#connection);
     try {
-      await this.#connection.query('ROLLBACK').catch(rethrowNormalizedError);
+      await this.#connection.query('ROLLBACK').catch(rethrowClientError(this.#connection));
+      this.#onEnded();
     } finally {
       releaseLock();
       this.#settle();
@@ -631,11 +677,19 @@ class PostgresPoolDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly pool: PoolType;
+  readonly #sessionSettings: SessionSettingsGuard;
+  readonly #ownedByDriver: boolean;
   #closed = false;
 
-  constructor(options: PostgresDriverOptions & { connect: { pool: PoolType } }) {
+  constructor(
+    options: PostgresDriverOptions & {
+      connect: { readonly pool: PoolType; readonly ownedByDriver: boolean };
+    },
+  ) {
     super(buildConnectionOptions(options));
     this.pool = options.connect.pool;
+    this.#sessionSettings = new SessionSettingsGuard(options.sessionSettings ?? {}, this.pool);
+    this.#ownedByDriver = options.connect.ownedByDriver;
   }
 
   get state(): SqlDriverState {
@@ -648,7 +702,9 @@ class PostgresPoolDriverImpl
 
   async acquireConnection(): Promise<SqlConnection> {
     const client = await this.acquireClient();
-    return new PostgresConnectionImpl(client, this.options);
+    return new PostgresConnectionImpl(client, this.options, () =>
+      this.#sessionSettings.forget(client),
+    );
   }
 
   async close(): Promise<void> {
@@ -656,7 +712,9 @@ class PostgresPoolDriverImpl
       return;
     }
     this.#closed = true;
-    await this.pool.end();
+    if (this.#ownedByDriver) {
+      await this.pool.end();
+    }
   }
 
   async acquireClient(): Promise<PoolClient> {
@@ -664,7 +722,21 @@ class PostgresPoolDriverImpl
     // out, so a connection error during a held connection, transaction, or
     // cursor emits on the client itself; without a listener that kills the
     // process.
-    return suppressIdleConnectionErrors(await this.pool.connect());
+    let pooled: PoolClient;
+    try {
+      pooled = await this.pool.connect();
+    } catch (error) {
+      throw normalizePgConnectFailure(error);
+    }
+    const client = watchClientLoss(suppressIdleConnectionErrors(pooled));
+    try {
+      await ensureSessionSettings(this.#sessionSettings, client);
+    } catch (error) {
+      const normalized = normalizePgClientError(client, error);
+      client.release(true);
+      throw normalized;
+    }
+    return client;
   }
 
   async releaseClient(client: PoolClient): Promise<void> {
@@ -677,25 +749,30 @@ class PostgresDirectDriverImpl
   implements SqlDriver<PostgresBinding>
 {
   private readonly directClient: Client;
+  readonly #sessionSettings: SessionSettingsGuard;
+  readonly #ownedByDriver: boolean;
   readonly #connectionMutex = new AsyncMutex();
   #closed = false;
   #connected = false;
   #connectPromise: Promise<void> | undefined;
+  #connectFailure: Error | undefined;
   // Shared with every connection this driver hands out: one socket means a
   // driver-level query must know when a connection's transaction is open, or
   // the cursor portal-protection wrap would COMMIT the caller's transaction.
-  readonly #txState: SharedTransactionState = { open: false };
+  readonly #txState: SharedTransactionState = { open: false, unfinishedOnServer: false };
 
-  constructor(options: PostgresDriverOptions & { connect: { client: Client } }) {
+  constructor(
+    options: PostgresDriverOptions & {
+      connect: { readonly client: Client; readonly ownedByDriver: boolean };
+    },
+  ) {
     super(buildConnectionOptions(options));
-    this.directClient = options.connect.client;
-    // A pg.Client cannot be reused after its connection dies, so mark the
-    // driver closed and let acquireClient reject with a clear error instead
-    // of handing out the dead client.
-    this.directClient.on('error', () => {
-      this.#closed = true;
-      this.#connected = false;
-    });
+    this.directClient = watchClientLoss(options.connect.client);
+    this.#ownedByDriver = options.connect.ownedByDriver;
+    this.#sessionSettings = new SessionSettingsGuard(
+      options.sessionSettings ?? {},
+      this.directClient,
+    );
   }
 
   protected override inExplicitTransaction(): boolean {
@@ -703,7 +780,7 @@ class PostgresDirectDriverImpl
   }
 
   get state(): SqlDriverState {
-    return this.#closed ? 'closed' : 'connected';
+    return this.#closed || hasLostConnection(this.directClient) ? 'closed' : 'connected';
   }
 
   // Bound drivers are created via createBoundDriverFromBinding with client already
@@ -717,7 +794,10 @@ class PostgresDirectDriverImpl
       return new PostgresConnectionImpl(
         client,
         this.options,
-        releaseLease,
+        () => {
+          this.#sessionSettings.forget(client);
+          releaseLease();
+        },
         // A direct driver has a single underlying socket, so a destroyed
         // connection means the driver itself is no longer usable. Tear down
         // the driver while still holding the lease so that any
@@ -756,6 +836,15 @@ class PostgresDirectDriverImpl
       return;
     }
     this.#closed = true;
+    if (!this.#ownedByDriver) {
+      if (!options.waitForStatement) this.#giveUpSuppliedClient();
+      return;
+    }
+    if (this.#connectFailure !== undefined) {
+      // Under pg-cloudflare, end() on a client whose connect failed never settles.
+      void this.directClient.end().catch(() => undefined);
+      return;
+    }
     const releaseQueryLock = options.waitForStatement
       ? await acquireClientQueryLock(this.directClient)
       : () => {};
@@ -767,36 +856,63 @@ class PostgresDirectDriverImpl
     this.#connected = false;
   }
 
+  // The caller owns this client, so the driver does not end it. It rolls back a transaction it may
+  // have left open, without waiting, and records the client as one no driver may use again.
+  #giveUpSuppliedClient(): void {
+    markClientAbandoned(this.directClient);
+    if (this.#txState.unfinishedOnServer) {
+      void this.#rollbackUnderQueryLock().catch(() => undefined);
+    }
+  }
+
+  async #rollbackUnderQueryLock(): Promise<void> {
+    const releaseLock = await acquireClientQueryLock(this.directClient);
+    try {
+      await this.directClient.query('ROLLBACK');
+    } finally {
+      releaseLock();
+    }
+  }
+
+  // A pg.Client cannot be reused after its connection dies or a connect fails, so the driver
+  // rejects instead of handing out the dead client.
   async acquireClient(): Promise<Client> {
-    if (this.#closed) {
+    if (this.#connectFailure !== undefined) {
+      throw this.#connectFailure;
+    }
+    if (this.#closed || hasLostConnection(this.directClient)) {
       throw driverError(
         'DRIVER.NOT_CONNECTED',
         'Postgres connection lost or closed. Create a new client to reconnect.',
       );
     }
-    if (this.#connected) {
-      return this.directClient;
-    }
-    if (this.#connectPromise !== undefined) {
-      await this.#connectPromise;
-      return this.directClient;
-    }
-
-    this.#connectPromise = (async () => {
-      try {
-        await this.directClient.connect();
-      } catch (error: unknown) {
-        if (!isAlreadyConnectedError(error)) {
-          throw error;
-        }
-      } finally {
-        this.#connectPromise = undefined;
-      }
-      this.#connected = true;
-    })();
-    await this.#connectPromise;
-
+    if (!this.#connected) await this.#connectDirectClient();
+    await ensureSessionSettings(this.#sessionSettings, this.directClient).catch(
+      rethrowClientError(this.directClient),
+    );
     return this.directClient;
+  }
+
+  async #connectDirectClient(): Promise<void> {
+    if (this.#connectPromise === undefined) {
+      if (hasStartedConnecting(this.directClient)) {
+        this.#connected = true;
+        return;
+      }
+      this.#connectPromise = this.#connectClient();
+    }
+    await this.#connectPromise;
+  }
+
+  async #connectClient(): Promise<void> {
+    try {
+      await this.directClient.connect();
+    } catch (error: unknown) {
+      this.#connectFailure = normalizePgConnectFailure(error);
+      this.#connectPromise = undefined;
+      throw this.#connectFailure;
+    }
+    this.#connected = true;
   }
 
   async releaseClient(_client: Client): Promise<void> {}
@@ -805,36 +921,69 @@ class PostgresDirectDriverImpl
 export function createBoundDriverFromBinding(
   binding: PostgresBinding,
   cursorOpts: PostgresDriverCreateOptions['cursor'],
-  extraOpts?: Pick<PostgresDriverCreateOptions, 'preparedStatements'>,
+  extraOpts?: Pick<PostgresDriverCreateOptions, 'preparedStatements' | 'sessionSettings'>,
 ): SqlDriver<PostgresBinding> {
   const preparedStatements = extraOpts?.preparedStatements;
+  const sessionSettings = extraOpts?.sessionSettings;
   switch (binding.kind) {
     case 'url': {
       const pool = suppressIdleConnectionErrors(
-        new Pool({
-          connectionString: binding.url,
-          connectionTimeoutMillis: 20_000,
-          idleTimeoutMillis: 30_000,
-        }),
+        createPgPool(
+          {
+            connectionString: binding.url,
+            connectionTimeoutMillis: 20_000,
+            idleTimeoutMillis: 30_000,
+          },
+          sessionSettings ?? {},
+        ),
       );
       return new PostgresPoolDriverImpl({
-        connect: { pool },
+        connect: { pool, ownedByDriver: true },
         cursor: cursorOpts,
         preparedStatements,
+        sessionSettings,
       });
     }
     case 'pgPool':
       return new PostgresPoolDriverImpl({
-        connect: { pool: suppressIdleConnectionErrors(binding.pool) },
+        connect: {
+          pool: suppressIdleConnectionErrors(binding.pool),
+          ownedByDriver: binding.ownedByDriver,
+        },
         cursor: cursorOpts,
         preparedStatements,
+        sessionSettings,
       });
     case 'pgClient':
+      if (hasLostConnection(binding.client)) {
+        throw driverError(
+          'DRIVER.NOT_CONNECTED',
+          'This pg client lost its connection or was given up by an earlier driver. Create a new client to reconnect.',
+        );
+      }
       return new PostgresDirectDriverImpl({
-        connect: { client: suppressIdleConnectionErrors(binding.client) },
+        connect: {
+          client: suppressIdleConnectionErrors(binding.client),
+          ownedByDriver: binding.ownedByDriver,
+        },
         cursor: cursorOpts,
         preparedStatements,
+        sessionSettings,
       });
+  }
+}
+
+/** Ensures the session settings on a client the driver is about to use, holding the client's query lock while it does. */
+async function ensureSessionSettings(
+  guard: SessionSettingsGuard,
+  client: ClientBase,
+): Promise<void> {
+  if (!guard.needs(client)) return;
+  const releaseLock = await acquireClientQueryLock(client);
+  try {
+    await guard.ensure(client);
+  } finally {
+    releaseLock();
   }
 }
 
@@ -848,15 +997,17 @@ function closeCursor(cursor: Cursor<unknown>): Promise<void> {
   return callbackToPromise((cb) => cursor.close(cb));
 }
 
-function rethrowNormalizedError(error: unknown): never {
-  throw normalizePgError(error);
+function rethrowClientError(client: PoolClient | Client): (error: unknown) => never {
+  return (error) => {
+    throw normalizePgClientError(client, error);
+  };
 }
 
 // ADR 210 § Stale-handle retry: a re-prepare that fails again surfaces a
 // stable code, carrying the driver error as `cause`. ADR 239 governs the
 // namespace — `DRIVER` covers driver transport and error normalization.
 function prepareFailedError(retryError: unknown, handle: string): DriverRuntimeError {
-  const cause = normalizePgError(retryError);
+  const cause = retryError instanceof Error ? retryError : new Error(String(retryError));
   return Object.assign(
     driverError(
       'DRIVER.PREPARE_FAILED',

@@ -2,6 +2,7 @@ import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
   resolveAuthoringTypeChoice,
+  typeChoiceArgumentsFromObject,
   typeConstructorLookup,
 } from '../src/shared/authoring-type-choice';
 import {
@@ -23,10 +24,10 @@ const namespace = {
   Moment: {
     kind: 'typeChoice',
     args: [
-      { kind: 'option', name: 'value', values: ['date', 'text'], default: 'date', optional: true },
+      { kind: 'option', name: 'as', values: ['date', 'text'], default: 'date', optional: true },
       {
         kind: 'option',
-        name: 'column',
+        name: 'storage',
         values: ['wide', 'narrow'],
         default: 'wide',
         optional: true,
@@ -34,9 +35,9 @@ const namespace = {
       precision,
     ],
     choices: [
-      { when: { value: 'date', column: 'wide' }, type: 'WideDate', defaults: { precision: 3 } },
-      { when: { value: 'text', column: 'wide' }, type: 'WideText' },
-      { when: { value: 'date', column: 'narrow' }, type: 'NarrowDate' },
+      { when: { as: 'date', storage: 'wide' }, type: 'WideDate', defaults: { precision: 3 } },
+      { when: { as: 'text', storage: 'wide' }, type: 'WideText' },
+      { when: { as: 'date', storage: 'narrow' }, type: 'NarrowDate' },
     ],
   },
   WideDate: {
@@ -96,15 +97,14 @@ describe('resolveAuthoringTypeChoice', () => {
 
   it('refuses a value the option does not list, at that argument, naming its values', () => {
     expect(refusal(['bogus'])).toEqual({
-      message: 'Argument "value" of Moment is bogus; write one of: date, text.',
+      message: 'Argument "as" of Moment is bogus; write one of: date, text.',
       details: { helperPath: 'Moment', argumentIndex: 0 },
     });
   });
 
   it('refuses an unlisted combination at the argument that makes it invalid, naming what it accepts', () => {
     expect(refusal(['text', 'narrow'])).toEqual({
-      message:
-        'Argument "column" of Moment cannot be narrow when value is text; write one of: wide.',
+      message: 'Argument "storage" of Moment cannot be narrow with as: text; write one of: wide.',
       details: { helperPath: 'Moment', argumentIndex: 1 },
     });
   });
@@ -112,9 +112,43 @@ describe('resolveAuthoringTypeChoice', () => {
   it('refuses a passed-on argument the chosen type does not take', () => {
     expect(refusal([undefined, 'narrow', 6])).toEqual({
       message:
-        'Argument "precision" of Moment does not apply to NarrowDate, the type that value: date, column: narrow chooses.',
+        'Argument "precision" of Moment does not apply to NarrowDate, the type that as: date, storage: narrow chooses.',
       details: { helperPath: 'Moment', argumentIndex: 2 },
     });
+  });
+});
+
+describe('typeChoiceArgumentsFromObject', () => {
+  const fromObject = (written: readonly unknown[]) =>
+    typeChoiceArgumentsFromObject('Moment', namespace.Moment, written);
+
+  it('gives the values by the argument positions of the choice, undefined where left out', () => {
+    expect({
+      none: fromObject([]),
+      empty: fromObject([{}]),
+      some: fromObject([{ precision: 6, as: 'text' }]),
+    }).toEqual({
+      none: [undefined, undefined, undefined],
+      empty: [undefined, undefined, undefined],
+      some: ['text', undefined, 6],
+    });
+  });
+
+  it.each([
+    ['positional arguments', ['text', 'wide']],
+    ['a string', ['text']],
+    ['a list', [['text']]],
+    ['null', [null]],
+  ])('refuses %s in place of one object', (_, written) => {
+    expect(() => fromObject(written)).toThrow(
+      "Moment takes its arguments as one object with the keys as, storage and precision, such as Moment({ as: 'date' }).",
+    );
+  });
+
+  it('refuses a key the choice has no argument for', () => {
+    expect(() => fromObject([{ as: 'text', value: 'text' }])).toThrow(
+      'Moment has no argument "value"; its arguments are as, storage and precision.',
+    );
   });
 });
 

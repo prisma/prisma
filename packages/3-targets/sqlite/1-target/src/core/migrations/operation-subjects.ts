@@ -8,7 +8,15 @@ import {
 } from '@internal/family-sql/control';
 import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { DropColumnCall, DropTableCall, RawSqlCall, RecreateTableCall } from './op-factory-call';
+import { ifDefined } from '@internal/utils/defined';
+import {
+  DropColumnCall,
+  DropTableCall,
+  RawSqlCall,
+  RecreateTableCall,
+  RemoveStoredValueCall,
+} from './op-factory-call';
+import type { StoredValueSubject } from './stored-value-calls';
 
 type LostStorage = CallSubjects['dataLoss'][number];
 
@@ -70,6 +78,7 @@ function temporaryValuesOf(call: RecreateTableCall): CallSubjects['temporaryValu
 export function sqliteCallSubjects(
   calls: readonly OpFactoryCall[],
   fieldEvents: ReadonlyMap<OpFactoryCall, FieldEventCall>,
+  storedValues: ReadonlyMap<OpFactoryCall, StoredValueSubject> = new Map(),
 ): readonly CallSubjects[] {
   const lostColumns = new Set<string>();
   const unknownNames = unknownCallNames(
@@ -80,6 +89,7 @@ export function sqliteCallSubjects(
         !(call instanceof DropColumnCall) &&
         !(call instanceof DropTableCall) &&
         !(call instanceof RawSqlCall) &&
+        !(call instanceof RemoveStoredValueCall) &&
         !fieldEvents.has(call),
     ),
   );
@@ -107,6 +117,22 @@ export function sqliteCallSubjects(
         operationCount,
         label,
         dataLoss: alreadyLost ? [] : [lost(columnTarget(call.tableName, call.columnName))],
+        accessChanges: [],
+        temporaryValues: [],
+      };
+    }
+    if (call instanceof RemoveStoredValueCall) {
+      const subject = storedValues.get(call);
+      return {
+        operationCount,
+        label,
+        dataLoss: [
+          {
+            ...lost(columnTarget(call.tableName, call.columnName)),
+            ...ifDefined('enumValue', subject?.enumValue),
+            ...ifDefined('keepDataEdit', subject?.keepDataEdit),
+          },
+        ],
         accessChanges: [],
         temporaryValues: [],
       };

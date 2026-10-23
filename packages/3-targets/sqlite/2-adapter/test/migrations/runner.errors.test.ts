@@ -183,7 +183,7 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'test_table' },
+            details: { objectType: 'table', name: 'test_table' },
           },
           precheck: [],
           execute: [
@@ -252,7 +252,7 @@ describe('SqliteMigrationRunner - Error Scenarios', { timeout: timeouts.database
           label: 'Insert into nonexistent table',
           summary: 'SQL references a table that does not exist',
           operationClass: 'additive',
-          target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'user' } },
+          target: { id: 'sqlite', details: { objectType: 'table', name: 'user' } },
           precheck: [],
           execute: [
             {
@@ -353,7 +353,7 @@ describe('SqliteMigrationRunner - Policy Violations', () => {
           operationClass: 'destructive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'something' },
+            details: { objectType: 'table', name: 'something' },
           },
           precheck: [],
           execute: [{ description: 'drop table', sql: 'DROP TABLE IF EXISTS "something"' }],

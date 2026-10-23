@@ -26,6 +26,7 @@ import {
   pgTimestamptz,
   pgTimestamptzStoredText,
 } from './data-types';
+import { requireIsoDateStyle } from './date-time-wire-text';
 import {
   EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS,
   utcTimestampText,
@@ -93,7 +94,10 @@ function storedInstant(identity: DateCodecIdentity, text: string): string | unde
 }
 
 function decodeDate(identity: DateCodecIdentity, wire: unknown): Date {
-  const instant = typeof wire === 'string' ? storedInstant(identity, wire) : undefined;
+  const instant =
+    typeof wire === 'string'
+      ? storedInstant(identity, requireIsoDateStyle(identity.codecId, wire))
+      : undefined;
   const date = instant === undefined ? undefined : new Date(instant);
   if (date === undefined || !isRepresentable(date)) throw invalidDate(identity);
   return date;

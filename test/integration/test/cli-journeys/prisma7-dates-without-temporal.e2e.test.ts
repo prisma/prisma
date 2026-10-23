@@ -131,7 +131,7 @@ const DATE_COLUMN_CODECS = {
   opensAt: 'pg/time-string@1',
 };
 
-/** The written values, the timestamps as the JSON text of the JavaScript `Date` the application writes and reads, the others in the text PostgreSQL prints, so a read returns each unchanged. */
+/** The written values, the timestamps as the JSON text of the JavaScript `Date` the application writes and reads, the others in their ISO 8601 stored form, so a read returns each unchanged. */
 const WRITTEN = {
   happensAt: '2024-01-15T10:00:00.123Z',
   day: '2024-01-15',
@@ -163,10 +163,10 @@ function output(run: EngineCommandResult): string {
   return `${stripAnsi(run.stderr)}\n${stripAnsi(run.stdout)}`;
 }
 
-/** The instant of a `Date`'s JSON text, or of the text PostgreSQL prints for a `timestamp`, read as UTC. */
+/** The instant of a `Date`'s JSON text, or of the ISO 8601 text of a `timestamp`, read as UTC. */
 function utcMillis(timestampText: string): number {
   return new Date(
-    timestampText.endsWith('Z') ? timestampText : `${timestampText.replace(' ', 'T')}Z`,
+    timestampText.endsWith('Z') ? timestampText : `${timestampText}Z`,
   ).getTime();
 }
 

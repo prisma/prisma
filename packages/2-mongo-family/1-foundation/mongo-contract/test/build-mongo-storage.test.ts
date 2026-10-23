@@ -11,6 +11,7 @@ const userIndex = new MongoIndex({ keys: [{ field: 'email', direction: 1 }], uni
 describe('buildMongoStorage', () => {
   it('builds the unbound namespace from collections and value sets', () => {
     const storage = buildMongoStorage({
+      namespaceId: UNBOUND_NAMESPACE_ID,
       collections: { users: { indexes: [userIndex] }, posts: {} },
       valueSets: { Role: { kind: 'valueSet', values: ['admin'] } },
     });
@@ -21,12 +22,17 @@ describe('buildMongoStorage', () => {
   });
 
   it('leaves out the value set entry when there are no value sets', () => {
-    const storage = buildMongoStorage({ collections: { posts: {} }, valueSets: {} });
+    const storage = buildMongoStorage({
+      namespaceId: UNBOUND_NAMESPACE_ID,
+      collections: { posts: {} },
+      valueSets: {},
+    });
     expect(storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries).not.toHaveProperty('valueSet');
   });
 
   it('hashes the constructed entries with the Mongo canonicalization hooks', () => {
     const storage = buildMongoStorage({
+      namespaceId: UNBOUND_NAMESPACE_ID,
       collections: { users: { indexes: [userIndex] } },
       valueSets: { Role: { kind: 'valueSet', values: ['admin'] } },
     });
@@ -50,10 +56,15 @@ describe('buildMongoStorage', () => {
 
   it('gives a different hash when an index changes', () => {
     const withIndex = buildMongoStorage({
+      namespaceId: UNBOUND_NAMESPACE_ID,
       collections: { users: { indexes: [userIndex] } },
       valueSets: {},
     });
-    const withoutIndex = buildMongoStorage({ collections: { users: {} }, valueSets: {} });
+    const withoutIndex = buildMongoStorage({
+      namespaceId: UNBOUND_NAMESPACE_ID,
+      collections: { users: {} },
+      valueSets: {},
+    });
     expect(withIndex.storageHash).not.toBe(withoutIndex.storageHash);
   });
 });

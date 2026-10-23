@@ -51,7 +51,7 @@ describe('RenameTableCall (sqlite)', () => {
       label: 'Rename table profile to account',
       summary: 'Renames table profile to account, keeping its rows',
       operationClass: 'widening',
-      target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'account' } },
+      target: { id: 'sqlite', details: { objectType: 'table', name: 'account' } },
       precheck: [
         {
           description: 'ensure table "profile" exists',

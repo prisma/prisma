@@ -8,6 +8,7 @@ import {
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
 } from './codec-ids';
 import { pgTimestampStoredText } from './data-types';
+import { requireIsoDateStyle } from './date-time-wire-text';
 import {
   errorTemporalNonIsoCalendar,
   errorTemporalUnrepresentable,
@@ -17,6 +18,9 @@ import { isoYearText, postgresYearText } from './postgres-year-text';
 import { requireTemporal, type TemporalImplementation } from './require-temporal';
 
 const POSTGRES_TEMPORAL_SENTINELS: ReadonlySet<string> = new Set(['infinity', '-infinity']);
+
+/** The Temporal types whose text PostgreSQL prints the same in every DateStyle, because it holds no date. Every other Temporal codec reads a date, so its text is refused unless PostgreSQL printed it under DateStyle ISO. */
+const TEMPORAL_TAGS_WITHOUT_A_DATE: ReadonlySet<string> = new Set(['Temporal.PlainTime']);
 
 interface TemporalCodecIdentity {
   readonly codecId: string;
@@ -30,6 +34,9 @@ function decodeTemporalText<T>(
   parse: (temporal: TemporalImplementation, text: string) => T,
 ): T {
   const temporal = requireTemporal({ codecId: identity.codecId, operation: 'decode' });
+  if (!TEMPORAL_TAGS_WITHOUT_A_DATE.has(identity.temporalTag)) {
+    requireIsoDateStyle(identity.codecId, wire);
+  }
   if (POSTGRES_TEMPORAL_SENTINELS.has(wire)) {
     throw errorTemporalUnrepresentable({
       ...identity,

@@ -99,7 +99,7 @@ function buildCreateTableOps(): readonly MigrationPlanOperation[] {
       id: 'table.user',
       label: 'Create user table',
       operationClass: 'additive',
-      target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'user' } },
+      target: { id: 'sqlite', details: { objectType: 'table', name: 'user' } },
       precheck: [],
       execute: [
         {
@@ -118,7 +118,7 @@ function buildAddColumnOps(): readonly MigrationPlanOperation[] {
       id: 'column.user.name',
       label: 'Add name column to user',
       operationClass: 'additive',
-      target: { id: 'sqlite', details: { schema: 'main', objectType: 'table', name: 'user' } },
+      target: { id: 'sqlite', details: { objectType: 'table', name: 'user' } },
       precheck: [],
       execute: [
         {

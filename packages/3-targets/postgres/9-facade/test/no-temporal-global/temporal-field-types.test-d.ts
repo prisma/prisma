@@ -58,17 +58,17 @@ const convenience = defineContract({}, ({ type, field, model }) => ({
       fields: {
         id: field.id.uuidv4String(),
         paidAt: field.column(type.DateTime()),
-        settledAt: field.column(type.DateTime('temporal')),
-        textAt: field.column(type.DateTime('string', undefined, 6)),
-        legacyAt: field.column(type.DateTime(undefined, 'timestamp')),
-        utcAt: field.column(type.DateTime('temporal', 'timestamp')),
+        settledAt: field.column(type.DateTime({ as: 'temporal' })),
+        textAt: field.column(type.DateTime({ as: 'string', precision: 6 })),
+        legacyAt: field.column(type.DateTime({ storage: 'timestamp' })),
+        utcAt: field.column(type.DateTime({ as: 'temporal', storage: 'timestamp' })),
         shipBy: field.column(type.Date()),
-        shipOn: field.column(type.Date('temporal')),
-        opensAt: field.column(type.Time(undefined, undefined, 0)),
-        opensAtT: field.column(type.Time('temporal')),
-        localAt: field.column(type.Time(undefined, 'timetz')),
+        shipOn: field.column(type.Date({ as: 'temporal' })),
+        opensAt: field.column(type.Time({ precision: 0 })),
+        opensAtT: field.column(type.Time({ as: 'temporal' })),
+        localAt: field.column(type.Time({ storage: 'timetz' })),
         period: field.column(type.Duration()),
-        parts: field.column(type.Duration('parts')),
+        parts: field.column(type.Duration({ as: 'parts' })),
         textAtExplicit: field.column(type.TimestamptzString(6)),
         opensAtExplicit: field.column(type.TimeString(0)),
         localAtExplicit: field.column(type.Timetz()),
@@ -103,9 +103,15 @@ test('a convenience type helper refuses a combination with no explicit type', ()
         fields: {
           id: field.id.uuidv4String(),
           // @ts-expect-error Temporal.PlainTime cannot hold a timetz offset
-          at: field.column(type.Time('temporal', 'timetz')),
+          at: field.column(type.Time({ as: 'temporal', storage: 'timetz' })),
           // @ts-expect-error a calendar date is never a JavaScript Date
-          day: field.column(type.Date('jsDate')),
+          day: field.column(type.Date({ as: 'jsDate' })),
+          // @ts-expect-error a calendar date has no precision
+          dayAt: field.column(type.Date({ precision: 3 })),
+          // @ts-expect-error the options are as and storage
+          stamp: field.column(type.DateTime({ value: 'string' })),
+          // @ts-expect-error a precision is written by name
+          opens: field.column(type.Time(3)),
         },
       }),
     },
@@ -115,40 +121,56 @@ test('a convenience type helper refuses a combination with no explicit type', ()
 test('each convenience type call has the type of the explicit type helper it chooses', () => {
   defineContract({}, ({ type }) => {
     expectTypeOf(type.DateTime()).toEqualTypeOf(type.TimestamptzJsDate(3));
-    expectTypeOf(type.DateTime(undefined, undefined, 6)).toEqualTypeOf(type.TimestamptzJsDate(6));
-    expectTypeOf(type.DateTime('jsDate', 'timestamptz')).toEqualTypeOf(type.TimestamptzJsDate(3));
-    expectTypeOf(type.DateTime('temporal')).toEqualTypeOf(type.TimestamptzTemporal());
-    expectTypeOf(type.DateTime('temporal', undefined, 3)).toEqualTypeOf(
+    expectTypeOf(type.DateTime({ precision: 6 })).toEqualTypeOf(type.TimestamptzJsDate(6));
+    expectTypeOf(type.DateTime({ as: 'jsDate', storage: 'timestamptz' })).toEqualTypeOf(
+      type.TimestamptzJsDate(3),
+    );
+    expectTypeOf(type.DateTime({ as: 'temporal' })).toEqualTypeOf(type.TimestamptzTemporal());
+    expectTypeOf(type.DateTime({ as: 'temporal', precision: 3 })).toEqualTypeOf(
       type.TimestamptzTemporal(3),
     );
-    expectTypeOf(type.DateTime('string')).toEqualTypeOf(type.TimestamptzString());
-    expectTypeOf(type.DateTime('string', 'timestamptz', 6)).toEqualTypeOf(
-      type.TimestamptzString(6),
+    expectTypeOf(type.DateTime({ as: 'string' })).toEqualTypeOf(type.TimestamptzString());
+    expectTypeOf(
+      type.DateTime({ as: 'string', storage: 'timestamptz', precision: 6 }),
+    ).toEqualTypeOf(type.TimestamptzString(6));
+    expectTypeOf(type.DateTime({ storage: 'timestamp' })).toEqualTypeOf(type.TimestampJsDate(3));
+    expectTypeOf(type.DateTime({ as: 'jsDate', storage: 'timestamp', precision: 0 })).toEqualTypeOf(
+      type.TimestampJsDate(0),
     );
-    expectTypeOf(type.DateTime(undefined, 'timestamp')).toEqualTypeOf(type.TimestampJsDate(3));
-    expectTypeOf(type.DateTime('jsDate', 'timestamp', 0)).toEqualTypeOf(type.TimestampJsDate(0));
-    expectTypeOf(type.DateTime('temporal', 'timestamp')).toEqualTypeOf(type.TimestampInstant());
-    expectTypeOf(type.DateTime('temporal', 'timestamp', 6)).toEqualTypeOf(type.TimestampInstant(6));
-    expectTypeOf(type.DateTime('string', 'timestamp')).toEqualTypeOf(type.TimestampString());
-    expectTypeOf(type.DateTime('string', 'timestamp', 3)).toEqualTypeOf(type.TimestampString(3));
+    expectTypeOf(type.DateTime({ as: 'temporal', storage: 'timestamp' })).toEqualTypeOf(
+      type.TimestampInstant(),
+    );
+    expectTypeOf(
+      type.DateTime({ as: 'temporal', storage: 'timestamp', precision: 6 }),
+    ).toEqualTypeOf(type.TimestampInstant(6));
+    expectTypeOf(type.DateTime({ as: 'string', storage: 'timestamp' })).toEqualTypeOf(
+      type.TimestampString(),
+    );
+    expectTypeOf(type.DateTime({ as: 'string', storage: 'timestamp', precision: 3 })).toEqualTypeOf(
+      type.TimestampString(3),
+    );
     expectTypeOf(type.Date()).toEqualTypeOf(type.DateString());
-    expectTypeOf(type.Date('string', 'date')).toEqualTypeOf(type.DateString());
-    expectTypeOf(type.Date('temporal')).toEqualTypeOf(type.DateTemporal());
+    expectTypeOf(type.Date({ as: 'string', storage: 'date' })).toEqualTypeOf(type.DateString());
+    expectTypeOf(type.Date({ as: 'temporal' })).toEqualTypeOf(type.DateTemporal());
     expectTypeOf(type.Time()).toEqualTypeOf(type.TimeString());
-    expectTypeOf(type.Time(undefined, undefined, 0)).toEqualTypeOf(type.TimeString(0));
-    expectTypeOf(type.Time('temporal')).toEqualTypeOf(type.TimeTemporal());
-    expectTypeOf(type.Time('temporal', 'time', 3)).toEqualTypeOf(type.TimeTemporal(3));
-    expectTypeOf(type.Time('string', 'timetz')).toEqualTypeOf(type.Timetz());
-    expectTypeOf(type.Time(undefined, 'timetz', 2)).toEqualTypeOf(type.Timetz(2));
+    expectTypeOf(type.Time({ precision: 0 })).toEqualTypeOf(type.TimeString(0));
+    expectTypeOf(type.Time({ as: 'temporal' })).toEqualTypeOf(type.TimeTemporal());
+    expectTypeOf(type.Time({ as: 'temporal', storage: 'time', precision: 3 })).toEqualTypeOf(
+      type.TimeTemporal(3),
+    );
+    expectTypeOf(type.Time({ as: 'string', storage: 'timetz' })).toEqualTypeOf(type.Timetz());
+    expectTypeOf(type.Time({ storage: 'timetz', precision: 2 })).toEqualTypeOf(type.Timetz(2));
     expectTypeOf(type.Duration()).toEqualTypeOf(type.IntervalString());
-    expectTypeOf(type.Duration(undefined, undefined, 3)).toEqualTypeOf(type.IntervalString(3));
-    expectTypeOf(type.Duration('parts')).toEqualTypeOf(type.IntervalParts());
-    expectTypeOf(type.Duration('parts', 'interval', 6)).toEqualTypeOf(type.IntervalParts(6));
+    expectTypeOf(type.Duration({ precision: 3 })).toEqualTypeOf(type.IntervalString(3));
+    expectTypeOf(type.Duration({ as: 'parts' })).toEqualTypeOf(type.IntervalParts());
+    expectTypeOf(type.Duration({ as: 'parts', storage: 'interval', precision: 6 })).toEqualTypeOf(
+      type.IntervalParts(6),
+    );
     const widened: number = 4;
-    expectTypeOf(type.DateTime('string', undefined, widened)).toEqualTypeOf(
+    expectTypeOf(type.DateTime({ as: 'string', precision: widened })).toEqualTypeOf(
       type.TimestamptzString(widened),
     );
-    expectTypeOf(type.DateTime(undefined, undefined, widened)).not.toEqualTypeOf(
+    expectTypeOf(type.DateTime({ precision: widened })).not.toEqualTypeOf(
       type.TimestamptzString(widened),
     );
     return { models: {} };

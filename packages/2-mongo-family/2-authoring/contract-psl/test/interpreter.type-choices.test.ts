@@ -17,12 +17,12 @@ const type = {
   Moment: {
     kind: 'typeChoice',
     args: [
-      { kind: 'option', name: 'value', values: ['date', 'text'], default: 'date', optional: true },
+      { kind: 'option', name: 'as', values: ['date', 'text'], default: 'date', optional: true },
       label,
     ],
     choices: [
-      { when: { value: 'date' }, type: 'Stamp' },
-      { when: { value: 'text' }, type: 'Text' },
+      { when: { as: 'date' }, type: 'Stamp' },
+      { when: { as: 'text' }, type: 'Text' },
     ],
   },
 } as const satisfies AuthoringTypeNamespace;
@@ -58,7 +58,7 @@ function diagnostics(schema: string) {
 describe('a MongoDB field typed by a type choice', () => {
   it('gets the type of the constructor its call chooses, bare, named and positional', () => {
     expect(
-      fieldTypes(model('bare Moment', 'named Moment(value: text)', 'positional Moment(text, "x")')),
+      fieldTypes(model('bare Moment', 'named Moment(as: text)', 'positional Moment(text, "x")')),
     ).toEqual({
       id: { kind: 'scalar', codecId: 'mongo/objectId@1' },
       bare: { kind: 'scalar', codecId: 'mongo/date@1' },
@@ -68,7 +68,7 @@ describe('a MongoDB field typed by a type choice', () => {
   });
 
   it('gets the type its alias’s call chooses', () => {
-    expect(fieldTypes(`types {\n  Note = Moment(value: text)\n}\n${model('note Note')}`)).toEqual({
+    expect(fieldTypes(`types {\n  Note = Moment(as: text)\n}\n${model('note Note')}`)).toEqual({
       id: { kind: 'scalar', codecId: 'mongo/objectId@1' },
       note: { kind: 'scalar', codecId: 'mongo/string@1' },
     });
@@ -82,13 +82,13 @@ describe('a MongoDB field typed by a type choice', () => {
     ],
     [
       'a value the option does not list',
-      'Moment(value: json)',
-      'Field "Doc.at" type "Moment": Argument "value" of Moment is json; write one of: date, text.',
+      'Moment(as: json)',
+      'Field "Doc.at" type "Moment": Argument "as" of Moment is json; write one of: date, text.',
     ],
     [
       'an argument the chosen type does not take',
       'Moment(label: "x")',
-      'Field "Doc.at" type "Moment": Argument "label" of Moment does not apply to Stamp, the type that value: date chooses.',
+      'Field "Doc.at" type "Moment": Argument "label" of Moment does not apply to Stamp, the type that as: date chooses.',
     ],
   ])('refuses %s at the argument', (_case, written, message) => {
     expect(diagnostics(model(`at ${written}`))).toEqual([

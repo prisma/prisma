@@ -14,23 +14,23 @@ const model = (...fields: readonly string[]) =>
 
 const rows: readonly (readonly [convenience: string, explicit: string])[] = [
   ['DateTime', 'TimestamptzJsDate(3)'],
-  ['DateTime(value: temporal)', 'TimestamptzTemporal'],
-  ['DateTime(value: string)', 'TimestamptzString'],
-  ['DateTime(column: timestamp)', 'TimestampJsDate(3)'],
-  ['DateTime(value: temporal, column: timestamp)', 'TimestampInstant'],
-  ['DateTime(value: string, column: timestamp)', 'TimestampString'],
-  ['DateTime(value: string, precision: 6)', 'TimestamptzString(6)'],
+  ['DateTime(as: temporal)', 'TimestamptzTemporal'],
+  ['DateTime(as: string)', 'TimestamptzString'],
+  ['DateTime(storage: timestamp)', 'TimestampJsDate(3)'],
+  ['DateTime(as: temporal, storage: timestamp)', 'TimestampInstant'],
+  ['DateTime(as: string, storage: timestamp)', 'TimestampString'],
+  ['DateTime(as: string, precision: 6)', 'TimestamptzString(6)'],
   ['DateTime(precision: 6)', 'TimestamptzJsDate(6)'],
   ['DateTime(temporal, timestamptz, 3)', 'TimestamptzTemporal(3)'],
   ['Date', 'DateString'],
-  ['Date(value: temporal)', 'DateTemporal'],
+  ['Date(as: temporal)', 'DateTemporal'],
   ['Time', 'TimeString'],
   ['Time(precision: 0)', 'TimeString(0)'],
-  ['Time(value: temporal)', 'TimeTemporal'],
-  ['Time(column: timetz)', 'Timetz'],
+  ['Time(as: temporal)', 'TimeTemporal'],
+  ['Time(storage: timetz)', 'Timetz'],
   ['Duration', 'IntervalString'],
   ['Duration(precision: 3)', 'IntervalString(3)'],
-  ['Duration(value: parts)', 'IntervalParts'],
+  ['Duration(as: parts)', 'IntervalParts'],
   ['DateTime[]', 'TimestamptzJsDate(3)[]'],
   ['DateTime?', 'TimestamptzJsDate(3)?'],
 ];
@@ -50,7 +50,7 @@ describe('a convenience date and time type', () => {
           'updatedAt DateTime @onCreate(now()) @onUpdate(now())',
           'day       Date @onCreate(now())',
           'clock     Time(precision: 0) @onCreate(now())',
-          'instant   DateTime(value: temporal) @onCreate(now())',
+          'instant   DateTime(as: temporal) @onCreate(now())',
         ),
       ),
     ).toEqual(
@@ -70,7 +70,7 @@ describe('a convenience date and time type', () => {
     const convenience = `// use prisma-8
 
 types {
-  Stamp = DateTime(column: timestamp) @default(timestamp\`2024-01-01 00:00:00\`)
+  Stamp = DateTime(storage: timestamp) @default(timestamp\`2024-01-01 00:00:00\`)
 }
 
 model Order {
@@ -91,22 +91,19 @@ model Order {
 
   it('refuses a default of another date and time type, naming the column’s', async () => {
     await expect(
-      readPsl(model('at DateTime(column: timestamp) @default(timestamptz`2024-01-01T00:00:00Z`)')),
+      readPsl(model('at DateTime(storage: timestamp) @default(timestamptz`2024-01-01T00:00:00Z`)')),
     ).rejects.toThrow(/PSL_VALUE_TYPE_INCOMPATIBLE.*Expected timestamp`\.\.\.`/);
   });
 
   it.each([
     [
-      'Time(value: temporal, column: timetz)',
-      'Argument \\"column\\" of Time cannot be timetz when value is temporal; write one of: time.',
+      'Time(as: temporal, storage: timetz)',
+      'Argument \\"storage\\" of Time cannot be timetz with as: temporal; write one of: time.',
     ],
+    ['Date(as: jsDate)', 'Argument \\"as\\" of Date is jsDate; write one of: string, temporal.'],
     [
-      'Date(value: jsDate)',
-      'Argument \\"value\\" of Date is jsDate; write one of: string, temporal.',
-    ],
-    [
-      'Duration(value: parts, column: date)',
-      'Argument \\"column\\" of Duration is date; write one of: interval.',
+      'Duration(as: parts, storage: date)',
+      'Argument \\"storage\\" of Duration is date; write one of: interval.',
     ],
   ])('refuses %s at the argument, naming the accepted choices', async (written, message) => {
     await expect(readPsl(model(`at ${written}`))).rejects.toThrow(message);
@@ -114,7 +111,7 @@ model Order {
 
   it('refuses a precision written in the place of the value option, saying to write it by name', async () => {
     await expect(readPsl(model('at Time(3)'))).rejects.toThrow(
-      'Field \\"Order.at\\" type \\"Time\\" argument #1 is 3, but argument \\"value\\" takes one of these names, written without quotes: string, temporal. Write precision by name, as in precision: 3.',
+      'Field \\"Order.at\\" type \\"Time\\" argument #1 is 3, but argument \\"as\\" takes one of these names, written without quotes: string, temporal. Write precision by name, as in precision: 3.',
     );
   });
 

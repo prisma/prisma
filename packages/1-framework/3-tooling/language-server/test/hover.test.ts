@@ -157,14 +157,14 @@ const authoringContributions = assembleAuthoringContributions([
             args: [
               {
                 kind: 'option',
-                name: 'value',
+                name: 'as',
                 values: ['date', 'text'],
                 default: 'date',
                 optional: true,
               },
               {
                 kind: 'option',
-                name: 'column',
+                name: 'storage',
                 values: ['wide', 'narrow'],
                 default: 'wide',
                 optional: true,
@@ -173,12 +173,12 @@ const authoringContributions = assembleAuthoringContributions([
             ],
             choices: [
               {
-                when: { value: 'date', column: 'wide' },
+                when: { as: 'date', storage: 'wide' },
                 type: 'Stamp',
                 defaults: { precision: 3 },
               },
-              { when: { value: 'text', column: 'wide' }, type: 'Text' },
-              { when: { value: 'date', column: 'narrow' }, type: 'Flag' },
+              { when: { as: 'text', storage: 'wide' }, type: 'Text' },
+              { when: { as: 'date', storage: 'narrow' }, type: 'Flag' },
             ],
           },
           Stamp: {
@@ -602,17 +602,17 @@ describe('providePslHover', () => {
   });
 
   it('shows a type choice with its choices as written and the explicit type each becomes', () => {
-    const result = hover('model Product {\n  at pg.Mo|ment(value: text)\n}');
+    const result = hover('model Product {\n  at pg.Mo|ment(as: text)\n}');
     expect(result?.contents).toEqual({
       kind: 'markdown',
       value: [
         '```prisma',
-        'pg.Moment(value?: date | text, column?: wide | narrow, precision?: a number)',
+        'pg.Moment(as?: date | text, storage?: wide | narrow, precision?: a number)',
         '```',
         '',
         'A moment in time.',
         '',
-        '| value | column | Becomes |',
+        '| as | storage | Becomes |',
         '| --- | --- | --- |',
         '| date (default) | wide (default) | `Stamp(precision: 3)` |',
         '| text | wide (default) | `Text` |',

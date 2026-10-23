@@ -169,7 +169,7 @@ buildSqlContractFromDefinition() →  Contract<SqlStorage, SqlModelStorage>
 This seam matters for two reasons:
 
 1. **Decoupled authoring from serialization.** The contract DSL can evolve without touching the builder internals that lower to `Contract`. Alternative authoring surfaces can target the same contract definition.
-2. **Shared lowering target.** PSL can lower to `ContractDefinition` instead of duplicating graph resolution, making TS ↔ PSL parity structural rather than fixture-tested. [ADR 182](ADR%20182%20-%20Unified%20contract%20representation.md) unified the former `ContractIR` storage-first type with this model-first `Contract` shape; that unification is now implemented.
+2. **Shared lowering target.** PSL can lower to `ContractDefinition` instead of duplicating graph resolution, making TS ↔ PSL parity structural rather than fixture-tested. [ADR 306](ADR%20306%20-%20One%20plain-data%20definition%20and%20one%20builder%20per%20family.md) makes this the shape of every family: one plain-data definition and one builder, which every source of the family calls. [ADR 182](ADR%20182%20-%20Unified%20contract%20representation.md) unified the former `ContractIR` storage-first type with this model-first `Contract` shape; that unification is now implemented.
 
 Lowering validates the contract graph and produces actionable error messages for:
 - Duplicate PK or unique specifications on the same field
@@ -204,4 +204,5 @@ Lowering validates the contract graph and produces actionable error messages for
 - [ADR 121 — Contract.d.ts structure and relation typing](ADR%20121%20-%20Contract.d.ts%20structure%20and%20relation%20typing.md) — emitted type structure this surface must continue to produce
 - [ADR 161 — Explicit foreign key constraint and index configuration](ADR%20161%20-%20Explicit%20foreign%20key%20constraint%20and%20index%20configuration.md) — FK constraint and index toggle design
 - [ADR 172 — Contract domain-storage separation](ADR%20172%20-%20Contract%20domain-storage%20separation.md) — the domain/storage separation that the model-first / SQL split reflects
+- [ADR 306 — One plain-data definition and one builder per family](ADR%20306%20-%20One%20plain-data%20definition%20and%20one%20builder%20per%20family.md) — the same shape for every family, with MongoDB's definition and builder
 - [ADR 182 — Unified contract representation](ADR%20182%20-%20Unified%20contract%20representation.md) — implemented: the former `ContractIR` / `ContractBase` split is replaced by a single `Contract<Storage, ModelStorage>` type; `ContractDefinition` remains the TS authoring seam before lowering to `Contract`

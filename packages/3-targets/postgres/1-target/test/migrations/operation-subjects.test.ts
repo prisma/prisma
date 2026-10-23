@@ -10,7 +10,9 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   DropSchemaCall,
+  RemoveStoredValueCall,
   RenameSchemaCall,
+  ReplaceStoredValueCall,
   SetTableSchemaCall,
 } from '../../src/core/migrations/op-factory-call';
 import { postgresCallSubjects } from '../../src/core/migrations/operation-subjects';
@@ -168,5 +170,31 @@ describe('schema operations', () => {
         ({ dataLoss, accessChanges }) => ({ dataLoss, accessChanges }),
       ),
     ).toEqual(calls.map(() => ({ dataLoss: [], accessChanges: [] })));
+  });
+});
+
+describe('stored value operations', () => {
+  it('name the column a removed value is lost from, and lose nothing when a value is replaced', () => {
+    expect(
+      subjectsOf(
+        [
+          new ReplaceStoredValueCall('public', 'User', 'bio', 'a', 'b', false),
+          new RemoveStoredValueCall('public', 'User', 'email', 'x', false),
+        ],
+        [],
+      ),
+    ).toEqual([
+      {
+        operationIndex: 1,
+        subject: {
+          kind: 'field',
+          namespaceId: asNamespaceId('__unbound__'),
+          model: 'User',
+          field: 'email',
+        },
+        loss: 'drop',
+        label: 'Remove value "x" from column "email" of "User"',
+      },
+    ]);
   });
 });

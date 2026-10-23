@@ -18,6 +18,7 @@ import { keepInternalSpecifiers } from '@internal/framework-components/emission'
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
 import { checkExpression, col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
@@ -35,9 +36,11 @@ import {
   DropTableCall,
   EnableRowLevelSecurityCall,
   RawSqlCall,
+  RemoveStoredValueCall,
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   RenameSchemaCall,
+  ReplaceStoredValueCall,
   SetDefaultCall,
   SetTableSchemaCall,
 } from '@internal/target-postgres/op-factory-call';
@@ -207,6 +210,13 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       new DropPostgresRlsPolicyCall('public', 'user', 'p_e5f6a7b8'),
       new DisableRowLevelSecurityCall('public', 'user'),
       new DropTableCall('public', 'stale'),
+      new ReplaceStoredValueCall('public', 'user', 'nickname', "it's", 'it"s', false),
+      new ReplaceStoredValueCall(UNBOUND_NAMESPACE_ID, 'audit', 'tags', 'a', 'b', true),
+      new RemoveStoredValueCall('public', 'user', 'code', 3, false),
+      new ReplaceStoredValueCall('public', 'user', 'rank', '7', '8', false, {
+        codecRef: { codecId: 'pg/int8@1' },
+        codecs: createPostgresBuiltinCodecLookup(),
+      }),
       new SetTableSchemaCall('public', 'user', 'app'),
       new SetTableSchemaCall(UNBOUND_NAMESPACE_ID, 'audit', 'app'),
       new RenameSchemaCall('app', 'application'),
@@ -229,6 +239,9 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     expect(tsSource).toContain('withCheck: sql`("userId" = auth.uid())`');
     expect(tsSource).toContain(`sql\`"email" !~ '\\\\d' AND "email" <> '\\\`\\\${x}'\``);
     expect(tsSource).toContain('default: fn(sql`\'{"a": 1}\'::jsonb`)');
+    expect(tsSource).toContain(
+      'this.replaceStoredValue({ table: "audit", column: "tags", from: "a", to: "b", many: true })',
+    );
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stdout, stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {

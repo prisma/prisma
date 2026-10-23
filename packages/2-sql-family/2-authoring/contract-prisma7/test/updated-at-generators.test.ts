@@ -38,7 +38,7 @@ describe('@updatedAt on Postgres', () => {
     ).toMatchObject({ ok: true, generator: { kind: 'generator' } });
   });
 
-  it('lowers to now() on create and on update, with the precision of a time column', () => {
+  it('lowers to now() on create and on update, with the precision of a time or timestamp column', () => {
     const contract = interpretSchemaText(`datasource db {
   provider = "postgresql"
 }
