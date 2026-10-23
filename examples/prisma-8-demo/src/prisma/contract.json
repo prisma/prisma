@@ -1127,8 +1127,8 @@
               "checks": [
                 {
                   "expression": "\"address\" IS NULL OR jsonb_path_match(\"address\", 'strict $.type() == \"null\" || ($.type() == \"object\" && exists($.keyvalue() ? (@.key == \"city\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"country\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"street\" && (@.value.type() == \"string\"))) && !exists($.keyvalue() ? (@.key == \"zip\" && !(@.value.type() == \"null\" || (@.value.type() == \"string\")))) && !exists($.keyvalue() ? (@.key != \"city\" && @.key != \"country\" && @.key != \"street\" && @.key != \"zip\")))') IS TRUE",
-                  "name": "user_address_value_object_69432dc1",
-                  "prefix": "user_address_value_object"
+                  "name": "user_address_shape_69432dc1",
+                  "prefix": "user_address_shape"
                 },
                 {
                   "expression": "\"kind\" IN ('admin', 'user')",
@@ -1251,7 +1251,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "99a4393ee9f877db228baee1164325543fa018be780fd1253250d7d81539f38e"
+    "storageHash": "e1916bd73bb2388302d81a1eaa17125c0cedb6ce47b489a7adeeb41c2ef50ebf"
   },
   "execution": {
     "executionHash": "eb9bffd4c01945792e83de10d571b20df42f5bf40405ec8c642c6592f7dc4655",

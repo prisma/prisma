@@ -83,13 +83,13 @@
               "checks": [
                 {
                   "expression": "jsonb_path_match(\"location\", 'strict $.type() == \"object\" && exists($.keyvalue() ? (@.key == \"city\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"street\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"zip\" && (@.value.type() == \"string\"))) && !exists($.keyvalue() ? (@.key != \"city\" && @.key != \"street\" && @.key != \"zip\"))') IS TRUE",
-                  "name": "shop_location_value_object_9799c974",
-                  "prefix": "shop_location_value_object"
+                  "name": "shop_location_shape_9799c974",
+                  "prefix": "shop_location_shape"
                 },
                 {
                   "expression": "\"notes\" IS NULL OR jsonb_path_match(\"notes\", 'strict $.type() == \"null\" || ($.type() == \"object\" && exists($.keyvalue() ? (@.key == \"city\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"street\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"zip\" && (@.value.type() == \"string\"))) && !exists($.keyvalue() ? (@.key != \"city\" && @.key != \"street\" && @.key != \"zip\")))') IS TRUE",
-                  "name": "shop_notes_value_object_5554921a",
-                  "prefix": "shop_notes_value_object"
+                  "name": "shop_notes_shape_5554921a",
+                  "prefix": "shop_notes_shape"
                 }
               ],
               "columns": {
@@ -156,7 +156,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "4216574839577232bdfaee2c8202fc9044a7873412428368c9ee430266747fab"
+    "storageHash": "d1f566293d77a0d2d3dc4b1fbcec129b2a6a25ac509570d6f757dc83665939b4"
   },
   "capabilities": {
     "postgres": {

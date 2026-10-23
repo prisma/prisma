@@ -70,8 +70,8 @@
               "checks": [
                 {
                   "expression": "\"address\" IS NULL OR jsonb_path_match(\"address\", 'strict $.type() == \"null\" || ($.type() == \"object\" && exists($.keyvalue() ? (@.key == \"city\" && (@.value.type() == \"string\"))) && exists($.keyvalue() ? (@.key == \"street\" && (@.value.type() == \"string\"))) && !exists($.keyvalue() ? (@.key == \"zip\" && !(@.value.type() == \"null\" || (@.value.type() == \"string\")))) && !exists($.keyvalue() ? (@.key != \"city\" && @.key != \"street\" && @.key != \"zip\")))') IS TRUE",
-                  "name": "users_address_value_object_0c7d1c3a",
-                  "prefix": "users_address_value_object"
+                  "name": "users_address_shape_0c7d1c3a",
+                  "prefix": "users_address_shape"
                 }
               ],
               "columns": {
@@ -133,7 +133,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e6640da7edb7ea952996d8d210526e990703e8a81f588f70b6c097dc5870a9af"
+    "storageHash": "312f3bd7f0c8c146f44a26148cb251da42b2d8d449c3d6ad0bdf7ae7823df718"
   },
   "capabilities": {
     "postgres": {

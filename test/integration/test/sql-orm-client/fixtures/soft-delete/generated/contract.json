@@ -473,8 +473,8 @@
               "checks": [
                 {
                   "expression": "jsonb_path_match(\"addresses\", 'strict $.type() == \"array\" && !exists($[*] ? (!((@.type() == \"object\" && exists(@.keyvalue() ? (@.key == \"street\" && (@.value.type() == \"string\"))) && !exists(@.keyvalue() ? (@.key != \"street\"))))))') IS TRUE",
-                  "name": "tags_addresses_value_object_c752a33a",
-                  "prefix": "tags_addresses_value_object"
+                  "name": "tags_addresses_shape_c752a33a",
+                  "prefix": "tags_addresses_shape"
                 },
                 {
                   "expression": "array_position(\"labels\", NULL) IS NULL",
@@ -573,7 +573,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "21a3ae2aab3f4f03b59fa65df3d452ec1d41d9ce5926b3fba6bd70cf39070dcb"
+    "storageHash": "388580bf7258d1c37e6113016201f45f9054b3a56527588f9d8f6646473ea9ef"
   },
   "capabilities": {
     "postgres": {
