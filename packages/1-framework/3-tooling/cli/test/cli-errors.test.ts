@@ -9,6 +9,7 @@ import {
   errorDriverRequired,
   errorFamilyReadMarkerSqlRequired,
   errorPathUnreachable,
+  errorPlanOriginUnknown,
   errorRefSetEmptySentinel,
   errorRefSetHashNotInGraph,
   errorSpaceNotFound,
@@ -153,6 +154,14 @@ describe('errorRefSetHashNotInGraph', () => {
     const envelope = errorRefSetHashNotInGraph(resolvedHash, []).toEnvelope();
     expect(envelope.why).toContain('empty');
     expect(envelope.fix).toContain('migration plan');
+  });
+});
+
+describe('errorPlanOriginUnknown', () => {
+  it('names any database the db ref may point at, not only a development one', () => {
+    expect(errorPlanOriginUnknown([]).fix.split('\n')[0]).toBe(
+      'Set the `db` ref to the contract your database is at (`{bin} migration ref set db <contract>`), or advance it via `{bin} db update`.',
+    );
   });
 });
 
