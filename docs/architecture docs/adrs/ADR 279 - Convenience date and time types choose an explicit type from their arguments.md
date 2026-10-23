@@ -3,7 +3,6 @@
 **Status:** Proposed
 **Builds on:** [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md)
 **Amends:** [ADR 254 — Data types and casts](ADR%20254%20-%20Data%20types%20and%20casts.md), [ADR 257 — Scalar types are named after the target on every surface](ADR%20257%20-%20Scalar%20types%20are%20named%20after%20the%20target%20on%20every%20surface.md), [ADR 275 — Client generators are field attributes, and a type alias is expanded into each column](ADR%20275%20-%20Client%20generators%20are%20field%20attributes%2C%20and%20a%20type%20alias%20is%20expanded%20into%20each%20column.md)
-**Brings back:** [ADR 246 — Option arguments and select templates for authoring helpers](ADR%20246%20-%20Option%20arguments%20and%20select%20templates%20for%20authoring%20helpers.md), which ADR 275 supersedes, for type constructors only
 
 ## At a glance
 
@@ -34,7 +33,7 @@ The contract stores what the explicit type stores: the codec, its data type and 
 
 1. **Date and time types have two layers.** Each explicit type uses one codec, so it fixes one column type and one application value, and is named after the database as ADR 257 says. Each convenience type is named for what a field means in the application, and becomes exactly one explicit type.
 2. **A convenience type's arguments choose its explicit type.** `value` says what the application reads: a JavaScript `Date`, a `Temporal` object or a string. `column` says the PostgreSQL column type. Each has a default that the convenience type declares. Any other argument, such as `precision`, is passed on to the chosen explicit type.
-3. **A convenience type is a type constructor whose arguments choose its codec.** A type constructor is how PSL defines a type name that can take arguments, such as `Timestamptz(3)`. Today each one always uses the same codec. A type constructor may now choose its codec from its arguments.
+3. **A convenience type is a type choice: a type declaration whose arguments name the explicit type it becomes.** It declares its option arguments, each with a fixed set of values written as bare names and a default, the arguments it passes on (such as `precision`), and a table from each allowed combination of option values to the name of an explicit type constructor, with any parameter defaults for that combination. An unlisted combination is refused.
 4. **The contract stores only the explicit type.** The contract format, the codecs, the data types, the storage hash and the execution hash are the same whether a schema writes the convenience type or the explicit type it becomes.
 5. **The PostgreSQL target provides four convenience types:**
 
@@ -58,9 +57,9 @@ The contract stores what the explicit type stores: the codec, its data type and 
 
    This frees `DateTime`, `Date` and `Time` for the convenience types. Without the suffix, a name such as `Timestamptz` would look like a neutral default when it is one specific kind of value. For the same reason, `Interval`, which reads the object `{ months, days, micros }`, becomes `IntervalParts`, next to the new `IntervalString`.
 
-7. **Three codecs are added:** a `timestamp` column read as a JavaScript `Date`, and a `timestamp` column read as a `Temporal.Instant`, both reading and writing the stored value as UTC; and an `interval` column read as an ISO 8601 duration string. Each gets an explicit type: `TimestampJsDate(p)` for the `Date` codec, `TimestampInstant(p)` for the `Temporal.Instant` codec, and `IntervalString(p)`. `DateTime(column: timestamp)` with `value: jsDate` becomes `TimestampJsDate`, with `value: temporal` becomes `TimestampInstant`, and `Duration` with `value: string` becomes `IntervalString`. `TimestampInstant` names its `Temporal` type rather than taking the `Temporal` suffix, because the `timestamp` column has two `Temporal` codecs and `TimestampTemporal` is the one that reads `Temporal.PlainDateTime`.
+7. **Three codecs are added:** a `timestamp` column read as a JavaScript `Date`, and a `timestamp` column read as a `Temporal.Instant`, both reading and writing the stored value as UTC; and an `interval` column read as an ISO 8601 duration string. Each gets an explicit type: `TimestampJsDate(p)` for the `Date` codec, `TimestampInstant(p)` for the `Temporal.Instant` codec, and `IntervalString(p)`. `IntervalString` reads interval text in every `IntervalStyle` PostgreSQL prints (`postgres`, `postgres_verbose`, `sql_standard`, `iso_8601`) and returns the ISO 8601 duration ADR 254 stores, so it needs no `IntervalStyle` setting. `DateTime(column: timestamp)` with `value: jsDate` becomes `TimestampJsDate`, with `value: temporal` becomes `TimestampInstant`, and `Duration` with `value: string` becomes `IntervalString`. `TimestampInstant` names its `Temporal` type rather than taking the `Temporal` suffix, because the `timestamp` column has two `Temporal` codecs and `TimestampTemporal` is the one that reads `Temporal.PlainDateTime`.
 8. **The Prisma 7 reader maps Prisma 7's `DateTime` to `TimestampJsDate(3)`,** which `contract print` writes as `DateTime(column: timestamp)`: a `timestamp(3)` column read as a JavaScript `Date`, instead of a string. The column and its stored values do not change; only the application value goes from a string back to the `Date` that Prisma 7 gave, so an upgraded application keeps the values its code was written for. `prisma orm init`, which creates new columns, writes plain `DateTime`, a `timestamptz(3)` column read as a `Date`.
-9. **A string value is ISO 8601, the same on every server.** Every string codec of a date or time type returns the form its data type stores (see ADR 254, "Date and time types") and reads that form back unchanged. PostgreSQL's display text, such as `2024-01-01 00:00:00+00` or a ` BC` year, never reaches the application. The codecs convert any time zone offset to UTC themselves. Prisma requires `DateStyle=ISO` on its database connections: it sets it on the connections it opens, and refuses a value it reads in another style with an error naming the setting. The codec ids do not change; the old text was never a format an application could rely on.
+9. **A string value is ISO 8601, the same on every server.** Every string codec of a date or time type returns the form its data type stores (see ADR 254, "Date and time types") and reads that form back unchanged. PostgreSQL's display text, such as `2024-01-01 00:00:00+00` or a year written with BC, never reaches the application. The `timestamptz` codec converts any session time zone offset to UTC itself; the `timetz` codec keeps the offset the value was stored with, because that offset is part of a `timetz` value. Prisma requires `DateStyle=ISO` on its database connections: it sets it on the connections it opens, and refuses a value it reads in another style with an error naming the setting. The codec ids do not change; the old text was never a format an application could rely on.
 10. **`contract infer` and `contract print` write convenience types,** with arguments only where they differ from the defaults. A column no convenience type covers, a `timestamp` read as `Temporal.PlainDateTime`, is written as its explicit type. `prisma orm init` writes `DateTime`.
 11. **A convenience name means the same thing on every target.** This decision covers PostgreSQL. Another target adds convenience types under the same names, and renames any explicit type that already uses one of them for something else.
 
@@ -76,14 +75,13 @@ The convenience types give that user one name per concept, with defaults that wo
 
 ## How it works
 
-### A type constructor chooses its codec
+### A type choice names its explicit types
 
-A type constructor's output is an `AuthoringStorageTypeTemplate`: a `codecId`, and a `typeParams` template whose values may refer to the constructor's arguments. Today `codecId` is a plain string:
+An explicit type is a type constructor: it names one codec, and maps its arguments onto that codec's parameters.
 
 ```ts
-Timestamptz: {
+TimestamptzTemporal: {
   kind: 'typeConstructor',
-  documentation: 'An instant represented as Temporal.Instant, with optional fractional-second precision.',
   args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
   output: {
     codecId: 'pg/timestamptz-temporal@1',
@@ -92,17 +90,22 @@ Timestamptz: {
 },
 ```
 
-A convenience constructor's `codecId` is chosen by its `value` and `column` arguments. ADR 246 introduced the two pieces this needs, for the `temporal.*` field presets such as `temporal.timestamp(3, onCreate: now)`:
+A convenience type is a different kind of declaration in the same namespace, a type choice. It names no codec. It declares its option arguments and a table whose rows each name an explicit type constructor:
 
-- an argument that takes one of a fixed set of bare names (`AuthoringOption`, `kind: 'option'`);
-- a template value that picks one case by the value of such an argument (`AuthoringSelectRef`, `kind: 'select'`).
+| `value` | `column` | Explicit type | Parameter defaults |
+| --- | --- | --- | --- |
+| `jsDate` (default) | `timestamptz` (default) | `TimestamptzJsDate` | precision 3 |
+| `temporal` | `timestamptz` | `TimestamptzTemporal` | |
+| `string` | `timestamptz` | `TimestamptzString` | |
+| `jsDate` | `timestamp` | `TimestampJsDate` | precision 3 |
+| `temporal` | `timestamp` | `TimestampInstant` | |
+| `string` | `timestamp` | `TimestampString` | |
 
-ADR 275 removes both together with the presets. This decision keeps them, for type constructors, and lets a `select` give a type constructor's `codecId`. That is more than a new case:
+That is `DateTime`'s table; the other three are declared the same way. Resolving a call looks up the row for its option values, then instantiates the named explicit constructor with the passed-on arguments, so the result is exactly what writing the explicit type gives. A combination with no row, such as `Date(value: jsDate)`, is refused at the argument that makes it invalid, and the message lists the values that argument accepts with the others as written. Assembly refuses a table that names a constructor no component registers.
 
-- `codecId` is typed `string` in `AuthoringStorageTypeTemplate`, and many places read it as a plain string: the control stack, the PSL column resolution, the attribute specs, the generator attributes, the inferred-constructor map, the Prisma 7 reader and the MongoDB interpreter. Each must resolve the template against the call's arguments first.
-- The TypeScript contract builder works out a column's application type at compile time from its `codecId`. Its type-level resolver, `ResolveTemplateValue`, cannot evaluate a `select`; ADR 246 bars `select` from a preset's `codecId` for that reason. The resolver must learn to evaluate it, so that a convenience type written in a TypeScript contract gets an application type as precise as an explicit one. A TypeScript contract reaches the convenience types through the `type.*` helpers that ADR 275 gives every PSL type constructor.
+The field-preset option arguments and select templates (ADR 246) are not used: a select resolves a template value and has no defaults and no refusal, while a type choice resolves to a named constructor, which is what "becomes one explicit type" means.
 
-A combination a convenience type does not list, such as `Date(value: jsDate)`, is an error. The PSL interpreter reports it at the argument when it reads the schema, and the message lists the choices the type accepts.
+Every place that reads a field's codec reads the codec its call resolves to, including through a `types {}` alias: the PSL column resolution, the `@default` value check and the `@onCreate`/`@onUpdate` generator lookup, the Prisma 7 reader and the TypeScript builder, whose `type.*` helpers (ADR 275) include the type choices and resolve their application type at compile time from literal arguments.
 
 ### What the contract and the tools see
 
@@ -131,9 +134,9 @@ The `String` and `JsDate` variants are not needed. A contributed alias takes no 
 - **String values change form.** An application that reads a string date or time type gets ISO 8601 text instead of PostgreSQL's display text, for example `2024-01-01T00:00:00Z` instead of `2024-01-01 00:00:00+00`. The codec ids and the contract do not change.
 - **Temporal fields are typed from `temporal-spec`,** a package of TypeScript declarations with no runtime code, instead of an undeclared global `Temporal`. A Temporal field is then never typed `any` in a project without the polyfill's global declarations, and no polyfill code reaches an application that does not opt into Temporal values. A missing global `Temporal` at runtime is still reported when a Temporal codec or generator first runs.
 - **`Interval` reads the same object as before, under the name `IntervalParts`;** `Duration` reads an ISO string by default.
-- ADR 254 says a type constructor names one codec and maps its arguments onto parameters. A type constructor may now also choose the codec.
+- ADR 254 says a type constructor names one codec and maps its arguments onto parameters. That stays true; a type choice is a second kind of type declaration that resolves to a type constructor.
 - ADR 257 says the second codec of a stored type adds a suffix. Where a stored type has several codecs, every one now has a suffix, and the unsuffixed name of the concept belongs to a convenience type.
-- ADR 275's removal of the `option` argument kind and the `select` template does not apply to type constructors. Its `String` and `JsDate` alias variants are not built.
+- ADR 275's `String` and `JsDate` variants of the contributed `temporal.*` aliases are not built.
 - The planned rename of the PostgreSQL and SQLite types, which applies ADR 257 to those targets (for example `Int` to `Int4`), keeps `DateTime` as the convenience type instead of removing it, and adds the renames in item 6.
 - The editor's completion offers each convenience type's `value` and `column` choices, and its hover text gives the explicit type each choice becomes.
 
@@ -147,6 +150,8 @@ The `String` and `JsDate` variants are not needed. A contributed alias takes no 
 **Name every type after the application's meaning, with no explicit types.** Every field would be written `DateTime`, `Date` or `Time` and refined by arguments, and the database-named types would go. This reverses ADR 257, and leaves arguments as the only way to state a column type exactly. Two layers keep the database-named types as the precise form and add the short form on top.
 
 **One codec for `DateTime`, with the column type as a parameter.** A codec converts values of exactly one data type, and a column stores the data type its codec represents (ADR 254). A codec whose data type depends on a parameter breaks both rules. Choosing among existing codecs in the type constructor gives the same schema syntax without changing codecs.
+
+**A type constructor whose codec is chosen by a select template over option arguments** (the field-preset machinery of ADR 246). A select has no default case and no way to refuse a combination, so bare `DateTime` would resolve to no codec and `Time(value: temporal, column: timetz)` could not be refused; and the machinery is being removed with the presets. A type choice that names explicit constructors has defaults and refusals by construction.
 
 **Convenience types as contributed type aliases with arguments.** A type alias attaches attributes such as `@onCreate` to one fixed type (ADR 275). Choosing which type is what a type constructor does, and a type constructor already takes arguments.
 

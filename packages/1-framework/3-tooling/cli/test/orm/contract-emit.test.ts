@@ -219,22 +219,10 @@ describe('contract emit', () => {
     });
   });
 
-  it('writes the emitted paths to stdout and the prose to stderr', async () => {
-    // Only stdout is a terminal. Marking stderr one too makes the engine read
-    // the pair as a single screen and drop the stdout mirror to avoid drawing
-    // it twice; leaving stdout off a terminal switches it to the JSON stream.
-    const run = await harness().run(['contract', 'emit'], {
-      cwd: PROJECT_DIR,
-      isTty: { stdout: true },
-    });
+  it('writes the emitted paths, relative to the working directory, to stdout and the prose to stderr', async () => {
+    const run = await harness().run(['contract', 'emit'], { cwd: PROJECT_DIR });
 
-    expect(run.presented?.presentation.stdout).toEqual([
-      join(OUTPUT_DIR, 'contract.json'),
-      join(OUTPUT_DIR, 'contract.d.ts'),
-    ]);
-    expect(run.stdout).toBe(
-      `${join(OUTPUT_DIR, 'contract.json')}\n${join(OUTPUT_DIR, 'contract.d.ts')}\n`,
-    );
+    expect(run.stdout).toBe('generated/contract.json\ngenerated/contract.d.ts\n');
   });
 
   it('ships the header, the outcome and the hashes as blocks', async () => {

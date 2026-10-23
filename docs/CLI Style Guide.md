@@ -29,28 +29,20 @@ For the architectural view of the CLI (distribution, command surface, init pipel
 
 ## Output Conventions: Composable CLI Output
 
-The CLI follows the Unix convention of separating human-readable decoration from machine-readable data:
+The CLI follows the Unix convention of separating human-readable decoration from machine-readable data. `@prisma/cli-engine` renders every command, and the output format depends only on flags, never on whether stdout is a terminal:
 
-- **stdout** — the data the caller asked for. This is what scripts and pipes capture. Includes successful `ui.output()` payloads, `--version` output, and explicitly-requested `--help` (see below).
-- **stderr** — decoration around some other operation (Clack spinners, logs, notes, intro/outro), warnings, errors, and help printed as part of an error (e.g. unknown-command usage hints). Visible in terminal, invisible in pipes.
+- **Without `--json`**: the human card (fields, trees, summaries, spinners, warnings, errors) goes to stderr, and the command's data lines go to stdout. A pipe, a file or `$(…)` receives only the data lines. When stdout and stderr are the same terminal, the engine leaves the data lines out so the screen does not show the result twice.
+- **With `--json`**: stdout carries the JSON frames, ending in the result envelope. A pipe never switches to JSON on its own.
 
 ### Rules
 
-1. **All `TerminalUI` methods except `output()` write to stderr** via Clack's `{ output: process.stderr }` option — but only in interactive mode.
-2. **`ui.output(data)` always writes to stdout** — call it only when there is data to emit (e.g., `--json` responses). Commands gate `ui.output()` behind `if (flags.json)`.
-3. **When stdout is piped, ALL decoration is suppressed** — `isInteractive` (`process.stdout.isTTY`) gates every decoration method. Only `ui.output()` writes in piped mode. This keeps `prisma db verify | jq` completely silent.
-4. **Action commands** (sign, init) produce no stdout data — they are purely decorative.
-5. **Data commands** (verify, emit, introspect, status) call both decoration (stderr) and `ui.output()` (stdout). In interactive mode, decoration is visible on stderr; `ui.output()` writes to stdout only when the command has data to emit (gated by `--json`).
-6. **Never write data to stderr** — decoration methods are for human context only.
-7. **Never write decoration to stdout** — it breaks pipes, `$(...)` captures, and `> file` redirects.
-8. **`--help` and `--version` are data when explicitly requested.** When the user invokes `prisma --help` (or any subcommand `--help`) or `prisma --version`, the rendered text **is** the data the caller asked for and goes to **stdout** with exit code 0. This makes `prisma --help | less`, `prisma --help > usage.txt`, and `diff <(prisma --help) <(prisma --version)` all work as expected — matching POSIX, GNU coreutils, git, and npm. **Help printed as part of an error** (unknown command, missing subcommand, bad flag) is decoration around that error and goes to **stderr** with the corresponding non-zero exit code. The user did not invoke `--help` in those cases — the CLI is voluntarily showing usage to help them recover, which is decoration. Same printed bytes; different invocation intent; different stream.
+1. **Each command declares its data lines** in its presentation's `stdout`. A command that prints none declares `noDataLines(reason)` and says why. `test/orm/command-stdout.test.ts` fails on an empty `stdout` without a reason.
+2. **Data lines are a stable interface.** Fields are tab-separated and come in the order the [CLI README](../packages/1-framework/3-tooling/cli/README.md#piped-output) documents. Build them with `dataLine` and `fieldLines` from `src/orm/data-lines.ts`, which leave an absent value as an empty field and escape a backslash, tab, newline or carriage return inside a value. Paths are relative to the working directory. New fields are only appended; changing or reordering a field is a breaking change.
+3. **Never write data to stderr** — the human card is context for a person.
+4. **Never write decoration to stdout** — it breaks pipes, `$(...)` captures, and `> file` redirects.
+5. **`--help` and `--version` are data when explicitly requested.** When the user invokes `prisma --help` (or any subcommand `--help`) or `prisma --version`, the rendered text **is** the data the caller asked for and goes to **stdout** with exit code 0. This makes `prisma --help | less`, `prisma --help > usage.txt`, and `diff <(prisma --help) <(prisma --version)` all work as expected — matching POSIX, GNU coreutils, git, and npm. **Help printed as part of an error** (unknown command, missing subcommand, bad flag) is decoration around that error and goes to **stderr** with the corresponding non-zero exit code. The user did not invoke `--help` in those cases — the CLI is voluntarily showing usage to help them recover, which is decoration. Same printed bytes; different invocation intent; different stream.
 
-### How it works in practice
-
-The CLI checks `process.stdout.isTTY` once at startup to determine the output mode:
-
-- **Interactive** (`stdout` is TTY): decoration visible on stderr. `ui.output()` writes to stdout when called (commands gate it behind `--json`).
-- **Piped** (`stdout` is NOT TTY): decoration suppressed, `ui.output()` writes raw data to stdout.
+The engine's own convention is in the `@prisma/cli-engine` README.
 
 ## Verbosity & Flags
 - Defaults: concise informational output in TTY with tasteful color/spinners.
@@ -231,7 +223,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 
 ## JSON Semantics
 - `--json` outputs a single JSON object for the command result to stdout regardless of TTY mode.
-- When piped (`!isTTY`), no decoration is visible — only JSON data on stdout.
+- Without `--json`, a pipe receives only the command's data lines on stdout: tab-separated fields for a list, `key<TAB>value` lines for a show, or a bare value. The human card still goes to stderr. Piping does not enable JSON; JSON needs `--json`.
 - **Each command's `--json` success shape MUST be defined as a schema** (arktype or equivalent) co-located with the command (e.g. `src/commands/<command>/output.ts`) and exported on the package's public surface, so downstream consumers can validate the output. The error envelope schema is shared (see [Errors](#errors)). Hand-writing JSON without a co-located schema is not allowed.
 - Success and error documents on the same command SHOULD share a discriminator field (typically `ok: boolean`) so consumers can branch without inspecting the structure.
 
@@ -291,10 +283,10 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 
 ## Loading Indicators & Spinners
 - **When to use**: Show spinners for remote operations (database connections, network requests) that may take time.
-- **Implementation**: Use `@clack/prompts` spinner on stderr via `TerminalUI.spinner()`. Spinners are automatically suppressed when piped (`!isTTY`), in `--quiet` mode, or with `--json` output.
+- **Implementation**: Report progress through the command's progress reporter (`src/orm/progress.ts`); the engine draws the spinner on stderr. Spinners are automatically suppressed when piped (`!isTTY`), in `--quiet` mode, or with `--json` output.
 - **Delay threshold**: Spinners use a 100ms delay threshold — they only appear if the operation takes longer, avoiding flicker for fast operations.
 - **Output format**: Success message with elapsed time: `✔ Operation name (123ms)`. Failure: `✖ Operation name (failed)`.
-- **Nested operations**: Rendered as step lines via `ui.step()` rather than separate spinners.
+- **Nested operations**: Rendered as step lines rather than separate spinners.
 
 ## Graceful Shutdown
 - SIGINT (Ctrl+C) and SIGTERM are handled at CLI startup via a shared AbortController.
@@ -323,7 +315,6 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - `ref set production abc123`
 
 ## Internal Architecture
-- **TerminalUI** (`src/utils/terminal-ui.ts`): Composable output abstraction. All decoration goes to stderr via `@clack/prompts`, data goes to stdout. Accepts `color` and `interactive` overrides.
 - **GlobalFlags / CommonCommandOptions** (`src/utils/global-flags.ts`): Parsed flags shared by all commands. `CommonCommandOptions` is the base interface for command option types.
 - **addGlobalOptions()** (`src/utils/command-helpers.ts`): Registers global flags and help formatter on any Command. All commands use this instead of inline `.option()` calls.
 - **Shutdown** (`src/utils/shutdown.ts`): Global AbortController for SIGINT/SIGTERM. Exposes `shutdownSignal` for cancellable async operations.

@@ -51,7 +51,7 @@ Every code is a dotted `NAMESPACE.SUBCODE`; the namespace is the prefix (`CONFIG
 
 `category` is the prefix of `code` (`PLAN`, `CONTRACT`, `LINT`, `BUDGET`, `RUNTIME`, `ORM`, …). `details` holds the structured context (`details` is the runtime envelope's equivalent of the CLI envelope's `meta`). Recognise either shape programmatically with `isStructuredError` and match on `error.code` — never `instanceof`.
 
-**3. SQL driver errors** — surface as `SqlQueryError` / `SqlConnectionError` (see `packages/2-sql/1-core/errors/`). Fields on `SqlQueryError`: `kind: 'sql_query'`, `sqlState` (Postgres SQLSTATE, e.g. `'23505'`), `constraint`, `table`, `column`, `detail`, `cause`. These carry no dotted code — route on `sqlState` and the constraint metadata. SQL driver errors are typically wrapped by middleware before reaching the user, but raw-SQL paths can surface them directly.
+**3. SQL driver errors** — surface as `SqlQueryError` / `SqlConnectionError` (see `packages/2-sql-family/1-core/errors/`). Fields on `SqlQueryError`: `kind: 'sql_query'`, `sqlState` (Postgres SQLSTATE, e.g. `'23505'`), `constraint`, `table`, `column`, `detail`, `cause`. These carry no dotted code — route on `sqlState` and the constraint metadata. SQL driver errors are typically wrapped by middleware before reaching the user, but raw-SQL paths can surface them directly.
 
 ### Migration apply failures
 

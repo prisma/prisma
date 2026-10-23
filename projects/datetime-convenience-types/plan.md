@@ -36,7 +36,11 @@ A type constructor's `codecId` may be a `select` over `option` arguments; every 
 
 ### Slice 5 — The tools write convenience types
 
-`contract infer` and `contract print` write convenience types, with arguments only where they differ from the defaults, and the explicit type only where no convenience type fits. The Prisma 7 reader maps `DateTime` to `DateTime(column: timestamp)` and `@db.*` date and time columns to the matching convenience form. `prisma orm init` writes `DateTime`. Upgrade instructions: re-emit and `db sign` for adopted projects.
+`contract infer` and `contract print` write convenience types, with arguments only where they differ from the defaults, and the explicit type only where no convenience type fits. The Prisma 7 reader maps `DateTime` to `DateTime(column: timestamp)` and `@db.*` date and time columns to the matching convenience form. `prisma orm init` writes `DateTime`. The contributed `temporal.CreatedAt` and `temporal.UpdatedAt` aliases are rebuilt on `DateTime` (`DateTime @onCreate(now())`, and `@onUpdate(now())` for the second), and their `String` and `JsDate` variants are removed, per ADR 279; contracts that use them change codec, so the upgrade instruction says to re-emit and `db sign`. Upgrade instructions: re-emit and `db sign` for adopted projects. Update slice 2's upgrade instruction (`upgrade-instructions/pending/prisma7-now-default-on-create/`), which names the type the reader picks today (`TimestampString(3)`).
+
+## Cross-slice notes
+
+- Slices 1 and 4 both touch what string date and time values look like. The convenience-types journey (`convenience-date-time-types-without-temporal.e2e.test.ts`) asserts today's display text for `textAt` (`2024-02-29 10:00:00.123456+00`) and `localAt` (`09:30:00+02`). Whichever of the two slices merges second changes them to `2024-02-29T10:00:00.123456Z` and `09:30:00+02:00`.
 
 ## Dependencies
 

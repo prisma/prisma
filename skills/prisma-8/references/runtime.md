@@ -252,7 +252,7 @@ export const db = postgres({
 
 `mode` decides what a budget violation does. It is `'strict'` by default, and every `budgets()` violation throws. Pass `mode: 'permissive'` to `postgres()`, `postgresServerless()`, `sqlite()` or `supabase()`, and a violation whose severity is `'warn'` goes to `log.warn` instead, and the query runs; a violation whose severity is `'error'` still throws. `budgets()` gives latency `'warn'` and the row count `'error'` by default, so a row-count limit warns only with `severities: { rowCount: 'warn' }`.
 
-For the full option surface, read the source: `packages/2-sql/5-runtime/src/middleware/lints.ts` and `.../budgets.ts`. The `severities` keys (`selectStar`, `noLimit`, `deleteWithoutWhere`, `updateWithoutWhere`, `readOnlyMutation` for lints; `rowCount`, `latency` for budgets) are the source of truth; do not extrapolate to a key that is not in those two files. `lints()` with no argument uses the default severities.
+For the full option surface, read the source: `packages/2-sql-family/5-runtime/src/middleware/lints.ts` and `.../budgets.ts`. The `severities` keys (`selectStar`, `noLimit`, `deleteWithoutWhere`, `updateWithoutWhere`, `readOnlyMutation` for lints; `rowCount`, `latency` for budgets) are the source of truth; do not extrapolate to a key that is not in those two files. `lints()` with no argument uses the default severities.
 
 ## Workflow — Cache middleware
 
@@ -445,7 +445,7 @@ The runtime side (this skill) is the same regardless: `db.ts` reads `contract.js
 
 ## Reference Files
 
-This skill is intentionally body-only; `prisma orm init --help`, the target `defineConfig` (`ormConfig`) factory in `packages/3-extensions/postgres/src/config/define-config.ts`, the `postgres()` factory in `packages/3-extensions/postgres/src/runtime/postgres.ts`, the middleware sources in `packages/2-sql/5-runtime/src/middleware/{lints,budgets}.ts`, and `packages/3-extensions/middleware-cache/README.md` are the authoritative surfaces for option-level detail. When in doubt, read the source.
+This skill is intentionally body-only; `prisma orm init --help`, the target `defineConfig` (`ormConfig`) factory in `packages/3-targets/postgres/9-facade/src/config/define-config.ts`, the `postgres()` factory in `packages/3-targets/postgres/9-facade/src/runtime/postgres.ts`, the middleware sources in `packages/2-sql-family/5-runtime/src/middleware/{lints,budgets}.ts`, and `packages/3-extensions/middleware-cache/README.md` are the authoritative surfaces for option-level detail. When in doubt, read the source.
 
 ## Checklist
 
