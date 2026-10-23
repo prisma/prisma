@@ -1196,7 +1196,7 @@ export type HavingComparisonMethods<T, CodecId extends string = never> = Pick<
 >;
 
 /**
- * Literal HAVING comparands are a `number`, or also a `bigint` when the aggregate's output codec declares `integer: 'bigint'`; a number for a codec that declares `integer` must be an integer, which the runtime checks;
+ * Literal HAVING comparands are a `number`, or also a `bigint` when the aggregate's output codec declares `integerRepresentation: 'bigint'`; a number for a codec that declares `integerRepresentation` must be an integer, which the runtime checks;
  * prepared comparands carry the declared aggregate output codec.
  * A field-taking metric compares as `number | null` — a
  * grouped value's SQL domain includes NULL; a no-input metric reads
@@ -1214,16 +1214,20 @@ type AggregateOutputCodecId<Row> = Row extends { readonly output: infer Id exten
   ? Id
   : never;
 
-/** A field-taking metric's literal comparand: a number, or also a bigint when the aggregate's output codec declares `integer: 'bigint'`, as `max` and `sum` over a bigint column do. The codec's descriptor declares it, and the runtime reads the same declaration. */
+/** A field-taking metric's literal comparand: a number, or also a bigint when the aggregate's output codec declares `integerRepresentation: 'bigint'`, as `max` and `sum` over a bigint column do. The codec's descriptor declares it, and the runtime reads the same declaration. */
 type HavingFieldComparand<TContract extends Contract<SqlStorage>, OutputCodecId extends string> =
-  'bigint' extends CodecInteger<TContract, OutputCodecId> ? number | bigint | null : number | null;
+  'bigint' extends CodecIntegerRepresentation<TContract, OutputCodecId>
+    ? number | bigint | null
+    : number | null;
 
-type CodecInteger<
+type CodecIntegerRepresentation<
   TContract extends Contract<SqlStorage>,
   CodecId extends string,
 > = CodecId extends keyof ExtractCodecTypes<TContract>
-  ? ExtractCodecTypes<TContract>[CodecId] extends { readonly integer: infer Integer }
-    ? Integer
+  ? ExtractCodecTypes<TContract>[CodecId] extends {
+      readonly integerRepresentation: infer Representation;
+    }
+    ? Representation
     : undefined
   : undefined;
 

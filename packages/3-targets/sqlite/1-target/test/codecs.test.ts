@@ -120,12 +120,14 @@ describe('SQLite codecs read the value an include carries', () => {
   );
 });
 
-describe("each codec's integer declaration", () => {
+describe("each codec's integerRepresentation", () => {
   it('is declared by the integer codecs, and names the JavaScript type each reads an integer back as', async () => {
     const { codecDescriptors } = await import('../src/core/codecs');
     const descriptors: readonly AnyCodecDescriptor[] = codecDescriptors;
     const declared = descriptors.flatMap((descriptor) =>
-      descriptor.integer === undefined ? [] : [{ descriptor, integer: descriptor.integer }],
+      descriptor.integerRepresentation === undefined
+        ? []
+        : [{ descriptor, integer: descriptor.integerRepresentation }],
     );
     const readBack = declared.map(({ descriptor, integer }) => {
       const codec = descriptor.factory(undefined)({ name: 'integer' });

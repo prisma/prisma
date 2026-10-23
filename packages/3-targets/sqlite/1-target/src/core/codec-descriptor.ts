@@ -111,7 +111,7 @@ class SqliteCodecDescriptorAdapter<
     value: JsonValue,
     side: 'output' | 'input',
   ) => string | undefined;
-  declare readonly integer?: 'number' | 'bigint';
+  declare readonly integerRepresentation?: 'number' | 'bigint';
 
   constructor(
     descriptor: D,
@@ -125,8 +125,8 @@ class SqliteCodecDescriptorAdapter<
       StandardSchemaV1<DescriptorParams<D>> | undefined,
       'the data type the codec represents declares the parameters the codec takes'
     >(options.dataType.params);
-    if (descriptor.integer !== undefined) {
-      this.integer = descriptor.integer;
+    if (descriptor.integerRepresentation !== undefined) {
+      this.integerRepresentation = descriptor.integerRepresentation;
     }
 
     const renderOutputType = descriptor.renderOutputType;

@@ -145,7 +145,8 @@ export class GroupedCollection<
     const havingExpr = predicate(
       createHavingBuilder<TContract, ModelName, NsId>(
         this.contract,
-        (codecId) => this.ctx.context.codecDescriptors.descriptorFor(codecId)?.integer,
+        (codecId) =>
+          this.ctx.context.codecDescriptors.descriptorFor(codecId)?.integerRepresentation,
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
@@ -415,7 +416,7 @@ function createHavingBuilder<
 type IntegerOf = (codecId: string) => 'number' | 'bigint' | undefined;
 
 /**
- * A literal comparand as the aggregate's output codec takes it, read from the codec's declared `integer`. A codec whose values are integers takes only a safe integer number: a number with a fraction, or past the safe range, is refused. A codec that declares `'bigint'` gets a number as a bigint.
+ * A literal comparand as the aggregate's output codec takes it, read from the codec's declared `integerRepresentation`. A codec whose values are integers takes only a safe integer number: a number with a fraction, or past the safe range, is refused. A codec that declares `'bigint'` gets a number as a bigint.
  */
 function havingComparand(value: unknown, codecId: string, integer: IntegerOf): unknown {
   const kind = integer(codecId);

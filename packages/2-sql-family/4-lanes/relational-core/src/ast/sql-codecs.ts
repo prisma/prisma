@@ -114,7 +114,7 @@ export class SqlIntCodec extends CodecImpl<
 
 export class SqlIntDescriptor extends CodecDescriptorTemplateImpl<void> {
   override readonly codecId = SQL_INT_CODEC_ID;
-  override readonly integer = 'number' as const;
+  override readonly integerRepresentation = 'number' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => SqlIntCodec {

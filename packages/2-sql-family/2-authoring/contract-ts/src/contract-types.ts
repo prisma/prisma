@@ -42,7 +42,7 @@ export type PublicCodecTypes<CodecTypes extends Record<string, { readonly output
     CodecTypes[CodecId],
     Extract<
       keyof CodecTypes[CodecId],
-      'input' | 'output' | 'traits' | 'keepsWrittenForm' | 'integer'
+      'input' | 'output' | 'traits' | 'keepsWrittenForm' | 'integerRepresentation'
     >
   >;
 };

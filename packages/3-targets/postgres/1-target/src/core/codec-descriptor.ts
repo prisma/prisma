@@ -156,7 +156,7 @@ class PostgresCodecDescriptorAdapter<
     side: 'output' | 'input',
   ) => string | undefined;
   declare readonly enumRefusal?: string;
-  declare readonly integer?: 'number' | 'bigint';
+  declare readonly integerRepresentation?: 'number' | 'bigint';
   override readonly factory: (
     params: DescriptorParams<D>,
   ) => (ctx: CodecInstanceContext) => Codec<string, readonly CodecTrait[], unknown, unknown>;
@@ -198,8 +198,8 @@ class PostgresCodecDescriptorAdapter<
       this.enumRefusal = descriptor.enumRefusal;
     }
 
-    if (descriptor.integer !== undefined) {
-      this.integer = descriptor.integer;
+    if (descriptor.integerRepresentation !== undefined) {
+      this.integerRepresentation = descriptor.integerRepresentation;
     }
   }
 

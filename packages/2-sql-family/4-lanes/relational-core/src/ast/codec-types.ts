@@ -185,14 +185,14 @@ export type ExtractCodecTypes<
     readonly json: DescriptorCodecJson<ScalarNames[K]>;
     readonly traits: DescriptorCodecTraits<ScalarNames[K]>;
   } & DescriptorKeepsWrittenFormFlag<ScalarNames[K]> &
-    DescriptorIntegerFlag<ScalarNames[K]>;
+    DescriptorIntegerRepresentation<ScalarNames[K]>;
 };
 
-/** `{ integer: 'number' | 'bigint' }` for a descriptor that declares its values integers, so a comparand's type reads the same declaration the runtime does; nothing for any other. */
-export type DescriptorIntegerFlag<D> = D extends {
-  readonly integer: infer Integer extends 'number' | 'bigint';
+/** `{ integerRepresentation: 'number' | 'bigint' }` for a descriptor that declares one, so types read the same declaration the runtime does; nothing for any other. */
+export type DescriptorIntegerRepresentation<D> = D extends {
+  readonly integerRepresentation: infer Representation extends 'number' | 'bigint';
 }
-  ? { readonly integer: Integer }
+  ? { readonly integerRepresentation: Representation }
   : unknown;
 
 /** `{ keepsWrittenForm: true }` for a descriptor that declares it, so the shared field and column types read it; nothing for any other. */
