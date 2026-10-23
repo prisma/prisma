@@ -27,7 +27,7 @@ changes:
 
 ## `value-objects-in-storage`
 
-Commit your work first, so the script's changes can be reviewed and undone with git. Do this before you re-emit the contract: `prisma db sign` must see the contract the database was created from before a re-emit adds the new checks. Then run the script from the project root:
+Before you upgrade, apply every pending migration to each database (development, staging, production) with the release you are upgrading from, so each database is at the last migration. Then commit your work, so the script's changes can be reviewed and undone with git. Run the script before you re-emit the contract: `prisma db sign` must see the contract the database was created from before a re-emit adds the new checks. Run it from the project root:
 
 ```sh
 node <path-to-this-guide>/scripts/value-objects-in-storage/value-objects-in-storage.ts
@@ -44,13 +44,23 @@ Storage now holds the value objects, so each contract it rewrites has a new stor
 
 When it finishes, it prints how many files it rewrote, how many snapshot directories it renamed, and each storage hash it replaced (`<old> -> <new>`). A project already in the new form is left unchanged, and the script says that nothing changed. It changes no file and exits 1 when a file it must read is not valid JSON, when a contract's stored hash does not match its content, when a field holds a value object the contract does not declare, when a member's enum has no storage value set, when a discriminator's value set name is already taken by an enum, or when a renamed snapshot directory already exists with different content. If it stops on an error partway, for example on a full disk, run it again: it finishes the upgrade.
 
-The script rewrites a snapshot's `contract.d.ts` for the moved value objects. It does not add the types of the discriminator value sets; `prisma contract emit` writes those for the emitted contract.
+The script rewrites a snapshot's `contract.d.ts` for the moved value objects. It does not add the types of the discriminator value sets. Nothing reads them from a snapshot: a `migration.ts` that imports a snapshot's `contract.d.ts` compiles without them, and `prisma contract emit` writes them for the emitted contract.
 
 Then:
 
-1. Sign each database (development, staging, production) with the rewritten contract, before you re-emit: `prisma db sign --db "$DATABASE_URL"`. Its marker still holds the old storage hash, so until it is signed `prisma db migrate` refuses with `MIGRATION.MARKER_MISMATCH` and `prisma db verify` with `CONTRACT.MARKER_MISMATCH`.
+1. Sign each database (development, staging, production) with the rewritten contract, before you re-emit: `prisma db sign --db "$DATABASE_URL"`. Its marker still holds the old storage hash, so until it is signed `prisma db migrate` refuses with `MIGRATION.MARKER_MISMATCH` and `prisma db verify` with `CONTRACT.MARKER_MISMATCH`. This works for a database at the last migration.
 2. Re-emit the contract: `prisma contract emit`.
 3. On PostgreSQL, plan and apply the migration that adds the new checks, as `postgres-value-object-checks` describes. On MongoDB there is nothing to plan: the collection validators do not change.
+
+A database you could not migrate before the upgrade is behind the last migration, and `prisma db sign --db "$DATABASE_URL"` fails on it with `CONTRACT.SCHEMA_VERIFICATION_FAILED`, because it signs against the last contract. Do not follow its advice to run `prisma db update`: that skips the pending migrations. Instead, sign the database at the new hash of the hash its marker holds, then migrate it:
+
+```sh
+prisma db sign --contract <new hash> --no-advance-ref --db "$DATABASE_URL"
+prisma db migrate --db "$DATABASE_URL"
+prisma db verify --strict --db "$DATABASE_URL"
+```
+
+Find the new hash in the script's output: the marker holds the `<old>` hash of one `<old> -> <new>` line. `--no-advance-ref` leaves your local `db` ref where it is.
 
 ## `value-object-types-from-storage`
 
@@ -68,7 +78,7 @@ type Outputs = ValueObjectTypesFromStorage<Contract['storage']['namespaces'], Co
 
 For each column that holds a value object, the contract derives a check named `<table>_<column>_value_object_<hash>`. It accepts a JSON object with every required member, each of its JSON type, no other key, and for a list column an array of such objects; a nullable column also accepts SQL `NULL` and JSON `null`. For each discriminator column it derives `<table>_<column>_check_<hash>`, which accepts only the variants' values. A table whose control policy is not managed gets neither check.
 
-After you re-emit the contract, `prisma migration plan` writes a migration that adds the checks. Its DDL preview prints each check's expression. Before you run `prisma db migrate`, find the rows that would fail by selecting the rows where the expression is not true, for example:
+After you re-emit the contract, `prisma migration plan` writes a migration that adds the checks. A project with no `db` ref names the origin, the last migration: `prisma migration plan --from <last migration directory>`; without it the command refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN`, as it does for any plan in such a project. Its DDL preview prints each check's expression. Before you run `prisma db migrate`, find the rows that would fail by selecting the rows where the expression is not true, for example:
 
 ```sql
 SELECT id, address FROM "public"."user"
@@ -77,7 +87,7 @@ WHERE NOT ("address" IS NULL OR jsonb_path_match("address", 'strict … ') IS TR
 SELECT id, type FROM "public"."task" WHERE NOT ("type" IN ('bug', 'feature'));
 ```
 
-Copy the expression from the preview between `CHECK (` and the closing `)`. Fix or delete each row the query returns, for example by removing the extra keys with `UPDATE "public"."user" SET address = address - 'extra' WHERE address ? 'extra'`, then apply the migration. A migration that fails on a row leaves the operations before it applied; fix the rows and run `prisma db migrate` again.
+Copy the expression from the preview between `CHECK (` and the closing `)`. Fix or delete each row the query returns, for example by removing the extra keys with `UPDATE "public"."user" SET address = address - 'extra' WHERE address ? 'extra'`, then apply the migration. A migration that fails on a row changes nothing, and the error names the check; fix the rows and run `prisma db migrate` again.
 
 ## `discriminator-typed-by-variant-values`
 
