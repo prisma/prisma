@@ -30,7 +30,7 @@ Slice 3 replaces this with the one recovery the database's policy permits. Witho
 - error-reference entries;
 - the `prisma-8` skill: the rule at the top of `SKILL.md`, the "A database whose marker is not in the migration graph" section, the debug table and the routing triggers;
 - the migration domain docs' wording for `db update`;
-- the drift recovery decision record's amendment;
+- ADR 307, which supersedes the drift recovery decision record's reset recoveries;
 - the Migration System doc's recovery table.
 
 **Builds on:** nothing. **Hands to:** slice 2, the envelopes Composer will show. Slice 3, the error that will choose its recovery by policy.
@@ -45,7 +45,7 @@ Slice 3 replaces this with the one recovery the database's policy permits. Witho
 
 **Outcome:**
 - **Refs:** they accept `policies`, and every ref writer keeps the field.
-- **The marker:** it stores the policies in force under `meta.policies` on Postgres, SQLite and MongoDB. Other marker writes keep them.
+- **The marker:** it stores the policies in force under `meta.policies` on Postgres, SQLite, MySQL and MongoDB. Other marker writes keep them.
 - **The ledger:** it records policy changes.
 - **The mismatch rule:** commands given a ref apply it, with `MIGRATION.POLICY_MISMATCH`, and `--permit-policy-change` on `db migrate` and `db update`.
 - **`migration status --to <ref>`:** it reports a mismatch.
@@ -54,7 +54,7 @@ Slice 3 replaces this with the one recovery the database's policy permits. Witho
 
 **In scope:**
 - the ref schema and writer in `@internal/migration-tools`;
-- marker reads and writes on the three targets;
+- marker reads and writes on the four targets;
 - the ledger record and its writers;
 - the control API operations and CLI commands above;
 - the new decision record;

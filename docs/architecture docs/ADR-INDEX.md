@@ -32,6 +32,7 @@ Open this list before you propose a new feature or surface, or judge a feature r
 - [ADR 303](adrs/ADR%20303%20-%20Prisma%208%20has%20no%20read%20replicas%20in%20the%20core.md): no read replicas in the core; create a separate `db` client for each data store.
 - [ADR 304](adrs/ADR%20304%20-%20Prisma%208%20has%20no%20automatic%20batching.md): no automatic batching of lookups; load related rows with `.include(...)`, which the database joins.
 - [ADR 305](adrs/ADR%20305%20-%20Prisma%208%20has%20no%20P2002-style%20error%20codes.md): no `P2002`-style error codes; branch on the dotted `code` of the error envelope.
+- [ADR 307](adrs/ADR%20307%20-%20No%20recovery%20resets%20or%20drops%20a%20database.md): no reset or drop to fix a migration, marker or contract problem; move the database with `db update` where its migration history does not need to be kept, otherwise with authored migrations.
 
 ## Core Architecture
 
@@ -250,6 +251,7 @@ Requests answered with a no, with what to use instead. Every Accepted row is on 
 | 304 | Prisma 8 has no automatic batching | Load related rows with `.include(...)`, which the database joins | [ADR 304 - Prisma 8 has no automatic batching.md](adrs/ADR%20304%20-%20Prisma%208%20has%20no%20automatic%20batching.md) |
 | 305 | Prisma 8 has no `P2002`-style error codes | Branch on the dotted `code` of the error envelope (ADR 239) | [ADR 305 - Prisma 8 has no P2002-style error codes.md](adrs/ADR%20305%20-%20Prisma%208%20has%20no%20P2002-style%20error%20codes.md) |
 | 306 | One plain-data definition and one builder per family | Every contract source of a family produces one plain-data definition and calls one builder, which returns refusals as keyed data | [ADR 306 - One plain-data definition and one builder per family.md](adrs/ADR%20306%20-%20One%20plain-data%20definition%20and%20one%20builder%20per%20family.md) |
+| 307 | No recovery resets or drops a database | A database is always moved, by `db update` or by authored migrations; ADR 123's reset recoveries are superseded | [ADR 307 - No recovery resets or drops a database.md](adrs/ADR%20307%20-%20No%20recovery%20resets%20or%20drops%20a%20database.md) |
 
 ## Notes
 

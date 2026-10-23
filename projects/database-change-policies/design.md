@@ -83,6 +83,7 @@ A CD pipeline can only deploy, so the consent is a flag on the deploy, not a sep
 ### Known limits
 
 - Under `data-loss-with-consent`, `db migrate` treats a migration's own contents as consent, given when it was planned. In a pipeline a reviewer saw that consent; from a local checkout nobody did. Only `data-loss-forbidden` stops an unreviewed lossy migration applied by hand.
+- The migrations-only recovery for an off-graph database leaves two repair migrations in the graph. A new, empty database could be routed through them if that path is shorter than the main line. The skill tells agents to check with `migration list` and ask a person when it is.
 - Anyone with write access to the marker table, or who passes `--permit-policy-change` with an edited ref, can change a policy. The policies stop mistakes, not deliberate workarounds.
 
 ## Prior art
@@ -117,7 +118,8 @@ The glossary's existing **control policy** (managed, tolerated, external, observ
 
 ## Follow-ups outside this project
 
-- A one-step command to bring an off-graph database back onto the graph with migrations.
+- A one-step command to bring an off-graph database back onto the graph with migrations, including `migration plan --to` accepting a hash from the snapshot store ([TML-3743](https://linear.app/prisma-company/issue/TML-3743)).
+- `db update` lists the data transforms it skips and refuses to lose the data they would carry ([TML-3744](https://linear.app/prisma-company/issue/TML-3744)).
 - Writing the marker's policies only through a privileged database role.
 - Permitted change operations and the compatibility policy.
 - `prisma postgres connection delete` rejects `--project`, which `create` and `list` accept.

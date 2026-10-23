@@ -70,7 +70,7 @@ The defaults are today's behaviour, so existing databases behave exactly as befo
 
 Every key is optional. A key a ref omits is **undeclared**: the ref says nothing about that setting. Every command that writes a ref file (`migration ref set`, ref advancement by `db init`, `db update`, `db sign` and `db migrate --advance-ref`) keeps an existing `policies` field unchanged. Only a person editing the file changes it.
 
-**In the marker.** The application space's marker row stores the policies in force under `meta.policies`, in the same shape as the ref's `policies`. The `meta` column already exists on Postgres, SQLite and MongoDB, so no marker table changes. A marker write that does not change policy keeps `meta.policies` as it is.
+**In the marker.** The application space's marker row stores the policies in force under `meta.policies`, in the same shape as the ref's `policies`. The `meta` column already exists on Postgres, SQLite, MySQL and MongoDB, so no marker table changes. MySQL's marker upsert currently replaces `meta` with `{}` on every write, and must stop doing so. A marker write that does not change policy keeps `meta.policies` as it is.
 
 **In the ledger.** Every change to a database's policies appends a ledger entry recording the previous policies, the new policies and when the change happened. It has no migration name or hash. Existing ledger entries are migration entries.
 
@@ -152,7 +152,7 @@ Composer's deploy step (`packages/1-prisma-cloud/1-extensions/target/src/orm-mig
 ### Recorded decisions and documents
 
 - A new decision record, "Databases record a change policy and a data protection policy".
-- The drift recovery decision record loses "reset and reapply" as a recovery and "auto-reset" as development policy.
+- A decision record, "No recovery resets or drops a database" (ADR 307), supersedes the drift recovery decision record's "reset and reapply" recoveries and its "auto-reset" development policy. The change policy decision record supersedes ADR 287's "`db update` is for development only".
 - The glossary defines change policy, data protection policy and their values, says how they differ from control policy, and widens `migrate` to "bring the database to a ref, applying its policies with consent".
 - The migration domain docs replace "dev-only" and "tears down and rebuilds" for `db update`.
 - The Migration System doc's recovery table matches the errors above.
@@ -186,7 +186,7 @@ Composer's deploy step (`packages/1-prisma-cloud/1-extensions/target/src/orm-mig
 - Replaying the incident on Postgres, a `db migrate` and a Composer deploy to a database whose marker is off the graph fail with `MIGRATION.MARKER_MISMATCH`, naming the last graph hash and the missing migrations, saying the database need not be reset, and giving the next actions for its change policy (integration tests in both repositories).
 - On a database whose policy permits only `migrate`, `db update` and `db sign` fail with `MIGRATION.CHANGE_POLICY_FORBIDS` (integration tests).
 - Under `data-loss-forbidden`, a migration that drops a column fails with `MIGRATION.DATA_PROTECTION_FORBIDS` in `db migrate` and in a Composer deploy, with and without a ref, and `db update` refuses the same change even with `--delete` (integration tests).
-- A deploy to a ref whose declared policy differs from the database's fails with `MIGRATION.POLICY_MISMATCH` before running anything; with `--permit-policy-change` it writes the policy, appends the ledger entry, then runs; with nothing else pending it changes only the policy (integration tests on Postgres, SQLite and MongoDB).
+- A deploy to a ref whose declared policy differs from the database's fails with `MIGRATION.POLICY_MISMATCH` before running anything; with `--permit-policy-change` it writes the policy, appends the ledger entry, then runs; with nothing else pending it changes only the policy (integration tests on Postgres, SQLite, MySQL and MongoDB).
 - `migration ref set` and ref advancement keep an existing `policies` field (tests).
 - The skill, the decision records, the glossary and the migration docs say what this spec says. No text in the repository recommends resetting or dropping a database to fix a migration problem, or scopes `db update` to local, solo or dev-only databases.
 - Linear tickets exist for each follow-up in [`design.md`](design.md).

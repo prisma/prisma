@@ -485,13 +485,16 @@ Reconcile it to the target with `db update`:
 
 Author migrations that bring it back onto the graph, and deploy them. The marker's contract is `<marker hash>`; the last graph contract is `meta.lastGraphHash`.
 
-1. Restore the contract the database is at into the snapshot store. Its snapshot was committed with the deleted migration, so find it in git history: `git log --all --oneline -- migrations/snapshots/<marker hash>`, then `git checkout <commit> -- migrations/snapshots/<marker hash>`.
-2. Plan a migration from the last graph contract to the database's contract: `prisma migration plan --from <lastGraphHash> --to <marker hash> --name rejoin_<database>`. Nothing will run it against this database; it only puts the database's contract in the graph.
-3. Plan a migration from the database's contract to the target: `prisma migration plan --from <marker hash> --to <target> --name <slug>`. Review it like any migration, and add data transforms for any data the deleted migration's replacement would have moved.
-4. Check how a fresh database reaches the target: `prisma migration list`. Path finding takes the shortest route, so if these two migrations make a shorter route from the last graph contract to the target than the main line, a new database would take it. When they do, ask a person how to proceed.
-5. Commit both migrations and deploy.
+`migration plan --to` accepts only contracts already in the graph, so the database's contract goes through the contract source:
 
-If the snapshot is not in git history, stop and ask a person. Do not `db sign` the database to a contract you inferred: that rewrites its marker without a migration.
+1. Put the contract the database is at into the contract source. Prefer the contract source as it was when the deleted migration was planned: find the commit with `git log --all --oneline -- migrations/snapshots/<marker hash>` and check out the contract source file from it. If git no longer has it, infer it from the database into a separate file, `prisma contract infer --db $DATABASE_URL --output ./inferred.prisma` (without `--output` it overwrites the contract source), then copy that file over the contract source.
+2. `prisma contract emit`, and check that the emitted storage hash is `<marker hash>`. If it is not, stop and ask a person.
+3. Plan a migration from the last graph contract to the database's contract: `prisma migration plan --from <lastGraphHash> --name rejoin_<database>`. Nothing will run it against this database; it only puts the database's contract in the graph.
+4. Restore the contract source (`git checkout -- <contract source>`), run `prisma contract emit`, then plan from the database's contract to the target: `prisma migration plan --from <marker hash> --name <slug>`. Review it like any migration, and add data transforms for any data the deleted migration's replacement would have moved.
+5. Check how a fresh database reaches the target: `prisma migration list`. Path finding takes the shortest route, so if these two migrations make a shorter route from the last graph contract to the target than the main line, a new database would take it. When they do, ask a person how to proceed.
+6. Commit both migrations and deploy.
+
+Do not `db sign` the database to a contract you inferred: that rewrites its marker without a migration.
 
 ## Workflow — Recover from drift
 

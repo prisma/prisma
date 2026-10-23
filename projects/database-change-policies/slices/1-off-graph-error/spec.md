@@ -22,11 +22,9 @@ A Composer deploy or `prisma db migrate` against a database whose marker is not 
 
 ## Chosen design
 
-### The control API's `migrate` returns structured envelopes
+### The control API's `migrate` already returns structured envelopes
 
-`executeMigrate` in `packages/1-framework/3-tooling/cli/src/control-api/operations/migrate.ts` today returns `MigrateFailure` with its own codes, `MIGRATION_PATH_NOT_FOUND` and `RUNNER_FAILED` (`MigrateFailureCode` in `control-api/types.ts`). The CLI maps them in `utils/migrate-failure.ts`. That mapping is the boundary rewrite the structured-errors decision record (ADR 245) forbids, and it is why Composer never sees the CLI's next actions.
-
-After this slice, the control API's `migrate` result's failure is a `CliStructuredError` built where the failure is detected, with the same code, `why`, `nextActions` and `meta` the CLI prints today, or better. `MigrateFailure`, `MigrateFailureCode` and `mapMigrateFailure` are deleted; the CLI renders the envelope it receives. Runner failures keep their current CLI code and content (`MIGRATION.RUNNER_FAILED` with `migrateFix`'s advice), now built inside the control API. The no-migrations-on-disk case (`buildNeverPlannedFailure`) keeps its current CLI code and content.
+`executeMigrate` in `packages/1-framework/3-tooling/cli/src/control-api/operations/migrate.ts` already fails with a `CliStructuredError` built where the failure is detected, so Composer receives the same code, `why`, `nextActions` and `meta` the CLI prints. This slice changes only what the no-path branch returns, below.
 
 ### Two causes, two codes
 
@@ -53,9 +51,9 @@ An empty database (no marker) is never case 1.
   5. `user-choice`: `If this database changes only through migrations, as production should: author a migration from <last graph hash> to the database's current contract, then one from there to <target hash>, commit them, and deploy again.` When there is no last graph hash, say `from the nearest contract in the migration graph` instead.
 - **meta:** `spaceId`, `markerHash`, `targetHash`, `lastGraphHash` (or absent), `missingMigrations` (array of names, possibly empty).
 
-`{bin}` and `--db <url>` follow the existing printed-command conventions (`utils/printed-command.ts`): commands print with the `--config` and `--db` the CLI was given. For a caller that is not the CLI, such as Composer, the control API prints `--db <url>` literally.
+Commands print through `cliCommand` (`utils/printed-command.ts`), like every other printed command: arguments first, then the `--config` and `--db <url>` the caller was given, with hashes in full. A caller that is not the CLI, such as Composer, passes `invocation.dbGiven: true`, so the commands it shows name `--db <url>` and are not run against a developer's configured database by mistake. Composer sets it in slice 2.
 
-The CLI's existing pre-DDL check (`control-api/operations/graph-queries.ts`, `errorMarkerMismatch` in `utils/cli-errors.ts`) raises the same envelope, so both paths produce identical output. Its current recoveries, `migration plan --from <graph tip>` and `migration ref set db <marker hash>`, are removed: neither brings the database back onto the graph.
+The CLI's existing pre-DDL check and `db migrate --show` (`control-api/operations/graph-queries.ts`) raise the same envelope, for every contract space as the control API does, so all paths produce identical output. Its current recoveries, `migration plan --from <graph tip>` and `migration ref set db <marker hash>`, are removed: neither brings the database back onto the graph.
 
 No error in this slice suggests `contract infer`, a reset, or dropping the database.
 
@@ -66,7 +64,7 @@ One reviewer can hold this in one sitting: one failure type is replaced by envel
 ## Scope
 
 **In:**
-- the control API `migrate` failure type and its producers;
+- the control API `migrate` no-path branch;
 - the CLI's `db migrate` rendering;
 - `errorMarkerMismatch` and the pre-DDL check;
 - the ledger read;
@@ -74,7 +72,8 @@ One reviewer can hold this in one sitting: one failure type is replaced by envel
 - tests;
 - the `prisma-8` skill (`SKILL.md` rule and triggers, `references/migrations.md` new section and the `db update` wording, `references/debug.md` table, `references/migration-review.md` and `references/migration-model.md` where they describe these recoveries);
 - the migration domain docs (`docs/design/10-domains/migration/README.md`, `user-journeys.md`): replace "dev-only" and "tears down and rebuilds" for `db update`;
-- ADR 123: amend to remove "reset and reapply" as a recovery and "auto-reset" as development policy;
+- a new decision record, ADR 307 "No recovery resets or drops a database", which supersedes ADR 123's reset recoveries and "auto-reset" development policy (accepted ADRs are not edited; ADR 123 gains only a status line);
+- other CLI error text that advises a reset or a drop: `utils/db-init-failure.ts` and the `migrate reset` redirect in `orm/family.ts`;
 - the Migration System doc's recovery table.
 
 **Out:**

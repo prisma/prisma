@@ -60,12 +60,7 @@ The design, settled with Will:
 ## Next steps
 
 1. **Finish slice 1** (TML-3725) from the `WIP:` commit: the items under "Left" above. Until slice 3, the error lists both recoveries, each labelled with the kind of database it is for.
-2. **Manually check the skill's migration-only recovery.** It's in `skills/prisma-8/references/migrations.md`, section "A database whose marker is not in the migration graph":
-   - restore the snapshot from git history;
-   - run `migration plan --from <last graph hash> --to <marker hash>`;
-   - then run `migration plan --from <marker hash> --to <target>`.
-
-   Nobody has run it yet. If `--to` can't resolve a hash that is only in the snapshot store, fix the section.
+2. **Manually check the skill's migration-only recovery** (`skills/prisma-8/references/migrations.md`, "A database whose marker is not in the migration graph"). It follows the route agreed with Will: the database's contract goes through the contract source, then `migration plan --from <last graph hash>`, then `migration plan --from <marker hash>`. `migration plan --to` accepts only graph contracts; accepting snapshot-store hashes is TML-3743.
 3. **Before opening the pull request:**
    - run `/drive-code-review`, without the walkthrough, and fix what it finds;
    - run the pre-push checks that match CI: per-package lint, typecheck, tests, `lint:deps`, the error-reference check, and the integration files you touched (never the full integration suite locally).
