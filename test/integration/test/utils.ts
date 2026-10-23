@@ -103,7 +103,7 @@ export async function createTestRuntimeFromClient(
   return createTestRuntime(
     contract,
     {
-      binding: { kind: 'pgClient', client },
+      binding: { kind: 'pgClient', client, ownedByDriver: false },
       cursor: { disabled: true },
     },
     options,

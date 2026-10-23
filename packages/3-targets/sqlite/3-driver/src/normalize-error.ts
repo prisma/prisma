@@ -19,6 +19,16 @@ const SQLITE_CONSTRAINT_CHECK = 275; // 19 + 1*256
 const SQLITE_BUSY = 5;
 // Base code 6 = SQLITE_LOCKED
 const SQLITE_LOCKED = 6;
+// Base code 14 = SQLITE_CANTOPEN
+const SQLITE_CANTOPEN = 14;
+// Base code 26 = SQLITE_NOTADB
+const SQLITE_NOTADB = 26;
+
+// node:sqlite's code for using a database or statement in the wrong state: a closed database, but
+// also an unknown named parameter.
+const INVALID_STATE_CODE = 'ERR_INVALID_STATE';
+
+const GENERAL_ERROR_SQLSTATE = 'HY000';
 
 function isConstraintError(errcode: number): boolean {
   return (errcode & 0xff) === SQLITE_CONSTRAINT_BASE;
@@ -29,6 +39,11 @@ function isBusyOrLocked(errcode: number): boolean {
   return base === SQLITE_BUSY || base === SQLITE_LOCKED;
 }
 
+function isOpenFailure(errcode: number): boolean {
+  const base = errcode & 0xff;
+  return base === SQLITE_CANTOPEN || base === SQLITE_NOTADB;
+}
+
 export function isSqliteError(error: unknown): error is SqliteError {
   if (!(error instanceof Error)) {
     return false;
@@ -36,11 +51,11 @@ export function isSqliteError(error: unknown): error is SqliteError {
   return (error as SqliteError).code === 'ERR_SQLITE_ERROR';
 }
 
+/**
+ * The one place the driver reads SQLite's message: SQLite reports which constraint failed only
+ * in the text, as in "UNIQUE constraint failed: table.column".
+ */
 function constraintNameFromMessage(message: string): string | undefined {
-  // SQLite constraint messages follow patterns like:
-  // "UNIQUE constraint failed: table.column"
-  // "FOREIGN KEY constraint failed"
-  // "NOT NULL constraint failed: table.column"
   const match = /constraint failed: (.+)/.exec(message);
   return match?.[1];
 }
@@ -60,11 +75,18 @@ function mapErrCodeToSqlState(errcode: number): string {
       if (isConstraintError(errcode)) {
         return '23000'; // integrity_constraint_violation
       }
-      return 'HY000'; // general error
+      return GENERAL_ERROR_SQLSTATE;
   }
 }
 
-export function normalizeSqliteError(error: unknown): SqlQueryError | SqlConnectionError | Error {
+/**
+ * Normalizes a node:sqlite error. `databaseClosedByDriver` says whether the driver closed the
+ * database the failing call used; only then is a wrong-state error a closed-database connection error.
+ */
+export function normalizeSqliteError(
+  error: unknown,
+  databaseClosedByDriver: boolean,
+): SqlQueryError | SqlConnectionError | Error {
   if (!(error instanceof Error)) {
     return new Error(String(error));
   }
@@ -80,6 +102,13 @@ export function normalizeSqliteError(error: unknown): SqlQueryError | SqlConnect
       });
     }
 
+    if (isOpenFailure(errcode)) {
+      return new SqlConnectionError(error.message, {
+        cause: error,
+        transient: false,
+      });
+    }
+
     const sqlState = mapErrCodeToSqlState(errcode);
     const constraint = constraintNameFromMessage(error.message);
 
@@ -90,15 +119,10 @@ export function normalizeSqliteError(error: unknown): SqlQueryError | SqlConnect
     });
   }
 
-  // Connection-related Node.js errors
-  if (
-    error.message.includes('database is locked') ||
-    error.message.includes('unable to open database')
-  ) {
-    return new SqlConnectionError(error.message, {
-      cause: error,
-      transient: false,
-    });
+  if ('code' in error && error.code === INVALID_STATE_CODE) {
+    return databaseClosedByDriver
+      ? new SqlConnectionError(error.message, { cause: error, transient: false })
+      : new SqlQueryError(error.message, { cause: error, sqlState: GENERAL_ERROR_SQLSTATE });
   }
 
   return error;

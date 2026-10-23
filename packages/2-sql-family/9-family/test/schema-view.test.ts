@@ -4,7 +4,7 @@ import type {
 } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
 import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
-import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { SqlIndexIR, SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { createSqlFamilyInstance } from '../src/core/control-instance';
 
@@ -110,6 +110,65 @@ describe('SqlFamilyInstance.toSchemaView', () => {
       nullable: false,
       default: "'draft'::text",
     });
+  });
+
+  it('splits each label into keyword, name and detail parts', () => {
+    const familyInstance = createSqlFamilyInstance(createMockStack());
+    const schema = new SqlSchemaIR({
+      tables: {
+        post: {
+          name: 'post',
+          columns: { id: { name: 'id', typeText: 'int4', nullable: false } },
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [],
+          uniques: [{ name: 'post_slug_key', columns: ['slug'] }],
+          indexes: [
+            new SqlIndexIR({
+              naming: { kind: 'exact', name: 'post_title_idx' },
+              columns: ['title'],
+              where: undefined,
+              unique: true,
+              type: undefined,
+              options: undefined,
+              annotations: undefined,
+              dependsOn: undefined,
+              partial: false,
+            }),
+          ],
+        },
+      },
+    });
+
+    const table = familyInstance.toSchemaView(schema).root.children?.[0];
+    const [columns, primaryKey, unique, index] = table?.children ?? [];
+
+    expect(table?.labelParts).toEqual([
+      { text: 'table', role: 'keyword' },
+      { text: ' ' },
+      { text: 'post', role: 'name' },
+    ]);
+    expect(columns?.children?.[0]?.labelParts).toEqual([
+      { text: 'id', role: 'name' },
+      { text: ': ' },
+      { text: 'int4' },
+      { text: ' ' },
+      { text: '(not nullable)', role: 'detail' },
+    ]);
+    expect(primaryKey?.labelParts).toEqual([
+      { text: 'primary key', role: 'keyword' },
+      { text: ': ' },
+      { text: 'id', role: 'name' },
+    ]);
+    expect(unique?.labelParts).toEqual([
+      { text: 'unique', role: 'keyword' },
+      { text: ' ' },
+      { text: 'post_slug_key', role: 'name' },
+    ]);
+    expect(index?.labelParts).toEqual([
+      { text: 'unique index', role: 'keyword' },
+      { text: ' ' },
+      { text: 'post_title_idx', role: 'name' },
+    ]);
   });
 
   it('flattens tables from every namespace of a multi-namespace root', () => {

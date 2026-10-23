@@ -220,7 +220,7 @@ withTempDir(({ createTempDir }) => {
         const client = new Client({ connectionString: database.connectionString });
         await client.connect();
         try {
-          await driver.connect({ kind: 'pgClient', client });
+          await driver.connect({ kind: 'pgClient', client, ownedByDriver: false });
           const runtime = new PostgresRuntimeImpl({
             context,
             adapter,

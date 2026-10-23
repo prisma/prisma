@@ -186,8 +186,14 @@ interface SupabaseRuntimes<TContract extends Contract<SqlStorage>> {
   readonly runtime: SupabaseRuntimeImpl<TContract>;
   readonly extRuntime: SupabaseRuntimeImpl<SupabaseExtensionContract>;
   readonly driver: { close(): Promise<void> };
-  readonly ownedPool: Pool | undefined;
+  readonly poolBinding: PoolBinding | undefined;
 }
+
+type PoolBinding = {
+  readonly kind: 'pgPool';
+  readonly pool: Pool;
+  readonly ownedByDriver: boolean;
+};
 
 function closedClientError() {
   return structuredError('DRIVER.NOT_CONNECTED', 'Runtime is closed', {
@@ -271,14 +277,15 @@ function checkPgOption(pg: Pool | undefined): void {
   });
 }
 
-function toPool<TContract extends Contract<SqlStorage>>(
+function toPoolBinding<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
-): { pool: Pool; owned: boolean } | undefined {
+): PoolBinding | undefined {
   if (options.pg !== undefined && isPgPool(options.pg)) {
-    return { pool: options.pg, owned: false };
+    return { kind: 'pgPool', pool: options.pg, ownedByDriver: false };
   }
   if (typeof options.url === 'string') {
     return {
+      kind: 'pgPool',
       pool: suppressIdleConnectionErrors(
         new Pool({
           connectionString: options.url,
@@ -286,7 +293,7 @@ function toPool<TContract extends Contract<SqlStorage>>(
           idleTimeoutMillis: options.poolOptions?.idleTimeoutMillis ?? 30_000,
         }),
       ),
-      owned: true,
+      ownedByDriver: true,
     };
   }
   return undefined;
@@ -411,16 +418,15 @@ export default async function supabase<
       verifyMarker: false,
     });
 
-    const poolEntry = toPool(options);
-    const ownedPool = poolEntry?.owned ? poolEntry.pool : undefined;
-    if (poolEntry) {
-      driver.connect({ kind: 'pgPool', pool: poolEntry.pool }).catch(async (err: unknown) => {
+    const poolBinding = toPoolBinding(options);
+    if (poolBinding) {
+      driver.connect(poolBinding).catch(async (err: unknown) => {
         connectError = { error: err };
-        await ownedPool?.end().catch(() => undefined);
+        if (poolBinding.ownedByDriver) await poolBinding.pool.end().catch(() => undefined);
       });
     }
 
-    runtimes = { runtime, extRuntime, driver, ownedPool };
+    runtimes = { runtime, extRuntime, driver, poolBinding };
     return runtimes;
   }
 
@@ -515,12 +521,14 @@ export default async function supabase<
 
   let closePromise: Promise<void> | undefined;
 
-  // Both runtimes share one driver this client owns, so neither closes it: close both, which refuses new work on both at once and waits for both, then close the driver once, and only when it holds a pool this client created.
+  // Both runtimes share one driver, so neither closes it: close both, which refuses new work on
+  // both at once and waits for both, then close the driver once. The driver ends the pool only
+  // when it owns it; a pool the caller passed in stays open.
   async function closeRuntimes(): Promise<void> {
     if (runtimes === undefined) return;
-    const { runtime, extRuntime, driver, ownedPool } = runtimes;
+    const { runtime, extRuntime, driver } = runtimes;
     await Promise.all([runtime.close(), extRuntime.close()]);
-    if (ownedPool !== undefined) await driver.close();
+    await driver.close();
   }
 
   function closeDb(): Promise<void> {

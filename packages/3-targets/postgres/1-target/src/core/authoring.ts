@@ -650,10 +650,7 @@ function postgresFullTextIndexSpec(ctx: AttributeSpecContext) {
         key: 'fields',
         type: oneOf(
           fullTextField,
-          list(oneOf(fullTextField, list(fullTextField)), {
-            allowEmpty: false,
-            label: '(field name | field name[])[]',
-          }),
+          list(oneOf(fullTextField, list(fullTextField)), { allowEmpty: false }),
         ),
         documentation:
           'The fields to index: one field, or a list of fields and lists of fields. Each top-level item is a weight group, from A down to D.',

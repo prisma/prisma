@@ -67,7 +67,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
         const db = newDb();
         const { Pool: MemPool } = db.adapters.createPg();
         const driver = createDriver();
-        await driver.connect({ kind: 'pgPool', pool: new MemPool() as unknown as Pool });
+        await driver.connect({
+          kind: 'pgPool',
+          pool: new MemPool() as unknown as Pool,
+          ownedByDriver: true,
+        });
         await driver.close();
         return driver;
       }
@@ -108,7 +112,7 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           await end();
         };
         const driver = createDriver();
-        await driver.connect({ kind: 'pgPool', pool });
+        await driver.connect({ kind: 'pgPool', pool, ownedByDriver: true });
 
         const closing = driver.close();
 
@@ -136,13 +140,21 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
         const driver = createDriver();
         expect(driver.state).toBe('unbound');
 
-        await driver.connect({ kind: 'pgPool', pool: poolA as unknown as Pool });
+        await driver.connect({
+          kind: 'pgPool',
+          pool: poolA as unknown as Pool,
+          ownedByDriver: true,
+        });
         expect(driver.state).toBe('connected');
 
         await driver.close();
         expect(driver.state).toBe('closed');
 
-        await driver.connect({ kind: 'pgPool', pool: poolB as unknown as Pool });
+        await driver.connect({
+          kind: 'pgPool',
+          pool: poolB as unknown as Pool,
+          ownedByDriver: true,
+        });
         expect(driver.state).toBe('connected');
       },
       timeouts.spinUpPpgDev,
@@ -157,7 +169,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const memPool = new MemPool();
 
           const driver = createDriver();
-          await driver.connect({ kind: 'pgPool', pool: memPool as unknown as Pool });
+          await driver.connect({
+            kind: 'pgPool',
+            pool: memPool as unknown as Pool,
+            ownedByDriver: true,
+          });
 
           await executeSql(driver, 'create table items(id serial primary key, name text)');
           await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
@@ -180,7 +196,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const memPool = new MemPool();
 
           const driver = createDriver();
-          const binding = { kind: 'pgPool' as const, pool: memPool as unknown as Pool };
+          const binding = {
+            kind: 'pgPool' as const,
+            pool: memPool as unknown as Pool,
+            ownedByDriver: true,
+          };
 
           await driver.connect(binding);
           await expect(driver.connect(binding)).rejects.toMatchObject({
@@ -208,7 +228,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const memPool = new MemPool();
 
           const driver = createDriver();
-          await driver.connect({ kind: 'pgPool', pool: memPool as unknown as Pool });
+          await driver.connect({
+            kind: 'pgPool',
+            pool: memPool as unknown as Pool,
+            ownedByDriver: true,
+          });
 
           cleanup = undefined;
 
@@ -228,7 +252,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const memClient = new MemClient();
 
           const driver = createDriver();
-          await driver.connect({ kind: 'pgClient', client: memClient as unknown as Client });
+          await driver.connect({
+            kind: 'pgClient',
+            client: memClient as unknown as Client,
+            ownedByDriver: true,
+          });
 
           await executeSql(driver, 'create table items(id serial primary key, name text)');
           await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
@@ -251,7 +279,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const memClient = new MemClient();
 
           const driver = createDriver();
-          await driver.connect({ kind: 'pgClient', client: memClient as unknown as Client });
+          await driver.connect({
+            kind: 'pgClient',
+            client: memClient as unknown as Client,
+            ownedByDriver: true,
+          });
 
           cleanup = undefined;
 
@@ -268,7 +300,11 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
           const memClient = new MemClient();
 
           const driver = createDriver();
-          await driver.connect({ kind: 'pgClient', client: memClient as unknown as Client });
+          await driver.connect({
+            kind: 'pgClient',
+            client: memClient as unknown as Client,
+            ownedByDriver: true,
+          });
           expect(driver.state).toBe('connected');
 
           const connection = await driver.acquireConnection();
