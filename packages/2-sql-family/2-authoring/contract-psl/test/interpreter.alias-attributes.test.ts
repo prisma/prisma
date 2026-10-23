@@ -49,7 +49,7 @@ function diagnosticsWith(schema: string, contributions: AuthoringContributions) 
 describe('attributes on a types {} alias', () => {
   it('give each field typed by the alias what the same attributes give when written on the field', () => {
     const throughAlias = lowered(`types {
-  Stamp = Timestamp(3) @default(now()) @onCreate(now()) @onUpdate(now())
+  Stamp = TimestampTemporal(3) @default(now()) @onCreate(now()) @onUpdate(now())
 }
 
 model Event {
@@ -59,8 +59,8 @@ model Event {
 }`);
     const onTheField = lowered(`model Event {
   id        Int          @id
-  createdAt Timestamp(3) @default(now()) @onCreate(now()) @onUpdate(now())
-  updatedAt Timestamp(3) @default(now()) @onCreate(now()) @onUpdate(now())
+  createdAt TimestampTemporal(3) @default(now()) @onCreate(now()) @onUpdate(now())
+  updatedAt TimestampTemporal(3) @default(now()) @onCreate(now()) @onUpdate(now())
 }`);
     expect(throughAlias).toEqual(onTheField);
     expect(onTheField.defaults).toHaveLength(2);
@@ -69,7 +69,7 @@ model Event {
   it('let a field add an attribute its alias does not set', () => {
     const throughAlias = lowered(`types {
   Key   = Uuid @onCreate(uuid())
-  Stamp = Timestamp(3) @onUpdate(now())
+  Stamp = TimestampTemporal(3) @onUpdate(now())
 }
 
 model Event {
@@ -78,7 +78,7 @@ model Event {
 }`);
     const onTheField = lowered(`model Event {
   id        Uuid         @id @onCreate(uuid())
-  updatedAt Timestamp(3) @default(now()) @onUpdate(now())
+  updatedAt TimestampTemporal(3) @default(now()) @onUpdate(now())
 }`);
     expect(throughAlias).toEqual(onTheField);
   });
@@ -132,7 +132,7 @@ model Event {
   it('refuse a field that repeats an attribute its alias sets, naming the alias', () => {
     expect(
       diagnostics(`types {
-  Stamp = Timestamp(3) @default(now()) @onCreate(now()) @onUpdate(now())
+  Stamp = TimestampTemporal(3) @default(now()) @onCreate(now()) @onUpdate(now())
 }
 
 model Event {
@@ -166,7 +166,7 @@ model Event {
   it('refuse an alias that repeats a generator attribute, naming the alias', () => {
     expect(
       diagnostics(`types {
-  Stamp = Timestamp(3) @onCreate(now()) @onCreate(now())
+  Stamp = TimestampTemporal(3) @onCreate(now()) @onCreate(now())
 }
 
 model Event {
@@ -186,7 +186,7 @@ model Event {
     expect(
       diagnosticsWith(
         `types {
-  Stamp = Timestamp(3) @onCreate(now())
+  Stamp = TimestampTemporal(3) @onCreate(now())
 }
 
 type Audit {
@@ -252,7 +252,7 @@ model Event {
   it('refuse a list field typed by an alias that generates a value', () => {
     expect(
       diagnostics(`types {
-  Stamp = Timestamp(3) @onCreate(now())
+  Stamp = TimestampTemporal(3) @onCreate(now())
 }
 
 model Event {
@@ -291,7 +291,7 @@ model Event {
 
   it('accept an optional field typed by an alias that generates a value', () => {
     const throughAlias = lowered(`types {
-  Stamp = Timestamp(3) @onCreate(now())
+  Stamp = TimestampTemporal(3) @onCreate(now())
 }
 
 model Event {
@@ -300,7 +300,7 @@ model Event {
 }`);
     const onTheField = lowered(`model Event {
   id      Int           @id
-  stamped Timestamp(3)? @onCreate(now())
+  stamped TimestampTemporal(3)? @onCreate(now())
 }`);
     expect(throughAlias).toEqual(onTheField);
     expect(onTheField.defaults).toHaveLength(1);
