@@ -260,3 +260,25 @@ describe('integration/aggregate (sqlite)', { timeout: timeouts.databaseOperation
     });
   });
 });
+
+describe('grouped having on SQLite', { timeout: timeouts.databaseOperation }, () => {
+  it('binds a having comparand as a param through the aggregate output codec', async () => {
+    await withPostsRuntime(async (_runtime, posts) => {
+      const grouped = await posts
+        .groupBy('userId')
+        .having((having) => having.count().gte(2))
+        .aggregate((aggregate) => ({ count: aggregate.count() }));
+      const sorted = [...grouped].sort((left, right) => Number(left.userId) - Number(right.userId));
+      expect(sorted).toEqual([
+        { userId: 1, count: 2 },
+        { userId: 2, count: 2 },
+      ]);
+      await expect(
+        posts
+          .groupBy('userId')
+          .having((having) => having.count().gte("1 OR '1'='1" as never))
+          .aggregate((aggregate) => ({ count: aggregate.count() })),
+      ).rejects.toMatchObject({ code: 'RUNTIME.ENCODE_FAILED' });
+    });
+  });
+});

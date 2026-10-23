@@ -11,8 +11,8 @@ import {
   type AnyExpression,
   type BinaryOp,
   isAggregateFn,
-  LiteralExpr,
   type OrderByItem,
+  ParamRef,
 } from '@internal/sql-relational-core/ast';
 import { type TraitExpression, toExpr } from '@internal/sql-relational-core/expression';
 import type { Preparable } from '@internal/sql-relational-core/plan';
@@ -424,7 +424,11 @@ function createHavingComparisonMethods<T extends number | null>(
         { meta: { kind: expression.kind } },
       );
     }
-    return predicateComparison(op, metric, expression ?? LiteralExpr.of(value));
+    return predicateComparison(
+      op,
+      metric,
+      expression ?? ParamRef.of(value, { codec: { codecId: outputCodecId() } }),
+    );
   };
 
   return {

@@ -168,8 +168,12 @@ exports[`aggregate plan baseline for chains naming no aggregate input > groupBy(
         "kind": "aggregate",
       },
       "op": "gte",
-      "right": LiteralExpr {
-        "kind": "literal",
+      "right": ParamRef {
+        "codec": {
+          "codecId": "pg/int8number@1",
+        },
+        "kind": "param-ref",
+        "name": undefined,
         "value": 1,
       },
     },
@@ -212,7 +216,9 @@ exports[`aggregate plan baseline for chains naming no aggregate input > groupBy(
     "selectAllIntent": undefined,
     "where": undefined,
   },
-  "params": [],
+  "params": [
+    1,
+  ],
 }
 `;
 

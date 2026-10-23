@@ -1,4 +1,4 @@
-import { AggregateExpr, BinaryExpr, LiteralExpr } from '@internal/sql-relational-core/ast';
+import { AggregateExpr, BinaryExpr, ParamRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { isSelectAst } from './helpers';
 import { createPostsCollection, timeouts, withCollectionRuntime } from './integration-helpers';
@@ -136,6 +136,8 @@ describe('integration/groupBy', () => {
         expect(runtime.executions).toHaveLength(1);
 
         const sql = runtime.executions[0]?.sql.toLowerCase() ?? '';
+        expect(sql).toMatch(/having count\(\*\) >= \$\d+/);
+        expect(runtime.executions[0]?.params).toContainEqual({ kind: 'literal', value: 2 });
         const groupByIdx = sql.indexOf('group by');
         const havingIdx = sql.indexOf('having');
         const orderByIdx = sql.indexOf('order by');
@@ -209,7 +211,12 @@ describe('integration/groupBy', () => {
         if (!isSelectAst(ast)) {
           throw new Error('Expected grouped query to emit a select AST plan');
         }
-        expect(ast.having).toEqual(BinaryExpr.gt(AggregateExpr.count(), LiteralExpr.of(1)));
+        expect(ast.having).toEqual(
+          BinaryExpr.gt(
+            AggregateExpr.count(),
+            ParamRef.of(1, { codec: { codecId: 'pg/int8number@1' } }),
+          ),
+        );
       });
     },
     timeouts.spinUpPpgDev,
