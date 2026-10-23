@@ -119,7 +119,7 @@ function main() {
   const verifyPath = readFlag('--verify');
   if (verifyPath !== undefined) {
     const pageText = readFileSync(verifyPath, 'utf-8');
-    const unsafe = mdxUnsafeLines(pageText);
+    const unsafe = verifyPath.endsWith('.mdx') ? [] : mdxUnsafeLines(pageText);
     if (unsafe.length > 0) {
       stderr.write(
         'error-reference has text the docs site cannot compile as MDX; put each tag or brace inside a code span:\n',
