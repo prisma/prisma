@@ -113,6 +113,21 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('gives up waiting for a pooled connection after the pool timeout', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const limited = new URL(url);
+      limited.searchParams.set('connectionLimit', '1');
+      limited.searchParams.set('poolTimeout', '200');
+      await withDriver(limited.toString(), async (driver) => {
+        const held = await driver.acquireConnection();
+        const waiting = collect(driver.query({ sql: 'SELECT 1 AS n' }));
+        await expect(waiting).rejects.toMatchObject({ code: 'DRIVER.CONNECTION_FAILED' });
+        await held.release();
+        expect(await collect(driver.query({ sql: 'SELECT 2 AS n' }))).toEqual([{ n: '2' }]);
+      });
+    });
+  });
+
   it('commits and rolls back a transaction on one connection, and reports affected rows', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

@@ -10,8 +10,9 @@ import type {
   SqlTransaction,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
-import { mysqlConnectionOptions } from '../connection-options';
+import { mysqlConnectionOptions, mysqlPoolSettings } from '../connection-options';
 import { formatMysqlQuery } from '../format-query';
 import { connectionLost, isFatal, normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
@@ -219,9 +220,39 @@ class MysqlTransactionImpl extends MysqlQueryable implements SqlTransaction {
   }
 }
 
+/** A connection from `pool`, or `DRIVER.CONNECTION_FAILED` once `timeoutMs` passes without one; a connection that arrives later goes back to the pool. */
+function waitForConnection(pool: Pool, timeoutMs: number): Promise<PoolConnection> {
+  return new Promise<PoolConnection>((resolve, reject) => {
+    let waiting = true;
+    const timer = setTimeout(() => {
+      waiting = false;
+      reject(
+        errorRuntime(
+          'DRIVER.CONNECTION_FAILED',
+          'Timed out waiting for a pooled MySQL connection',
+          {
+            why: `No connection was free within ${timeoutMs} ms; every connection in the pool was in use.`,
+            fix: 'Release held connections sooner, or raise connectionLimit or poolTimeout in the URL.',
+            meta: { poolTimeoutMs: timeoutMs },
+          },
+        ),
+      );
+    }, timeoutMs);
+    pool.getConnection((error, acquired) => {
+      clearTimeout(timer);
+      if (!waiting) {
+        if (!error) acquired.release();
+        return;
+      }
+      if (error) reject(normalizeMysqlError(error));
+      else resolve(acquired);
+    });
+  });
+}
+
 type DriverState =
   | { readonly kind: 'unbound' }
-  | { readonly kind: 'connected'; readonly pool: Pool }
+  | { readonly kind: 'connected'; readonly pool: Pool; readonly poolTimeoutMs: number }
   | { readonly kind: 'closed' };
 
 /**
@@ -245,7 +276,12 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
         fix: 'Call close() before connecting again.',
       });
     }
-    this.#state = { kind: 'connected', pool: createPool(mysqlConnectionOptions(binding.url)) };
+    const { connectionLimit, poolTimeoutMs } = mysqlPoolSettings(binding.url);
+    const pool = createPool({
+      ...mysqlConnectionOptions(binding.url),
+      ...ifDefined('connectionLimit', connectionLimit),
+    });
+    this.#state = { kind: 'connected', pool, poolTimeoutMs };
   }
 
   async acquireConnection(): Promise<SqlConnection> {
@@ -291,12 +327,7 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
         this.#state.kind === 'closed' ? 'MySQL driver is closed' : 'MySQL driver not connected',
       );
     }
-    const { pool } = this.#state;
-    const connection = await new Promise<PoolConnection>((resolve, reject) =>
-      pool.getConnection((error, acquired) => (error ? reject(error) : resolve(acquired))),
-    ).catch((error: unknown) => {
-      throw normalizeMysqlError(error);
-    });
+    const connection = await waitForConnection(this.#state.pool, this.#state.poolTimeoutMs);
     if (this.#setUp.has(connection)) return connection;
     try {
       for (const sql of SESSION_SETUP) await run(connection, { sql });

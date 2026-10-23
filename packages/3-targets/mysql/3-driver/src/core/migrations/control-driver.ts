@@ -6,7 +6,7 @@ import type {
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
-import { type Connection, createConnection } from 'mysql2/promise';
+import { type Connection, type ConnectionOptions, createConnection } from 'mysql2/promise';
 import { mysqlConnectionOptions } from '../connection-options';
 import { mysqlDriverDescriptorMeta } from '../descriptor-meta';
 import { formatMysqlQuery } from '../format-query';
@@ -66,8 +66,8 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
   }
 }
 
-async function connect(url: string, options?: ControlDriverConnectOptions): Promise<Connection> {
-  const connection = await createConnection(mysqlConnectionOptions(url, options?.connectTimeoutMs));
+async function connect(connectionOptions: ConnectionOptions): Promise<Connection> {
+  const connection = await createConnection(connectionOptions);
   try {
     for (const statement of SESSION_SETUP) await connection.query(statement);
     return connection;
@@ -80,8 +80,9 @@ async function connect(url: string, options?: ControlDriverConnectOptions): Prom
 const mysqlDriverDescriptor: ControlDriverDescriptor<'sql', 'mysql', MysqlControlDriver> = {
   ...mysqlDriverDescriptorMeta,
   async create(url: string, options?: ControlDriverConnectOptions): Promise<MysqlControlDriver> {
+    const connectionOptions = mysqlConnectionOptions(url, options?.connectTimeoutMs);
     try {
-      return new MysqlControlDriver(await connect(url, options));
+      return new MysqlControlDriver(await connect(connectionOptions));
     } catch (error) {
       const normalized = normalizeMysqlError(error);
       throw errorRuntime('DRIVER.CONNECTION_FAILED', 'Database connection failed', {

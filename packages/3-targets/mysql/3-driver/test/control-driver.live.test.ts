@@ -80,10 +80,19 @@ describe('MysqlControlDriver against a MySQL server', {
     });
   });
 
-  it('refuses two statements in one query even when the URL asks for multiple statements', async (test) => {
+  it('refuses a URL that asks for multiple statements', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const withMultipleStatements = new URL(url);
       withMultipleStatements.searchParams.set('multipleStatements', 'true');
+      await expect(mysqlDriver.create(withMultipleStatements.toString())).rejects.toMatchObject({
+        code: 'RUNTIME.BINDING_INVALID',
+      });
+    });
+  });
+
+  it('refuses two statements in one query even when the URL flags multiple statements', async (test) => {
+    await withMysqlDatabase(test, async ({ url }) => {
+      const withMultipleStatements = new URL(url);
       withMultipleStatements.searchParams.set('flags', 'MULTI_STATEMENTS');
       const driver = await mysqlDriver.create(withMultipleStatements.toString());
       try {
