@@ -1,6 +1,31 @@
 # Versioning
 
-This page covers the **version contract** Prisma 8 offers to its users and ecosystem, and the **mechanism** that delivers it. The first half is the policy you can rely on; the second half is the procedure maintainers follow to honour it.
+This page covers the **version lines** prisma/orm maintains, the **version contract** Prisma 8 offers to its users and ecosystem, and the **mechanism** that delivers it. The first half is the policy you can rely on; the second half is the procedure maintainers follow to honour it.
+
+## Version lines
+
+prisma/orm maintains two version lines. Each line has its own branch, and a pull request targets the branch of the line it changes.
+
+| Line | Branch | Status | End of maintenance |
+| --- | --- | --- | --- |
+| Prisma 8 | `main` | Release candidate | Not announced |
+| Prisma 7 | `v7`, `7.9.x` | Maintenance | Eighteen months after `8.0.0` final. `8.0.0` final has not shipped, so there is no calendar date yet. |
+
+### What lands in Prisma 8
+
+All new development. The rest of this page describes the line: the [release-candidate line](#the-v8-rc-line), the [pre-1.0 policy](#pre-10-deliberately-unstable) and the [dist-tags](#dist-tag-convention). [PR triage](./pr-triage.md#step-5--direction-fit) says how a contributed feature is judged.
+
+### What lands in Prisma 7
+
+- Bug fixes and security fixes, made by the team.
+- No new feature work by the team.
+- A feature contributed by the community, when it is in line with Prisma 7's design direction and meets the quality standards in [PR triage's mechanical requirements](./pr-triage.md#step-4--mechanical-requirements). A [maintainer](./governance.md#maintainer-team) decides whether it does.
+
+> "we will fix security issues and bugs, but not do any new feature work, although we will accept feature requests from the community which are in line with Prisma 7's design direction and meet our quality standards"
+>
+> — Will Madden, 2026-10-23
+
+This clarifies the Prisma 7 policy rather than changing it. [ADR 295](../architecture%20docs/adrs/ADR%20295%20-%20New%20features%20do%20not%20land%20on%20Prisma%207.md) records the decision. [`SECURITY.md`](../../SECURITY.md#supported-versions) lists which releases of each line receive security fixes.
 
 ## Pre-1.0: deliberately unstable
 
