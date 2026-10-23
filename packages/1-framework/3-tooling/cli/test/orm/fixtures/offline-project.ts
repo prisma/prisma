@@ -71,12 +71,16 @@ function modelEntry(model: FixtureModel): readonly [string, Record<string, unkno
   ];
 }
 
+/** The storage namespaces of a fixture contract, as `contract.json` holds them. */
+export type FixtureStorageNamespaces = Readonly<Record<string, unknown>>;
+
 export function contractJson(
   storageHash: string,
   models?: readonly FixtureModel[],
+  storageNamespaces: FixtureStorageNamespaces = {},
 ): Record<string, unknown> {
   return {
-    storage: { storageHash, namespaces: {} },
+    storage: { storageHash, namespaces: storageNamespaces },
     schemaVersion: '1.0.0',
     target: 'postgres',
     targetFamily: 'sql',
@@ -98,6 +102,7 @@ export function contractJson(
 export async function createOfflineProject(options: {
   readonly storageHash: string;
   readonly models?: readonly FixtureModel[];
+  readonly storageNamespaces?: FixtureStorageNamespaces;
 }): Promise<OfflineProject> {
   const dir = createTestProjectDir('orm-offline');
   created.push(dir);
@@ -105,7 +110,7 @@ export async function createOfflineProject(options: {
   await mkdir(join(dir, 'output'), { recursive: true });
   await writeFile(
     contractPath,
-    JSON.stringify(contractJson(options.storageHash, options.models)),
+    JSON.stringify(contractJson(options.storageHash, options.models, options.storageNamespaces)),
     'utf-8',
   );
   await writeFile(
@@ -173,9 +178,10 @@ export async function seedContractSnapshot(options: {
   readonly migrationsDir: string;
   readonly storageHash: string;
   readonly models?: readonly FixtureModel[];
+  readonly storageNamespaces?: FixtureStorageNamespaces;
 }): Promise<void> {
   await writeContractSnapshot(options.migrationsDir, options.storageHash, {
-    contractJson: contractJson(options.storageHash, options.models),
+    contractJson: contractJson(options.storageHash, options.models, options.storageNamespaces),
     contractDts: 'export type Contract = never;\n',
   });
 }
