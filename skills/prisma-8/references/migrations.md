@@ -20,7 +20,7 @@ Once the contract changes, you choose how the change reaches the database. This 
 - User wants to run pending migrations against a local DB.
 - User hit `MIGRATION.HASH_MISMATCH`, `MIGRATION.UNFILLED_PLACEHOLDER`, or a partially-applied migration.
 - User mentions: *migrate, migration, db push, db update, `prisma migrate dev`, `prisma migrate deploy`, drift, hash mismatch, data backfill*.
-- A deploy or `db migrate` says there is no migration path or `MIGRATION.MARKER_MISMATCH`, or someone proposes resetting a database → *A database whose marker is not in the migration graph* below.
+- A deploy or `db migrate` fails with `MIGRATION.MARKER_MISMATCH` (older Composer releases: "no authored path"), or someone proposes resetting a database → *A database whose marker is not in the migration graph* below. For `MIGRATION.PATH_UNREACHABLE`, where the marker is in the graph but no migration reaches the target, plan from the marker to the target instead (`references/debug.md`).
 
 ## When Not to Use
 
@@ -489,11 +489,11 @@ Author migrations that bring it back onto the graph, and deploy them. The marker
 
 `migration plan --to` accepts only contracts already in the graph, so the database's contract goes through the contract source:
 
-1. Put the contract the database is at into the contract source. Prefer the contract source as it was when the deleted migration was planned: find the commit with `git log --all --oneline -- migrations/snapshots/<marker hash>` and check out the contract source file from it. If git no longer has it, infer it from the database into a separate file, `prisma contract infer --db $DATABASE_URL --output ./inferred.prisma` (without `--output` it overwrites the contract source), then copy that file over the contract source.
+1. Commit or copy aside any uncommitted edits to the contract source; step 4 restores it from `HEAD`. Then put the contract the database is at into the contract source. Prefer the contract source as it was when the deleted migration was planned: find the commit with `git log --all --oneline -- migrations/snapshots/<marker hash>` and check out the contract source file from it. If git no longer has it, infer it from the database into a separate file, `prisma contract infer --db $DATABASE_URL --output ./inferred.prisma` (without `--output` it overwrites the contract source), then copy that file over the contract source.
 2. `prisma contract emit`, and check that the emitted storage hash is `<marker hash>`. If it is not, stop and ask a person.
-3. Plan a migration from the last graph contract to the database's contract: `prisma migration plan --from <lastGraphHash> --name rejoin_<database>`. Nothing will run it against this database; it only puts the database's contract in the graph.
+3. Plan a migration from the last graph contract to the database's contract: `prisma migration plan --from <lastGraphHash> --name rejoin_<database>`. Nothing will run it against this database; it only puts the database's contract in the graph. A fresh database could still run it, so copy the deleted migration's data transforms into it (from the same git commit) and review them.
 4. Restore the contract source (`git checkout HEAD -- <contract source>`; without `HEAD` git restores the version step 1 staged), run `prisma contract emit`, then plan from the database's contract to the target: `prisma migration plan --from <marker hash> --name <slug>`. A plan that loses data needs `--delete` or `--rename` (see *Answer the data-loss questions*). Review it like any migration, and add data transforms for any data the deleted migration's replacement would have moved.
-5. Check how a fresh database reaches the target: `prisma migration list`. Path finding takes the shortest route, so if these two migrations make a shorter route from the last graph contract to the target than the main line, a new database would take it. When they do, ask a person how to proceed.
+5. Check how a fresh database reaches the target: `prisma migration status --from @empty --to <target>` lists the migrations it would run. Path finding takes the shortest route, so if these two migrations make a shorter route from the last graph contract to the target than the main line, a new database would take it. When they do, ask a person how to proceed.
 6. Commit both migrations and deploy.
 
 Do not `db sign` the database to a contract you inferred: that rewrites its marker without a migration.

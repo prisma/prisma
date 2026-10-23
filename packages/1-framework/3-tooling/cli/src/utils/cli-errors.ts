@@ -534,7 +534,7 @@ export function errorPlanOriginUnknown(
     {
       why: 'Migrations exist on disk, but there is no `db` ref and no --from was given, so the plan origin would silently fall back to an empty database and the resulting migration would recreate everything the existing migrations already create.',
       fix: [
-        `Set the \`db\` ref to the contract your database is at (\`${refSetCommand}\`), or advance it via \`{bin} db update\`.`,
+        `Set the \`db\` ref to the contract your database is at (\`${refSetCommand}\`), or, on a database whose migration history does not need to be kept, advance it via \`{bin} db update\`.`,
         `Or pass the origin explicitly: \`{bin} migration plan ${fromSuggestion}\`.`,
         'Or pass --from @empty to deliberately plan from an empty database.',
       ].join('\n'),
