@@ -14,6 +14,11 @@ export {
   typeConstructorLookup,
 } from '../shared/authoring-type-choice';
 export type {
+  AuthoringTypeChoiceCall,
+  AuthoringTypeChoiceCallArgument,
+} from '../shared/authoring-type-choice-call';
+export { findAuthoringTypeChoiceCall } from '../shared/authoring-type-choice-call';
+export type {
   AuthoringTypeConstructorCall,
   AuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
@@ -21,6 +26,7 @@ export {
   authoringTypeConstructorArguments,
   authoringTypeConstructors,
   findAuthoringTypeConstructorCall,
+  sameAuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
 export type {
   AssembledDataTypeSupport,
