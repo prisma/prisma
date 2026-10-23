@@ -104,16 +104,32 @@ describe('the Mongo contract schema with value objects in storage', () => {
     expect(MongoContractSchema(contract)).toEqual(contract);
   });
 
-  it('leaves frozen storage unchanged, and the value object fills in an absent nullable and many', () => {
+  it('leaves frozen storage unchanged, and the value object fills in an absent many', () => {
     const contract = contractWith(
       { type: valueObjectType('Address'), nullable: false, many: false },
-      { Address: { fields: { street: { type: text.type } } } },
+      { Address: { fields: { street: { type: text.type, nullable: false } } } },
     );
     deepFreeze(contract.storage);
     expect({
       parsed: MongoContractSchema(contract),
-      valueObject: new MongoValueObject({ fields: { street: { type: text.type } } }).fields,
+      valueObject: new MongoValueObject({
+        fields: { street: { type: text.type, nullable: false } },
+      }).fields,
     }).toEqual({ parsed: contract, valueObject: { street: text } });
+  });
+
+  it.each([
+    ['without nullable', { type: text.type }],
+    ['with dict false', { ...text, dict: false }],
+  ])('refuses a value object member %s', (_case, street) => {
+    expect(
+      MongoContractSchema(
+        contractWith(
+          { type: valueObjectType('Address'), nullable: false },
+          { Address: { fields: { street } } },
+        ),
+      ),
+    ).toBeInstanceOf(type.errors);
   });
 
   it('refuses a field type that names its value object the old way', () => {

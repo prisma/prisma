@@ -145,6 +145,8 @@ The built-in kinds (`tables`, `collections`) stay hardcoded inside their family 
 
 The mechanism's value is that it satisfies two requirements at once: a kind is contributed at the framework level (so authoring tools — the PSL interpreter, the TS DSL, the emitter — all see it) *without* any target-specific symbol appearing in the framework or in sibling-target packages. A cheaper-looking option — keep a kind hardcoded but move the hardcode from the framework into the pack — fails the second requirement, because the slot name still leaks into the framework's authoring-tool dispatch.
 
+**Kinds the framework defines.** Two storage kinds are not contributed but defined by the framework, because domain fields refer to them: `valueObject`, and `valueSet`, which value object members name. The framework reads them by slot key, validates a value object's fields against one schema that both families use, and types them in `contract.d.ts`. Each family still registers a descriptor and an IR class for them. See [ADR 309](ADR%20309%20-%20Value%20objects%20are%20storage%20entities%2C%20and%20a%20discriminator%20column%20names%20a%20value%20set.md).
+
 ## The `Namespace` interface
 
 The framework's `Namespace` interface declares only `{ id, kind }`. Family-specific slots live on family-shaped namespace types — `SqlNamespace = Namespace & { tables: …, [...packContributedSlots] }`, `MongoNamespace = Namespace & { collections: … }`. The framework type is honest about what the framework actually knows.

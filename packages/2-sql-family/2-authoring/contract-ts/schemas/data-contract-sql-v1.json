@@ -762,7 +762,117 @@
                               "nullable": {
                                 "type": "boolean"
                               },
-                              "type": {},
+                              "type": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "codecId": {
+                                        "type": "string"
+                                      },
+                                      "kind": {
+                                        "const": "scalar"
+                                      },
+                                      "typeParams": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      }
+                                    },
+                                    "required": ["codecId", "kind"],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "entityKind": {
+                                        "const": "valueObject"
+                                      },
+                                      "entityName": {
+                                        "type": "string"
+                                      },
+                                      "kind": {
+                                        "const": "valueObject"
+                                      },
+                                      "namespaceId": {
+                                        "type": "string"
+                                      },
+                                      "plane": {
+                                        "const": "storage"
+                                      }
+                                    },
+                                    "required": [
+                                      "entityKind",
+                                      "entityName",
+                                      "kind",
+                                      "namespaceId",
+                                      "plane"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "kind": {
+                                        "const": "union"
+                                      },
+                                      "members": {
+                                        "type": "array",
+                                        "items": {
+                                          "anyOf": [
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "codecId": {
+                                                  "type": "string"
+                                                },
+                                                "kind": {
+                                                  "const": "scalar"
+                                                },
+                                                "typeParams": {
+                                                  "type": "object",
+                                                  "additionalProperties": {}
+                                                }
+                                              },
+                                              "required": ["codecId", "kind"],
+                                              "additionalProperties": false
+                                            },
+                                            {
+                                              "type": "object",
+                                              "properties": {
+                                                "entityKind": {
+                                                  "const": "valueObject"
+                                                },
+                                                "entityName": {
+                                                  "type": "string"
+                                                },
+                                                "kind": {
+                                                  "const": "valueObject"
+                                                },
+                                                "namespaceId": {
+                                                  "type": "string"
+                                                },
+                                                "plane": {
+                                                  "const": "storage"
+                                                }
+                                              },
+                                              "required": [
+                                                "entityKind",
+                                                "entityName",
+                                                "kind",
+                                                "namespaceId",
+                                                "plane"
+                                              ],
+                                              "additionalProperties": false
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": ["kind", "members"],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
                               "dict": {
                                 "const": true
                               },
@@ -802,7 +912,8 @@
                                     "type": "string"
                                   }
                                 },
-                                "required": ["entityKind", "entityName", "namespaceId", "plane"]
+                                "required": ["entityKind", "entityName", "namespaceId", "plane"],
+                                "additionalProperties": false
                               }
                             },
                             "required": ["nullable", "type"],

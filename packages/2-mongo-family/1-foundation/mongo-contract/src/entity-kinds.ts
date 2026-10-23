@@ -1,13 +1,10 @@
+import { StorageValueObjectSchema } from '@internal/contract/types';
 import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
 } from '@internal/framework-components/ir';
 import { structuredError } from '@internal/utils/structured-error';
-import {
-  StorageCollectionSchema,
-  StorageValueObjectSchema,
-  StorageValueSetSchema,
-} from './contract-schema';
+import { StorageCollectionSchema, StorageValueSetSchema } from './contract-schema';
 import { MongoCollection, type MongoCollectionInput } from './ir/mongo-collection';
 import { MongoValueObject, type MongoValueObjectInput } from './ir/mongo-value-object';
 import { MongoValueSet, type MongoValueSetInput } from './ir/mongo-value-set';

@@ -34,9 +34,9 @@ describe.each(['model', 'storage value object'] as const)('%s field schema', (ki
   const fieldType = { kind: 'scalar', codecId: 'mongo/string@1' };
 
   it('accepts a field with no many property', () => {
-    expect(MongoContractSchema(contractWithField(kind, { type: fieldType }))).not.toBeInstanceOf(
-      type.errors,
-    );
+    expect(
+      MongoContractSchema(contractWithField(kind, { type: fieldType, nullable: false })),
+    ).not.toBeInstanceOf(type.errors);
   });
 
   it.each([false, { elementNullable: false }, { elementNullable: true }])(
@@ -55,8 +55,8 @@ describe.each(['model', 'storage value object'] as const)('%s field schema', (ki
     { elementNullable: 'false' },
     { elementNullable: 0 },
   ])('rejects malformed many %j', (many) => {
-    expect(MongoContractSchema(contractWithField(kind, { type: fieldType, many }))).toBeInstanceOf(
-      type.errors,
-    );
+    expect(
+      MongoContractSchema(contractWithField(kind, { type: fieldType, nullable: false, many })),
+    ).toBeInstanceOf(type.errors);
   });
 });

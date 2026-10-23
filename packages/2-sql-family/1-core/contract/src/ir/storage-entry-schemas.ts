@@ -86,23 +86,6 @@ export const ContractFieldTypeSchema = type('unknown').narrow((value, ctx) =>
       ),
 );
 
-const StorageValueObjectFieldSchema = type({
-  '+': 'reject',
-  nullable: 'boolean',
-  type: ContractFieldTypeSchema,
-  'many?': type('false').or({ '+': 'reject', elementNullable: 'boolean' }),
-  'dict?': 'true',
-  'valueSet?': StorageValueSetRefSchema,
-});
-
-/**
- * Storage value object entry under `storage.namespaces[id].entries.valueObject[name]` (ADR 309). Its fields have the shape a domain field has; a member typed by an enum refers to the storage value set, since storage never refers to the domain plane.
- */
-export const StorageValueObjectSchema = type({
-  '+': 'reject',
-  fields: type({ '[string]': StorageValueObjectFieldSchema }),
-});
-
 const StorageColumnSchema = type({
   '+': 'reject',
   dataType: DATA_TYPE_ID_PATTERN,

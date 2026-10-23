@@ -58,6 +58,7 @@ export type {
   ParameterizedOutputTypesFunction,
 } from '../parameterized-output-types';
 export { type ResolvedDomainModel, resolveDomainModel } from '../resolve-domain-model';
+export { StorageValueObjectSchema } from '../storage-value-object-schema';
 export {
   storageValueObjectsAtDefaultNamespace,
   valueObjectAt,
