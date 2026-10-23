@@ -9,9 +9,12 @@ const MULTI_STATEMENTS_FLAG = 'MULTI_STATEMENTS';
 const CONNECTION_PARAMETERS = new Set(['ssl', 'connectTimeout', 'flags']);
 
 /** The URL parameters the runtime driver's pool reads. */
-const POOL_PARAMETERS = new Set(['connectionLimit', 'poolTimeout']);
+const POOL_PARAMETERS = new Set(['connectionLimit', 'poolTimeout', 'statementCacheSize']);
 
 const DEFAULT_POOL_TIMEOUT_MS = 10_000;
+
+/** Prepared statements each connection keeps open, as the Prisma engines' MySQL connector does. MySQL caps open statements server-wide (16,382 by default), and mysql2's own default of 16,000 per connection would let two connections reach it. */
+const DEFAULT_STATEMENT_CACHE_SIZE = 100;
 
 /** The connection's character set. The driver escapes each value as JavaScript text, which mysql2 then encodes in this charset; a narrower one, such as latin1 or sjis, can turn a character of the value into a quote or a backslash after escaping. */
 const CHARSET = 'UTF8MB4_UNICODE_CI';
@@ -90,6 +93,8 @@ export interface MysqlPoolSettings {
   readonly connectionLimit: number | undefined;
   /** How long a statement waits for a free pooled connection before it fails. */
   readonly poolTimeoutMs: number;
+  /** How many prepared statements each connection keeps open; it closes the least recently used one beyond that. */
+  readonly statementCacheSize: number;
 }
 
 function positiveInteger(name: string, text: string | undefined): number | undefined {
@@ -101,12 +106,15 @@ function positiveInteger(name: string, text: string | undefined): number | undef
   return value;
 }
 
-/** The pool settings a connection URL gives: `connectionLimit`, and `poolTimeout` in milliseconds, ten seconds unless the URL says otherwise. */
+/** The pool settings a connection URL gives: `connectionLimit`; `poolTimeout` in milliseconds, ten seconds unless the URL says otherwise; and `statementCacheSize`, 100 unless it says otherwise. */
 export function mysqlPoolSettings(url: string): MysqlPoolSettings {
   const parameters = urlParameters(new URL(url));
   return {
     connectionLimit: positiveInteger('connectionLimit', parameters.get('connectionLimit')),
     poolTimeoutMs:
       positiveInteger('poolTimeout', parameters.get('poolTimeout')) ?? DEFAULT_POOL_TIMEOUT_MS,
+    statementCacheSize:
+      positiveInteger('statementCacheSize', parameters.get('statementCacheSize')) ??
+      DEFAULT_STATEMENT_CACHE_SIZE,
   };
 }

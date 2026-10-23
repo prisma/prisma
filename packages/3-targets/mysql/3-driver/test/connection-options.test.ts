@@ -70,16 +70,18 @@ describe('mysqlConnectionOptions', () => {
 describe('mysqlPoolSettings', () => {
   it('reads the pool size and how long to wait for a connection, waiting ten seconds by default', () => {
     expect({
-      given: mysqlPoolSettings('mysql://root@localhost/app?connectionLimit=5&poolTimeout=2000'),
+      given: mysqlPoolSettings(
+        'mysql://root@localhost/app?connectionLimit=5&poolTimeout=2000&statementCacheSize=20',
+      ),
       defaults: mysqlPoolSettings('mysql://root@localhost/app?ssl=true'),
     }).toEqual({
-      given: { connectionLimit: 5, poolTimeoutMs: 2000 },
-      defaults: { connectionLimit: undefined, poolTimeoutMs: 10_000 },
+      given: { connectionLimit: 5, poolTimeoutMs: 2000, statementCacheSize: 20 },
+      defaults: { connectionLimit: undefined, poolTimeoutMs: 10_000, statementCacheSize: 100 },
     });
   });
 
   it('refuses a pool setting that is not a positive integer', () => {
-    for (const parameter of ['connectionLimit=0', 'poolTimeout=soon']) {
+    for (const parameter of ['connectionLimit=0', 'poolTimeout=soon', 'statementCacheSize=-1']) {
       expect(() => mysqlPoolSettings(`mysql://root@localhost/app?${parameter}`)).toThrow(
         expect.objectContaining({ code: 'RUNTIME.BINDING_INVALID' }),
       );

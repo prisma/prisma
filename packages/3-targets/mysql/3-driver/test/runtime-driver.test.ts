@@ -7,11 +7,12 @@ class FakeConnection extends EventEmitter {
   readonly release = vi.fn();
   readonly destroy = vi.fn();
 
-  query(_options: unknown, callback?: (error: unknown, result: unknown) => void) {
-    if (callback) {
-      queueMicrotask(() => callback(null, { affectedRows: 0 }));
-      return new EventEmitter();
-    }
+  query(_sql: unknown, callback: (error: unknown, result: unknown) => void) {
+    queueMicrotask(() => callback(null, { affectedRows: 0 }));
+    return new EventEmitter();
+  }
+
+  execute(_options: unknown) {
     const command = new EventEmitter();
     return Object.assign(command, {
       stream: () =>

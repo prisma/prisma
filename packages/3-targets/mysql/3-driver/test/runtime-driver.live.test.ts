@@ -34,7 +34,7 @@ const numbers =
   'SELECT n FROM (SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3) AS t ORDER BY n';
 
 describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => {
-  it('streams every column as the text MySQL sends', async (test) => {
+  it('streams a bigint, a datetime and JSON as text, and a value bound apart from the SQL', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         expect(
@@ -125,6 +125,66 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('binds numbered placeholders as prepared statement values, repeated and reordered, beside a ? in a literal', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        expect(
+          await collect(
+            driver.query({
+              sql: "SELECT 'why?' AS q, ?2 AS b, ?1 AS a, ?2 AS c FROM DUAL LIMIT ?3",
+              params: ['x', 'y', 1],
+            }),
+          ),
+        ).toEqual([{ q: 'why?', b: 'y', a: 'x', c: 'y' }]);
+      }),
+    );
+  });
+
+  it('keeps no more prepared statements open than the cache size on each connection', async (test) => {
+    await withMysqlDatabase(test, async ({ url, name }) => {
+      const cached = new URL(url);
+      cached.searchParams.set('statementCacheSize', '5');
+      cached.searchParams.set('connectionLimit', '2');
+      const admin = await mysqlControlDriver.create(url);
+      try {
+        await withDriver(cached.toString(), async (driver) => {
+          const sizes = Array.from({ length: 300 }, (_, i) => i + 1);
+          for (let start = 0; start < sizes.length; start += 10) {
+            await Promise.all(
+              sizes.slice(start, start + 10).map((size) => {
+                const list = Array.from({ length: size }, (_, i) => `?${i + 1}`).join(', ');
+                return collect(
+                  driver.query({
+                    sql: `SELECT 1 AS n FROM DUAL WHERE 1 IN (${list})`,
+                    params: Array.from({ length: size }, (_, i) => i + 1),
+                  }),
+                );
+              }),
+            );
+          }
+          const { rows } = await admin.query<{ open: string }>(
+            'SELECT COUNT(*) AS open FROM performance_schema.prepared_statements_instances p JOIN performance_schema.threads t ON p.OWNER_THREAD_ID = t.THREAD_ID WHERE t.PROCESSLIST_DB = ?',
+            [name],
+          );
+          expect(Number(rows[0]?.open)).toBeLessThanOrEqual(10);
+        });
+      } finally {
+        await admin.close();
+      }
+    });
+  });
+
+  it('refuses a statement MySQL cannot prepare with DRIVER.PREPARE_FAILED', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        await driver.execute({ sql: 'CREATE TABLE t (id int)' });
+        await expect(driver.execute({ sql: 'LOCK TABLES t READ' })).rejects.toMatchObject({
+          code: 'DRIVER.PREPARE_FAILED',
+        });
+      }),
+    );
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
@@ -202,7 +262,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
           expect({
             stats,
             rows: await collect(driver.query({ sql: 'SELECT id FROM t ORDER BY id' })),
-          }).toEqual({ stats: { affectedRows: 2 }, rows: [{ id: '3' }, { id: '4' }] });
+          }).toEqual({ stats: { affectedRows: 2 }, rows: [{ id: 3 }, { id: 4 }] });
         } finally {
           await connection.release();
         }

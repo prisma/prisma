@@ -13,9 +13,8 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader } from 'mysql2';
 import { mysqlConnectionOptions, mysqlPoolSettings } from '../connection-options';
-import { formatMysqlQuery } from '../format-query';
 import { connectionLost, isFatal, normalizeMysqlError } from '../normalize-error';
-import { serverText } from '../server-text';
+import { positionalParams } from '../positional-params';
 import { SESSION_SETUP } from '../session-setup';
 
 /** Where the runtime driver connects: a `mysql://` URL. */
@@ -29,16 +28,41 @@ function notConnected(message: string) {
   });
 }
 
-function formatted(request: SqlExecuteRequest): string {
-  return formatMysqlQuery(request.sql, request.params ?? []);
+const ER_UNSUPPORTED_PS = 1295;
+
+function isUnpreparable(error: unknown): boolean {
+  return error instanceof Error && 'errno' in error && error.errno === ER_UNSUPPORTED_PS;
 }
 
+/** A statement's error: `DRIVER.PREPARE_FAILED` for one MySQL cannot run as a prepared statement, otherwise the driver's usual normalization. */
+function statementError(error: unknown, sql: string): unknown {
+  if (!isUnpreparable(error)) return normalizeMysqlError(error);
+  return errorRuntime(
+    'DRIVER.PREPARE_FAILED',
+    'MySQL cannot run this statement as a prepared statement',
+    {
+      why: 'The runtime driver sends every statement as a server-side prepared statement, so values never travel inside the SQL, and MySQL refuses to prepare a few statements, such as LOCK TABLES.',
+      fix: 'Run the statement outside the Prisma runtime.',
+      meta: { sql },
+      cause: error,
+    },
+  );
+}
+
+/** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
 function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
-  const sql = formatted(request);
+  const { sql, values } = positionalParams(request.sql, request.params ?? []);
   return new Promise((resolve, reject) => {
-    connection.query({ sql, typeCast: serverText }, (error, result) =>
-      error ? reject(error) : resolve(result),
+    connection.execute({ sql, values }, (error, result) =>
+      error ? reject(statementError(error, sql)) : resolve(result),
     );
+  });
+}
+
+/** Runs SQL the driver writes itself, with no values, through the text protocol: the session setup and `START TRANSACTION`, which MySQL does not prepare. */
+function runConstant(connection: PoolConnection, sql: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, (error) => (error ? reject(normalizeMysqlError(error)) : resolve()));
   });
 }
 
@@ -88,14 +112,15 @@ interface StreamOptions {
 }
 
 /**
- * Streams the rows of `request` on `connection` as the text MySQL sends. When the caller stops reading early, the connection is evicted, or on a held connection it reads and drops the rest of the result so its session stays usable. mysql2 tells a streaming query nothing when its connection is lost, so the stream listens to the connection and ends with `DRIVER.NOT_CONNECTED`. A lost connection, or a fatal error, sets `outcome.evict`.
+ * Streams the rows of `request` on `connection`, run as a prepared statement. When the caller stops reading early, the connection is evicted, or on a held connection it reads and drops the rest of the result so its session stays usable. mysql2 tells a streaming query nothing when its connection is lost, so the stream listens to the connection and ends with `DRIVER.NOT_CONNECTED`. A lost connection, or a fatal error, sets `outcome.evict`.
  */
 async function* streamRows<Row>(
   connection: PoolConnection,
   request: SqlExecuteRequest,
   { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
-  const command = connection.query({ sql: formatted(request), typeCast: serverText });
+  const { sql, values } = positionalParams(request.sql, request.params ?? []);
+  const command = connection.execute({ sql, values });
   let settle: () => void = () => {};
   const finished = new Promise<void>((resolve) => {
     settle = resolve;
@@ -121,7 +146,7 @@ async function* streamRows<Row>(
   } catch (error) {
     failed = true;
     if (isFatal(error)) outcome.evict = true;
-    throw normalizeMysqlError(error);
+    throw statementError(error, sql);
   } finally {
     const stoppedEarly = !completed && !failed && !outcome.evict;
     if (stoppedEarly && onEarlyExit === 'evict') {
@@ -160,8 +185,8 @@ abstract class MysqlQueryable implements SqlQueryable {
       const result = await run(lent.connection, request);
       return { affectedRows: isResultSetHeader(result) ? result.affectedRows : 0 };
     } catch (error) {
-      evict = isFatal(error);
-      throw normalizeMysqlError(error);
+      evict = isFatal(error instanceof Error && error.cause !== undefined ? error.cause : error);
+      throw error;
     } finally {
       lent.done(evict);
     }
@@ -184,7 +209,7 @@ class MysqlConnectionImpl extends MysqlQueryable implements SqlConnection {
   }
 
   async beginTransaction(): Promise<SqlTransaction> {
-    await this.execute({ sql: 'START TRANSACTION' });
+    await runConstant(this.#connection, 'START TRANSACTION');
     return new MysqlTransactionImpl(this.#connection);
   }
 
@@ -250,13 +275,21 @@ function waitForConnection(pool: Pool, timeoutMs: number): Promise<PoolConnectio
   });
 }
 
+/** How mysql2 reads the binary protocol's rows: a bigint and a decimal as their exact text, a date and time as the text MySQL prints, JSON as its UTF-8 text, binary strings as Buffers, and every other string as text. */
+const BINARY_ROW_OPTIONS = {
+  supportBigNumbers: true,
+  bigNumberStrings: true,
+  dateStrings: true,
+  jsonStrings: true,
+} as const;
+
 type DriverState =
   | { readonly kind: 'unbound' }
   | { readonly kind: 'connected'; readonly pool: Pool; readonly poolTimeoutMs: number }
   | { readonly kind: 'closed' };
 
 /**
- * The MySQL runtime driver: a mysql2 pool, queried through the text protocol so every value reaches its codec as the text MySQL sends (ADR 155). Each physical connection runs the session setup once, before its first statement. `close()` waits for every connection and stream it has handed out before it ends the pool.
+ * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup once, before its first statement. `close()` waits for every connection and stream it has handed out before it ends the pool.
  */
 export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
   readonly familyId = 'sql' as const;
@@ -276,9 +309,11 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
         fix: 'Call close() before connecting again.',
       });
     }
-    const { connectionLimit, poolTimeoutMs } = mysqlPoolSettings(binding.url);
+    const { connectionLimit, poolTimeoutMs, statementCacheSize } = mysqlPoolSettings(binding.url);
     const pool = createPool({
       ...mysqlConnectionOptions(binding.url),
+      ...BINARY_ROW_OPTIONS,
+      maxPreparedStatements: statementCacheSize,
       ...ifDefined('connectionLimit', connectionLimit),
     });
     this.#state = { kind: 'connected', pool, poolTimeoutMs };
@@ -330,7 +365,7 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
     const connection = await waitForConnection(this.#state.pool, this.#state.poolTimeoutMs);
     if (this.#setUp.has(connection)) return connection;
     try {
-      for (const sql of SESSION_SETUP) await run(connection, { sql });
+      for (const sql of SESSION_SETUP) await runConstant(connection, sql);
     } catch (error) {
       connection.destroy();
       throw normalizeMysqlError(error);

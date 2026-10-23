@@ -1,6 +1,7 @@
-import { placeholderNumber, tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
+import { tokenizeMysqlSql } from '@internal/target-mysql/sql-utils';
 import { structuredError } from '@internal/utils/structured-error';
 import { escape as escapeValue } from 'mysql2';
+import { valueIndexes } from './positional-params';
 
 function invalid(message: string, meta: Record<string, unknown>): Error {
   return structuredError('RUNTIME.AST_INVALID', message, { meta: { target: 'mysql', ...meta } });
@@ -33,31 +34,6 @@ function literal(value: unknown, index: number): string {
   }
   if (typeof value === 'string') return quoteString(value);
   return escapeValue(isBytes ? Buffer.from(value) : value, false, 'Z');
-}
-
-function placeholderMismatch(placeholders: readonly string[], values: number): Error {
-  return structuredError(
-    'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
-    `The MySQL statement writes placeholders ${JSON.stringify(placeholders)} for ${values} parameter value(s); write each value as a numbered ?N, or every value as a bare ? in order, and no other placeholder.`,
-    {
-      why: 'A placeholder that does not match a value binds a value to the wrong place in the statement, or leaves a value unbound.',
-      fix: 'Pass values into raw SQL through interpolation rather than writing a `?` in the SQL text.',
-      meta: { placeholders, params: values },
-    },
-  );
-}
-
-/** The index into `values` each placeholder takes: `?N` takes value N, and bare `?`s take the values in order. */
-function valueIndexes(placeholders: readonly string[], values: number): number[] {
-  if (placeholders.every((placeholder) => placeholder === '?')) {
-    if (placeholders.length !== values) throw placeholderMismatch(placeholders, values);
-    return placeholders.map((_, index) => index);
-  }
-  const indexes = placeholders.map((placeholder) => (placeholderNumber(placeholder) ?? 0) - 1);
-  const valid =
-    indexes.every((index) => index >= 0 && index < values) && new Set(indexes).size === values;
-  if (!valid) throw placeholderMismatch(placeholders, values);
-  return indexes;
 }
 
 /**
