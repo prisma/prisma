@@ -23,9 +23,12 @@ function definitionWith(
   overrides: Partial<Pick<ContractDefinition, 'enums'>> & {
     readonly typeEnum?: ReturnType<typeof enumType>;
     readonly variants?: Readonly<Record<string, string>>;
+    readonly namespaceId?: string;
   } = {},
 ): ContractDefinition {
   const variants = overrides.variants ?? { bug: 'Bug', feature: 'Feature' };
+  const namespaceId = overrides.namespaceId ?? 'public';
+  const inNamespace = overrides.namespaceId !== undefined ? { namespaceId } : {};
   return {
     warnings: undefined,
     target: postgresTargetPack,
@@ -35,6 +38,7 @@ function definitionWith(
       {
         modelName: 'Task',
         tableName: 'task',
+        ...inNamespace,
         fields: [
           { fieldName: 'id', columnName: 'id', descriptor: int4, nullable: false },
           {
@@ -48,15 +52,16 @@ function definitionWith(
         id: { columns: ['id'] },
         discriminator: { field: 'type' },
         variants: Object.fromEntries(
-          Object.entries(variants).map(([value, model]) => [value, crossRef(model, 'public')]),
+          Object.entries(variants).map(([value, model]) => [value, crossRef(model, namespaceId)]),
         ),
       },
       ...Object.values(variants).map((model) => ({
         modelName: model,
         tableName: 'task',
+        ...inNamespace,
         fields: [],
         sharesBaseTable: true,
-        base: crossRef('Task', 'public'),
+        base: crossRef('Task', namespaceId),
       })),
     ],
   };
@@ -132,7 +137,18 @@ describe('the value set of a discriminator', () => {
   it('refuses an enum whose name is the value set key of a discriminator, naming both', () => {
     const clash = enumType('Task.type', text, member('Bug', 'bug'));
     expect(() => build(definitionWith({ enums: { 'Task.type': clash } }))).toThrow(
-      'enumType("Task.type") has the name of the value set that the discriminator field "type" of model "Task" writes. Rename the enum.',
+      'enumType("Task.type"): has the name of the value set that the discriminator field "type" of model "Task" writes. Rename the enum.',
     );
+  });
+
+  it('is written beside an enum of the same name in another namespace, since the two value sets do not share an entry', () => {
+    const sameName = enumType('Task.type', text, member('Bug', 'bug'));
+    const contract = build(
+      definitionWith({ enums: { 'Task.type': sameName }, namespaceId: 'other' }),
+    );
+    expect({
+      public: contract.storage.namespaces['public']?.entries.valueSet?.['Task.type']?.values,
+      other: contract.storage.namespaces['other']?.entries.valueSet?.['Task.type']?.values,
+    }).toEqual({ public: ['bug'], other: ['bug', 'feature'] });
   });
 });

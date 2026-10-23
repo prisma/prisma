@@ -176,7 +176,7 @@ function storageValueObjects(
 }
 
 /**
- * Writes the value set of each discriminator, keyed `<Base>.<field>` in the base table's namespace and holding the variants' values as the column stores them, and points the discriminator column at it (ADR 278). A column an enum types keeps the enum's value set. An enum with the same name is refused, since the two value sets would share one entry.
+ * Writes the value set of each discriminator, keyed `<Base>.<field>` in the base table's namespace and holding the variants' values as the column stores them, sorted, and points the discriminator column at it (ADR 278). A column an enum types keeps the enum's value set. An enum with the same name in the same namespace is refused, since the two value sets would share one entry.
  */
 function writeDiscriminatorValueSets(
   definition: ContractDefinition,
@@ -196,10 +196,11 @@ function writeDiscriminatorValueSets(
     if (table === undefined || columnName === undefined || column === undefined) continue;
     if (column.valueSet !== undefined) continue;
     const valueSetName = `${model.modelName}.${discriminator.field}`;
-    if (Object.hasOwn(definition.enums ?? {}, valueSetName)) {
+    const namespaceValueSets = storageValueSetsByNs[namespaceId] ?? {};
+    if (Object.hasOwn(namespaceValueSets, valueSetName)) {
       throw contractError(
         'CONTRACT.ENUM_INVALID',
-        `enumType("${valueSetName}") has the name of the value set that the discriminator field "${discriminator.field}" of model "${model.modelName}" writes. Rename the enum.`,
+        `enumType("${valueSetName}"): has the name of the value set that the discriminator field "${discriminator.field}" of model "${model.modelName}" writes. Rename the enum.`,
         {
           meta: {
             enumName: valueSetName,
@@ -210,7 +211,6 @@ function writeDiscriminatorValueSets(
         },
       );
     }
-    const namespaceValueSets = storageValueSetsByNs[namespaceId] ?? {};
     namespaceValueSets[valueSetName] = { kind: 'valueSet', values: Object.keys(variants).sort() };
     storageValueSetsByNs[namespaceId] = namespaceValueSets;
     const namespaceTables = tablesByNamespace[namespaceId] ?? {};
