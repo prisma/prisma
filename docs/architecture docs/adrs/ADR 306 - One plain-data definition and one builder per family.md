@@ -64,6 +64,8 @@ The builder checks the assembled contract last. Those refusals (kind `validator`
 - Sources cannot differ in what they accept. A parity suite writes each case in TypeScript and in PSL and checks that the two emitted `contract.json` files are byte-identical.
 - Index order is the source's own. The builder does not reorder indexes, because the storage hash depends on their order.
 
+SQL does not follow this ADR fully yet. Its builder throws its first refusal, so SQL PSL places only the errors it catches and matches (TML-3730). SQL PSL also adds polymorphism to the contract after the builder runs, instead of carrying it in the definition (TML-2228).
+
 ## Alternatives considered
 
 - **Each source keeps its assembly, and a shared function checks the built contract.** The contract has lost what the source wrote: the position of an index, the value a variant wrote, which preset made a field. Refusals could not be placed, and some rules could not be checked at all.
