@@ -43,14 +43,14 @@ packages/
   2-sql-family/          # Domain 2: SQL family
   3-extensions/          # Domain 3: Extensions (internal sources of the extension packs)
   3-targets/             # Domain 3: Targets, one folder per database (ADR 278)
-    <db>/                # postgres, sqlite, mongo
+    <db>/                # postgres, sqlite, mysql, mongo
       1-target/          # Target pack: descriptor, codecs, data types, migrations
       2-adapter/         # Adapter: lowering, control adapter
       3-driver/          # Driver: connection and transport
       4-codec-testkit/   # Codec test harness (SQL databases)
       9-facade/          # Facade: the database's one-package client
   9-public/              # The published surface — every publishable package, nothing else
-    @prisma/*            # The 17 @prisma packages (16 dirs) …
+    @prisma/*            # The 18 @prisma packages (18 dirs) …
 ```
 
 The numbered prefixes serve two purposes:
