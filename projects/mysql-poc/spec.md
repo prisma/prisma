@@ -94,6 +94,8 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 - No row locking, isolation levels, `distinctOn`, partial indexes or expression indexes on MySQL. Each is refused through a capability the target does not report.
 - No change to Postgres or SQLite behaviour beyond what a shared-code fix requires.
 
+**Added 2026-10-23 (Will): an example app and the public packages are in scope.** `examples/prisma-8-demo-mysql` mirrors the SQLite demo and imports only the public `@prisma/orm-mysql` facade, so the public `@prisma/orm-mysql` and `@prisma/orm-target-mysql` packages are built in this project. The MariaDB slice runs the same example against MariaDB.
+
 ## Place in the larger world
 
 - **Target interfaces.** A SQL target supplies a control target descriptor (`packages/2-sql/9-family/src/core/control-target-descriptor.ts`), a control adapter (`.../control-adapter.ts`), a runtime target and adapter descriptor (`packages/2-sql/5-runtime/src/sql-context.ts`), a driver (`packages/2-sql/4-lanes/relational-core/src/ast/driver-types.ts`) and a facade. SQLite is the nearest precedent; the descriptor carries `defaultNamespaceId` and `supportsNamespaces` ([ADR 223](../../docs/architecture%20docs/adrs/ADR%20223%20-%20Target-owned%20default%20namespace.md)).
@@ -124,7 +126,8 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 - The commands and calls in "At a glance" succeed against MySQL 8.4 and MariaDB 10.11 in CI.
 - Every entry in `coupling.md` is fixed or filed as a Linear issue in this project, and every breaking one is fixed.
 - No package outside `3-targets/<db>/` holds target, adapter, driver or facade code, and the docs describe the new layout.
-- An ADR records the layout, and ADR 212 and the Migration System doc state migration atomicity as a target fact.
+- `examples/prisma-8-demo-mysql` runs in CI against MySQL 8.4 and MariaDB 10.11, through the public `@prisma/orm-mysql` package.
+- An ADR records the layout, and ADR 212 and the Migration System doc say that each runner states what a failed migration left behind.
 - The GA plan's stream 1 row 3 is marked done, and the follow-up issues are listed for the full MySQL target.
 
 ## Open questions
