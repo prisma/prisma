@@ -57,13 +57,8 @@ const startupSettingsOf = new WeakMap<object, SessionSettings>();
 /** A pg client class whose every client starts its session with `sessionSettings`. It reads its connection string, and `PGOPTIONS`, when each client is made, as pg does. */
 function clientClassStartingWith(sessionSettings: SessionSettings): typeof Client {
   return class SessionSettingsClient extends Client {
-    constructor(config?: string | ClientConfig) {
-      super(
-        pgConnectionConfig(
-          typeof config === 'string' ? { connectionString: config } : (config ?? {}),
-          sessionSettings,
-        ),
-      );
+    constructor(config?: ClientConfig) {
+      super(pgConnectionConfig({ ...config }, sessionSettings));
     }
   };
 }
@@ -108,8 +103,8 @@ export class SessionSettingsGuard {
     return this.#entries.length > 0 && !this.#ensured.has(client);
   }
 
+  /** Sets the settings on a client that {@link SessionSettingsGuard.needs} them. */
   async ensure(client: ClientBase): Promise<void> {
-    if (!this.needs(client)) return;
     const calls = this.#entries.map(
       (_, index) => `set_config($${index * 2 + 1}, $${index * 2 + 2}, false)`,
     );

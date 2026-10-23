@@ -83,4 +83,19 @@ describe('the session settings on a connection the application supplies', () => 
     },
     timeouts.spinUpPpgDev,
   );
+
+  it(
+    'refuse a connection whose settings the server rejects, and evict it from the pool',
+    async () => {
+      const pool = new pg.Pool({ connectionString: await devDatabaseUrl(), max: 1 });
+      const driver = createBoundDriverFromBinding({ kind: 'pgPool', pool }, undefined, {
+        sessionSettings: { no_such_setting: 'x' },
+      });
+      cleanups.push(() => driver.close());
+
+      await expect(driver.acquireConnection()).rejects.toThrow(/no_such_setting/);
+      expect(pool.totalCount).toBe(0);
+    },
+    timeouts.spinUpPpgDev,
+  );
 });

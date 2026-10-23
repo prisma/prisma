@@ -119,6 +119,14 @@ describe('the connection settings of a connection Prisma opens', () => {
     ).toBe('-c DateStyle=ISO -c search_path=my\\ schema -c application_name=a\\\\b');
   });
 
+  it('add the session settings to a connection given without a connection string', () => {
+    expect(pgConnectionConfig({ host: 'db.example.com', database: 'app' }, SETTINGS)).toEqual({
+      host: 'db.example.com',
+      database: 'app',
+      options: '-c DateStyle=ISO',
+    });
+  });
+
   it('keep the settings given beside the connection string', () => {
     expect(
       pgConnectionConfig(

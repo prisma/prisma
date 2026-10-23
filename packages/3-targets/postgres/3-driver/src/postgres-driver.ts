@@ -675,7 +675,7 @@ class PostgresPoolDriverImpl
     try {
       await ensureSessionSettings(this.#sessionSettings, client);
     } catch (error) {
-      client.release(error instanceof Error ? error : new Error('Session settings failed'));
+      client.release(true);
       throw normalizePgError(error);
     }
     return client;

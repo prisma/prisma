@@ -2,6 +2,7 @@ import { type StartupParameterRecorder, startStartupParameterRecorder } from '@r
 import pg from 'pg';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import postgresControlDriverDescriptor from '../src/exports/control';
+import postgresRuntimeDriverDescriptor from '../src/exports/runtime';
 import { createBoundDriverFromBinding } from '../src/postgres-driver';
 import { createPgPool } from '../src/session-settings';
 import { queryRows } from './sql-queryable-test-utils';
@@ -33,6 +34,15 @@ describe('the startup options of a connection', () => {
     expect((await recorder.next())['options']).toBe(
       '-c search_path=reports -c DateStyle=German -c DateStyle=ISO',
     );
+  });
+
+  it('set the session settings a runtime driver is created with on the connections it opens', async () => {
+    const driver = postgresRuntimeDriverDescriptor.create(undefined, SESSION_SETTINGS);
+    await driver.connect({ kind: 'url', url: recorder.url });
+    await queryRows(driver, 'select 1').catch(() => undefined);
+    await driver.close().catch(() => undefined);
+
+    expect((await recorder.next())['options']).toBe('-c DateStyle=ISO');
   });
 
   it('set the session settings on a control connection Prisma opens', async () => {
