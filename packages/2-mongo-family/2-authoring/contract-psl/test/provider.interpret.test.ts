@@ -29,6 +29,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
+import { mongoTestStack } from '../src/test';
 import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const SOURCE_ID = './schema.prisma';
@@ -101,7 +102,7 @@ function interpretViaSource(
 }
 
 function interpretCapableSource(schemaPath: string) {
-  const contract = mongoContract(schemaPath);
+  const contract = mongoContract(schemaPath, mongoTestStack);
   if (!hasPslInterpreter(contract.source)) {
     throw new Error('expected mongoContract source to carry the interpret capability');
   }
@@ -121,7 +122,7 @@ describe('mongoContract interpret capability', () => {
   });
 
   it('narrows a real mongoContract source via hasPslInterpreter', () => {
-    const contract = mongoContract(SOURCE_ID);
+    const contract = mongoContract(SOURCE_ID, mongoTestStack);
 
     expect(hasPslInterpreter(contract.source)).toBe(true);
     if (!hasPslInterpreter(contract.source)) return;

@@ -21,6 +21,7 @@ import type {
 } from '@internal/mongo-contract';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { mongoTargetDescriptor as mongoTargetControl } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withMongoPort } from '../_harness/mongo';
@@ -137,7 +138,9 @@ async function readPsl(
   try {
     const path = join(directory, 'contract.prisma');
     writeFileSync(path, `// use prisma-8\n\n${text}`);
-    const result = await mongoContract(path).source.load({
+    const result = await mongoContract(path, {
+      target: mongoTargetPack,
+    }).source.load({
       ...sourceContext,
       resolvedInputs: [path],
     });

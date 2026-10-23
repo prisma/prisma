@@ -6,7 +6,8 @@ import type {
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
 import { expectTypeOf, test } from 'vitest';
-import { defineContract, type FieldBuilder } from '../src/contract-builder';
+import { defineContract } from '../src/contract-builder';
+import type { FieldBuilder } from '../src/contract-dsl';
 import type { EnumTypeHandle } from '../src/enum-type';
 
 const mongoFamilyPack = {
@@ -38,13 +39,11 @@ const mongoTargetPack = {
   },
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
-test('a field a generator fills cannot be made optional or a list', () => {
+test('a field a generator fills can be optional but not a list', () => {
   defineContract({ family: mongoFamilyPack, target: mongoTargetPack }, ({ field, gen }) => {
-    // @ts-expect-error onCreate fills the field, so it cannot be optional
     field.date().onCreate(gen.now()).optional();
     // @ts-expect-error onCreate and onUpdate fill the field, so it cannot be a list
     field.date().onCreate(gen.now()).onUpdate(gen.now()).many();
-    // @ts-expect-error onUpdate fills the field, so it cannot be optional
     field.date().onUpdate(gen.now()).optional();
     field.date().optional();
     field.string().optional().many();
@@ -52,12 +51,9 @@ test('a field a generator fills cannot be made optional or a list', () => {
   });
 });
 
-test('the type error for optional() or many() on a field that generates a value says why', () => {
+test('the type error for many() on a field that generates a value says why', () => {
   defineContract({ family: mongoFamilyPack, target: mongoTargetPack }, ({ field, gen }) => {
     const createdAt = field.date().onCreate(gen.now());
-    expectTypeOf<
-      ThisParameterType<typeof createdAt.optional>
-    >().toEqualTypeOf<'This field generates a value on write, so it cannot be optional'>();
     expectTypeOf<
       ThisParameterType<typeof createdAt.many>
     >().toEqualTypeOf<'This field generates a value on write, so it cannot be a list'>();

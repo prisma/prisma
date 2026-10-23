@@ -37,6 +37,7 @@ type InterpretOptionsWithDefaultLookups = Omit<
   | 'codecLookup'
   | 'dataTypes'
   | 'generatorFunctions'
+  | 'target'
 > & {
   /** Scalar type names and the codec each stores, contributed as type constructors. */
   readonly scalarTypes?: ReadonlyMap<string, string>;
@@ -99,6 +100,7 @@ export function interpretMongoContract(
       binder: bound.binder,
       ...mongoContextInput(bound.context),
       ...(options.enumInferenceCodecs ? { enumInferenceCodecs: options.enumInferenceCodecs } : {}),
+      ...(options.extensionPacks ? { extensionPacks: options.extensionPacks } : {}),
     }),
     bound.seedDiagnostics,
   );

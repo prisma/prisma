@@ -60,19 +60,25 @@ describe('Mongo PSL @onCreate and @onUpdate', () => {
     ]);
   });
 
-  it('refuse an optional field', () => {
-    expect(
-      diagnostics(`model Post {
+  it('build an optional field', () => {
+    const result = interpret(`model Post {
   id     ObjectId  @id @map("_id")
   seenAt DateTime? @onUpdate(now())
-}`),
-    ).toEqual([
-      {
-        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
-        message:
-          'Field "Post.seenAt" is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @onUpdate(...).',
-      },
-    ]);
+}`);
+    if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+
+    expect({
+      field: result.value.domain.namespaces['__unbound__']?.models['Post']?.fields['seenAt'],
+      defaults: result.value.execution?.mutations.defaults,
+    }).toEqual({
+      field: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: true, many: false },
+      defaults: [
+        {
+          ref: { namespace: '__unbound__', entry: 'Post', field: 'seenAt' },
+          onUpdate: { kind: 'generator', id: 'timestampNow' },
+        },
+      ],
+    });
   });
 
   it('refuse the same generator attribute twice on one field', () => {

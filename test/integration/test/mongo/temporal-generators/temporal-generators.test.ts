@@ -9,6 +9,7 @@ import { createControlStack } from '@internal/framework-components/control';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import { mongoContract } from '@internal/mongo-contract-psl/provider';
 import { type MongoTargetContract, mongoTargetDescriptor } from '@internal/target-mongo/control';
+import mongoTargetPack from '@internal/target-mongo/pack';
 import { timeouts } from '@repo/test-utils';
 import { dirname, join } from 'pathe';
 import { describe, expect, expectTypeOf, it } from 'vitest';
@@ -53,35 +54,14 @@ async function emitNormalized(contract: FrameworkContract): Promise<Record<strin
   return JSON.parse(emitted.contractJson) as Record<string, unknown>;
 }
 
-/**
- * PSL and TS authoring hash different storage projections and derive validators differently (a gap
- * that predates execution defaults), so the comparison leaves out `storage.storageHash` and each
- * collection's `validator`. Everything else, `execution` and its hash included, must match.
- */
-function withoutKnownStorageGap(contractJson: Record<string, unknown>): Record<string, unknown> {
-  const storage = contractJson['storage'] as Record<string, unknown>;
-  const namespaces = storage['namespaces'] as Record<string, Record<string, unknown>>;
-  const strippedNamespaces = Object.fromEntries(
-    Object.entries(namespaces).map(([id, namespace]) => {
-      const entries = namespace['entries'] as {
-        collection: Record<string, Record<string, unknown>>;
-      };
-      const collection = Object.fromEntries(
-        Object.entries(entries.collection).map(([name, { validator: _, ...rest }]) => [name, rest]),
-      );
-      return [id, { ...namespace, entries: { ...entries, collection } }];
-    }),
-  );
-  const { storageHash: _, ...restStorage } = storage;
-  return { ...contractJson, storage: { ...restStorage, namespaces: strippedNamespaces } };
-}
-
 describe('Mongo date generators from PSL and TS', () => {
   it(
     'emit the same contract, execution section and hash included',
     async () => {
       const pslPath = join(fixtureDir, 'contract.prisma');
-      const pslResult = await mongoContract(pslPath).source.load({
+      const pslResult = await mongoContract(pslPath, {
+        target: mongoTargetPack,
+      }).source.load({
         ...sourceContext,
         resolvedInputs: [pslPath],
       });
@@ -95,7 +75,7 @@ describe('Mongo date generators from PSL and TS', () => {
 
       expect(fromPsl['execution']).toEqual(emittedContractJson.execution);
       expect(fromTs['execution']).toEqual(fromPsl['execution']);
-      expect(withoutKnownStorageGap(fromTs)).toEqual(withoutKnownStorageGap(fromPsl));
+      expect(fromTs).toEqual(fromPsl);
     },
     timeouts.typeScriptCompilation,
   );
@@ -104,7 +84,9 @@ describe('Mongo date generators from PSL and TS', () => {
     'emit the same contract from the gen calls of the facade as from @onCreate(now()) and @onUpdate(now())',
     async () => {
       const pslPath = join(attributesFixtureDir, 'contract.prisma');
-      const pslResult = await mongoContract(pslPath).source.load({
+      const pslResult = await mongoContract(pslPath, {
+        target: mongoTargetPack,
+      }).source.load({
         ...sourceContext,
         resolvedInputs: [pslPath],
       });
@@ -118,7 +100,7 @@ describe('Mongo date generators from PSL and TS', () => {
 
       expect(fromPsl['execution']).toEqual(emittedContractJson.execution);
       expect(fromTs['execution']).toEqual(fromPsl['execution']);
-      expect(withoutKnownStorageGap(fromTs)).toEqual(withoutKnownStorageGap(fromPsl));
+      expect(fromTs).toEqual(fromPsl);
     },
     timeouts.typeScriptCompilation,
   );

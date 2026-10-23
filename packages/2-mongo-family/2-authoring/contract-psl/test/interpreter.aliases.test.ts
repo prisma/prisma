@@ -278,23 +278,29 @@ model Post {
     ]);
   });
 
-  it('refuse an optional field typed by an alias that generates a value', () => {
-    expect(
-      diagnostics(`types {
+  it('build an optional field typed by an alias that generates a value', () => {
+    const result = interpret(`types {
   Stamp = Date @onCreate(now())
 }
 
 model Post {
   id        ObjectId @id @map("_id")
   createdAt Stamp?
-}`),
-    ).toEqual([
-      {
-        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
-        message:
-          'Field "Post.createdAt" is optional, and its type alias "Stamp" generates a value, which needs a required field in MongoDB. Remove "?" or type the field without the alias.',
-      },
-    ]);
+}`);
+    if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+
+    expect({
+      field: result.value.domain.namespaces['__unbound__']?.models['Post']?.fields['createdAt'],
+      defaults: result.value.execution?.mutations.defaults,
+    }).toEqual({
+      field: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: true, many: false },
+      defaults: [
+        {
+          ref: { namespace: '__unbound__', entry: 'Post', field: 'createdAt' },
+          onCreate: { kind: 'generator', id: 'timestampNow' },
+        },
+      ],
+    });
   });
 
   it('refuse a list field typed by an alias that generates a value', () => {
@@ -531,18 +537,25 @@ describe('Mongo PSL contributed type aliases', () => {
     ]);
   });
 
-  it('refuse an optional field', () => {
-    expect(
-      diagnostics(`model Post {
+  it('build an optional field', () => {
+    const result = interpret(`model Post {
   id        ObjectId            @id @map("_id")
   updatedAt temporal.UpdatedAt?
-}`),
-    ).toEqual([
-      {
-        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
-        message:
-          'Field "Post.updatedAt" is optional, and its type alias "temporal.UpdatedAt" generates a value, which needs a required field in MongoDB. Remove "?" or type the field without the alias.',
-      },
-    ]);
+}`);
+    if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
+
+    expect({
+      field: result.value.domain.namespaces['__unbound__']?.models['Post']?.fields['updatedAt'],
+      defaults: result.value.execution?.mutations.defaults,
+    }).toEqual({
+      field: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: true, many: false },
+      defaults: [
+        {
+          ref: { namespace: '__unbound__', entry: 'Post', field: 'updatedAt' },
+          onCreate: { kind: 'generator', id: 'timestampNow' },
+          onUpdate: { kind: 'generator', id: 'timestampNow' },
+        },
+      ],
+    });
   });
 });

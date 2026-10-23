@@ -4,12 +4,13 @@ import type { TargetPackRef } from '@internal/framework-components/components';
 import { singleGeneratorBinding } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { defineContract, type FieldBuilder } from '../src/contract-builder';
+import { defineContract } from '../src/contract-builder';
+import type { FieldBuilder } from '../src/contract-dsl';
 import { mongoFamilyPack, mongoTargetPack as mongoTestTargetPack } from './mongo-test-packs';
 
 /** What a JavaScript caller, whom the types do not stop, can write on a generated field. */
-function untyped(builder: unknown): { optional(): FieldBuilder; many(): FieldBuilder } {
-  return builder as { optional(): FieldBuilder; many(): FieldBuilder };
+function untyped(builder: unknown): { many(): FieldBuilder } {
+  return builder as { many(): FieldBuilder };
 }
 
 const mongoTargetPack = {
@@ -142,31 +143,28 @@ describe('Mongo TS generated fields', () => {
 });
 
 describe('Mongo TS generated field misuse', () => {
-  it('refuses a nullable field with execution defaults', () => {
-    expect(() =>
-      defineContract(scaffold, ({ field, model, gen }) => ({
-        models: {
-          Post: model('Post', {
-            collection: 'posts',
-            fields: {
-              _id: field.objectId(),
-              createdAt: untyped(field.date().onCreate(gen.now())).optional(),
-            },
-          }),
-        },
-      })),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'CONTRACT.DEFAULT_INVALID',
-        message:
-          'Field "Post.createdAt" generates a value on write, so it cannot be optional; remove .optional().',
-        meta: expect.objectContaining({
-          modelName: 'Post',
-          fieldName: 'createdAt',
-          reason: 'nullable-with-executionDefaults',
+  it('builds an optional field that generates a value', () => {
+    const contract = defineContract(scaffold, ({ field, model, gen }) => ({
+      models: {
+        Post: model('Post', {
+          collection: 'posts',
+          fields: { _id: field.objectId(), createdAt: field.date().onCreate(gen.now()).optional() },
         }),
-      }),
-    );
+      },
+    }));
+
+    expect({
+      field: contract.domain.namespaces.__unbound__.models.Post.fields.createdAt,
+      defaults: contract.execution?.mutations.defaults,
+    }).toEqual({
+      field: { type: { kind: 'scalar', codecId: 'mongo/date@1' }, nullable: true, many: false },
+      defaults: [
+        {
+          ref: { namespace: UNBOUND_NAMESPACE_ID, entry: 'posts', field: 'createdAt' },
+          onCreate: timestampNow,
+        },
+      ],
+    });
   });
 
   it('refuses a list field with execution defaults', () => {

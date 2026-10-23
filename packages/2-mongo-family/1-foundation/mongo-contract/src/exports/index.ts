@@ -41,7 +41,6 @@ export type {
   MongoJsonObject,
   MongoJsonPrimitive,
   MongoJsonValue,
-  MongoModelDefinition,
   MongoModelFieldStorage,
   MongoModelStorage,
   MongoModelsMap,

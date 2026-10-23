@@ -21,7 +21,7 @@ import { createContract, timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it, vi } from 'vitest';
 import { createControlClient } from '../../src/control-api/client';
-import type { ControlProgressEvent } from '../../src/control-api/types';
+import type { ControlProgressEvent, EmitResult } from '../../src/control-api/types';
 
 const TEST_INVOCATION = { cwd: '/work/app', configPath: undefined, dbGiven: false };
 
@@ -589,6 +589,76 @@ describe('ControlClient progress emission', () => {
         summary: message,
         why: 'The field codec binds no now() function.',
         meta: { code: 'CONTRACT.DEFAULT_INVALID', ...meta },
+      });
+    });
+
+    describe('a source that reports a warning', () => {
+      const warning = {
+        code: 'PSL_DEPRECATED_SCALAR_NAME',
+        message: 'Scalar type "Int" is deprecated and will be removed; use "Int32".',
+        sourceId: 'schema.prisma',
+        severity: 'warning' as const,
+      };
+
+      async function emitWarningThen(
+        outcome: () => ReturnType<ContractSourceProvider['load']>,
+      ): Promise<EmitResult> {
+        const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
+        const client = createControlClient({
+          family: mockFamily,
+          target: mockTarget,
+          adapter: mockAdapter,
+        });
+        const result = await client.emit({
+          contractConfig: {
+            source: createSourceProvider(async (context) => {
+              context.reportWarning?.(warning);
+              return outcome();
+            }),
+            output: '/tmp/contract.json',
+          },
+        });
+        await client.close();
+        return result;
+      }
+
+      it('returns it with the emitted contract', async () => {
+        const result = await emitWarningThen(async () => ok(emittableContract()));
+
+        expect(result.ok ? result.value.sourceWarnings : undefined).toEqual([warning]);
+      });
+
+      it.each([
+        {
+          label: 'returns diagnostics',
+          code: 'CONTRACT_SOURCE_INVALID',
+          outcome: async () =>
+            notOk({
+              summary: 'Provider failed',
+              diagnostics: [
+                { code: 'PSL_INVALID_MODEL', message: 'bad', sourceId: 'schema.prisma' },
+              ],
+            }),
+        },
+        {
+          label: 'throws a structured error',
+          code: 'CONTRACT_SOURCE_INVALID',
+          outcome: async () => {
+            throw structuredError('CONTRACT.DEFAULT_INVALID', 'Default refused');
+          },
+        },
+        {
+          label: 'returns a contract that cannot be emitted',
+          code: 'EMIT_FAILED',
+          outcome: async () => ok({} as Contract),
+        },
+      ])('returns it with the failure when the source then $label', async ({ code, outcome }) => {
+        const result = await emitWarningThen(outcome);
+
+        expect(result.ok ? undefined : result.failure).toMatchObject({
+          code,
+          sourceWarnings: [warning],
+        });
       });
     });
 

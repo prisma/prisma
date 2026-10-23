@@ -1,6 +1,7 @@
 import type { EnumAccessor } from '@internal/contract/enum-accessor';
 import {
   type ContractField,
+  type ContractModel,
   type ContractReferenceRelation,
   type ContractValueObject,
   domainValueObjectsAtDefaultNamespace,
@@ -19,7 +20,7 @@ import {
   defaultMongoDomainNamespaceId,
   type MongoContract,
   type MongoContractWithTypeMaps,
-  type MongoModelDefinition,
+  type MongoModelStorage,
   type MongoModelsMap,
   mongoModelsOf,
   ownDocumentIdFieldOf,
@@ -212,7 +213,7 @@ const MEMBERSHIP_OPERATORS: ReadonlySet<string> = new Set(['$in', '$nin']);
 
 type ValuePurpose = 'write' | 'filter';
 
-function modelOf(contract: MongoContract, modelName: string): MongoModelDefinition {
+function modelOf(contract: MongoContract, modelName: string): ContractModel<MongoModelStorage> {
   const model = mongoModelsOf(contract.domain, defaultMongoDomainNamespaceId)[modelName];
   if (model === undefined) {
     throw ormError('ORM.MODEL_UNKNOWN', `Unknown model: "${modelName}".`, {
@@ -222,7 +223,7 @@ function modelOf(contract: MongoContract, modelName: string): MongoModelDefiniti
   return model;
 }
 
-function resolveCollectionName(model: MongoModelDefinition, modelName: string): string {
+function resolveCollectionName(model: ContractModel<MongoModelStorage>, modelName: string): string {
   return model.storage.collection ?? modelName;
 }
 
@@ -939,7 +940,7 @@ class MongoCollectionImpl<
     return this.#modelWithVariantFields()?.fields ?? {};
   }
 
-  #modelWithVariantFields(): MongoModelDefinition | undefined {
+  #modelWithVariantFields(): ContractModel<MongoModelStorage> | undefined {
     const models = mongoModelsOf(this.#contract.domain, defaultMongoDomainNamespaceId);
     const model = models[this.#modelName];
     const variantRef =

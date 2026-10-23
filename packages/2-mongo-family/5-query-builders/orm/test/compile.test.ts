@@ -1,4 +1,5 @@
-import type { MongoModelDefinition } from '@internal/mongo-contract';
+import type { ContractModel } from '@internal/contract/types';
+import type { MongoModelStorage } from '@internal/mongo-contract';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
 import {
   type MongoAndExpr,
@@ -17,7 +18,7 @@ import type { MongoCollectionState } from '../src/collection-state';
 import { emptyCollectionState } from '../src/collection-state';
 import { compileMongoQuery } from '../src/compile';
 
-const testUserModel: MongoModelDefinition = {
+const testUserModel: ContractModel<MongoModelStorage> = {
   storage: {
     fields: {
       _id: { field: '_id' },
@@ -70,7 +71,7 @@ const testUserModel: MongoModelDefinition = {
   },
 };
 
-const testPostModel: MongoModelDefinition = {
+const testPostModel: ContractModel<MongoModelStorage> = {
   storage: {
     fields: { _id: { field: '_id' }, title: { field: 'title' }, authorId: { field: 'authorId' } },
     collection: 'posts',
