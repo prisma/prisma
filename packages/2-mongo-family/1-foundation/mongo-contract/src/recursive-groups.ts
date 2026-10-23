@@ -8,7 +8,7 @@ export function typeKey(kind: 'valueObject' | 'model', name: string): string {
 
 function referencesOf(fields: Record<string, ContractField>): string[] {
   return Object.values(fields).flatMap((field) =>
-    field.type.kind === 'valueObject' ? [typeKey('valueObject', field.type.name)] : [],
+    field.type.kind === 'valueObject' ? [typeKey('valueObject', field.type.entityName)] : [],
   );
 }
 

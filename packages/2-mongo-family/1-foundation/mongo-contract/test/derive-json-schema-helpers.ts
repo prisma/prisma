@@ -45,8 +45,18 @@ export function arrayEnumField(
   };
 }
 
+function valueObjectType(entityName: string): ContractField['type'] {
+  return {
+    kind: 'valueObject',
+    plane: 'storage',
+    namespaceId: '__unbound__',
+    entityKind: 'valueObject',
+    entityName,
+  };
+}
+
 export function voField(name: string, nullable = false): ContractField {
-  return { type: { kind: 'valueObject', name }, nullable, many: false };
+  return { type: valueObjectType(name), nullable, many: false };
 }
 
 export function voArrayField(
@@ -54,5 +64,5 @@ export function voArrayField(
   nullable = false,
   elementNullable = false,
 ): ContractField {
-  return { type: { kind: 'valueObject', name }, nullable, many: { elementNullable } };
+  return { type: valueObjectType(name), nullable, many: { elementNullable } };
 }

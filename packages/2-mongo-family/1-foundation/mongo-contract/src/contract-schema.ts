@@ -14,7 +14,10 @@ const ScalarFieldTypeSchema = type({
 const ValueObjectFieldTypeSchema = type({
   '+': 'reject',
   kind: "'valueObject'",
-  name: 'string',
+  plane: "'storage'",
+  namespaceId: 'string',
+  entityKind: "'valueObject'",
+  entityName: 'string',
 });
 
 const UnionFieldTypeSchema = type({
@@ -61,6 +64,37 @@ const FieldSchema = RawFieldSchema.pipe((field) => ({
   nullable: field.nullable ?? false,
   many: field.many ?? false,
 }));
+
+const StorageValueSetRefSchema = type({
+  plane: "'storage'",
+  namespaceId: 'string',
+  entityKind: "'valueSet'",
+  entityName: 'string',
+  'spaceId?': 'string',
+});
+
+const RawStorageValueObjectFieldSchema = type({
+  '+': 'reject',
+  type: FieldTypeSchema,
+  'nullable?': 'boolean',
+  'many?': type('false').or({ elementNullable: 'boolean' }),
+  'dict?': 'boolean',
+  'valueSet?': StorageValueSetRefSchema,
+});
+
+/**
+ * Storage value object entry under `storage.namespaces[id].entries.valueObject[name]` (ADR 278). Its fields have the shape a domain field has; a member typed by an enum refers to the storage value set, since storage never refers to the domain plane.
+ */
+export const StorageValueObjectSchema = type({
+  '+': 'reject',
+  fields: type({
+    '[string]': RawStorageValueObjectFieldSchema.pipe((field) => ({
+      ...field,
+      nullable: field.nullable ?? false,
+      many: field.many ?? false,
+    })),
+  }),
+});
 
 const RelationOnSchema = type({
   '+': 'reject',
@@ -418,6 +452,7 @@ export function createMongoNamespaceEnvelopeSchema(
     entries: type({
       'collection?': type({ '[string]': collectionEntrySchema(fragments) }),
       'valueSet?': type({ '[string]': StorageValueSetSchema }),
+      'valueObject?': type({ '[string]': StorageValueObjectSchema }),
     }),
   }).narrow((ns, ctx) => {
     if (typeof ns !== 'object' || ns === null || Array.isArray(ns)) {
@@ -461,11 +496,15 @@ export function createMongoContractSchema(
       namespaces: type({
         '[string]': type({
           models: type({ '[string]': ModelDefinitionSchema }),
-          'valueObjects?': type({
-            '[string]': type({ '+': 'reject', fields: type({ '[string]': FieldSchema }) }),
-          }),
           'enum?': type({ '[string]': ContractEnumSchema }),
-        }),
+        }).narrow((namespace, ctx) =>
+          Object.hasOwn(namespace, 'valueObjects')
+            ? ctx.reject({
+                expected:
+                  'a domain namespace without valueObjects: contracts no longer store value objects in the domain plane; they are storage entities under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source',
+              })
+            : true,
+        ),
       }),
     }),
     storage: type({

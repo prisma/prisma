@@ -166,9 +166,14 @@ function fieldToBsonSchema(
   }
 
   if (field.type.kind === 'valueObject') {
-    const vo = valueObjects[field.type.name];
+    const vo = valueObjects[field.type.entityName];
     if (!vo) return undefined;
-    const voSchema = objectSchemaOf('valueObject', field.type.name, valueObjectShape(vo), sources);
+    const voSchema = objectSchemaOf(
+      'valueObject',
+      field.type.entityName,
+      valueObjectShape(vo),
+      sources,
+    );
     if (field.many) {
       return {
         bsonType: field.nullable ? ['null', 'array'] : 'array',

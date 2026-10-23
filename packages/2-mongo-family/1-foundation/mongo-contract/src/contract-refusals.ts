@@ -120,9 +120,9 @@ function validatedEnumNames(input: MongoContractRefusalsInput): ReadonlySet<stri
   const visitFields = (fields: Record<string, ContractField>) => {
     for (const field of Object.values(fields)) {
       if (field.valueSet?.entityKind === 'enum') enums.add(field.valueSet.entityName);
-      if (field.type.kind === 'valueObject' && !visitedValueObjects.has(field.type.name)) {
-        visitedValueObjects.add(field.type.name);
-        visitFields(valueObjects[field.type.name]?.fields ?? {});
+      if (field.type.kind === 'valueObject' && !visitedValueObjects.has(field.type.entityName)) {
+        visitedValueObjects.add(field.type.entityName);
+        visitFields(valueObjects[field.type.entityName]?.fields ?? {});
       }
     }
   };

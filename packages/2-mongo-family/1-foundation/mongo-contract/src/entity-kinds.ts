@@ -3,8 +3,13 @@ import type {
   EntityKindDescriptor,
 } from '@internal/framework-components/ir';
 import { structuredError } from '@internal/utils/structured-error';
-import { StorageCollectionSchema, StorageValueSetSchema } from './contract-schema';
+import {
+  StorageCollectionSchema,
+  StorageValueObjectSchema,
+  StorageValueSetSchema,
+} from './contract-schema';
 import { MongoCollection, type MongoCollectionInput } from './ir/mongo-collection';
+import { MongoValueObject, type MongoValueObjectInput } from './ir/mongo-value-object';
 import { MongoValueSet, type MongoValueSetInput } from './ir/mongo-value-set';
 
 export const collectionEntityKind: EntityKindDescriptor<MongoCollectionInput, MongoCollection> = {
@@ -19,9 +24,16 @@ export const valueSetEntityKind: EntityKindDescriptor<MongoValueSetInput, MongoV
   construct: (input) => new MongoValueSet(input),
 };
 
+export const valueObjectEntityKind: EntityKindDescriptor<MongoValueObjectInput, MongoValueObject> =
+  {
+    kind: 'valueObject',
+    schema: StorageValueObjectSchema,
+    construct: (input) => new MongoValueObject(input),
+  };
+
 /**
  * Assembles the `kind → descriptor` registry for Mongo namespaces: the built-in
- * `collection` kind plus any target `packKinds`. This builds the lookup table —
+ * `collection`, `valueSet` and `valueObject` kinds plus any target `packKinds`. This builds the lookup table —
  * it does not touch contract data. `hydrateNamespaceEntities` later consumes
  * this registry to turn a namespace's raw entries into IR instances. Throws on
  * a duplicate kind.
@@ -32,6 +44,7 @@ export function composeMongoEntityKinds(
   const kinds = new Map<string, AnyEntityKindDescriptor>([
     ['collection', collectionEntityKind],
     ['valueSet', valueSetEntityKind],
+    ['valueObject', valueObjectEntityKind],
   ]);
   for (const descriptor of packKinds) {
     if (kinds.has(descriptor.kind)) {

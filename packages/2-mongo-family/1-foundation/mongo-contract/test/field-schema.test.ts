@@ -2,24 +2,35 @@ import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { MongoContractSchema } from '../src/contract-schema';
 
-function contractWithField(kind: 'models' | 'valueObjects', field: Record<string, unknown>) {
-  const entry =
-    kind === 'models'
-      ? { fields: { name: field }, storage: { fields: { name: { field: 'name' } } } }
-      : { fields: { name: field } };
-  return {
-    targetFamily: 'mongo',
-    roots: {},
-    domain: {
-      namespaces: {
-        app: { models: {}, [kind]: { Item: entry } },
-      },
-    },
-    storage: { namespaces: {} },
-  };
+function contractWithField(kind: 'model' | 'storage value object', field: Record<string, unknown>) {
+  return kind === 'model'
+    ? {
+        targetFamily: 'mongo',
+        roots: {},
+        domain: {
+          namespaces: {
+            app: {
+              models: {
+                Item: { fields: { name: field }, storage: { fields: { name: { field: 'name' } } } },
+              },
+            },
+          },
+        },
+        storage: { namespaces: {} },
+      }
+    : {
+        targetFamily: 'mongo',
+        roots: {},
+        domain: { namespaces: { app: { models: {} } } },
+        storage: {
+          namespaces: {
+            app: { id: 'app', entries: { valueObject: { Item: { fields: { name: field } } } } },
+          },
+        },
+      };
 }
 
-describe.each(['models', 'valueObjects'] as const)('%s field schema', (kind) => {
+describe.each(['model', 'storage value object'] as const)('%s field schema', (kind) => {
   const fieldType = { kind: 'scalar', codecId: 'mongo/string@1' };
 
   it('normalizes an absent many property to false', () => {
