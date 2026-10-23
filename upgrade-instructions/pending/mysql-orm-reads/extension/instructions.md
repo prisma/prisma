@@ -9,11 +9,11 @@ changes:
         - '\.(?:execute|query)\(\s*\{(?![^}]*containsRawSql)[^}]*\bsql\s*:'
   - id: codec-descriptor-declares-integer
     summary: |
-      A codec descriptor (`CodecDescriptorTemplate`, from `@prisma/orm-framework`) can declare `integerRepresentation: 'number'` or `integerRepresentation: 'bigint'`: the JavaScript type of its application value, for a codec whose values are integers. The ORM's `having` reads it. A comparand against an aggregate whose output codec declares it must be a safe integer number, and a `'bigint'` codec also takes a `bigint`, with a number passed to it as one. Before, a `having` comparand of type `bigint` compiled, and a number was turned into a bigint, for any codec whose input type was `bigint`. Now both need the declaration. Declare `integerRepresentation: 'number'` (or, on a descriptor class, `readonly integerRepresentation = 'number' as const`) on a codec descriptor whose values are integers read as numbers, and `'bigint'` on one read as bigints. Leave it off float, decimal and non-numeric codecs.
+      A codec descriptor (`CodecDescriptorTemplate`, from `@prisma/orm-framework`) can declare `integerRepresentation: 'number'` or `integerRepresentation: 'bigint'`: the JavaScript type of its application value, for a codec whose values are integers. The ORM's `having` reads it. A comparand against an aggregate whose output codec declares it must be a safe integer number, and a `'bigint'` codec also takes a `bigint`, with a number passed to it as one. Before, a `having` comparand of type `bigint` compiled, and a number was turned into a bigint, for any codec whose input type was `bigint`. Now both need the declaration. Declare `integerRepresentation: 'number'` (or, on a descriptor class, `readonly integerRepresentation = 'number' as const`) on a codec descriptor whose values are integers read as numbers, and `'bigint'` on one read as bigints. Leave it off float, decimal and non-numeric codecs. Check each codec descriptor in a matched file: a file can declare it on one descriptor and miss another.
     detection:
       glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
       matches:
-        - '(?<![\s\S])(?![\s\S]*\bintegerRepresentation\s*[:=]\s*[\x27\x22](?:number|bigint))(?=[\s\S]*(?:\bdefine\w*Codecs\b|extends\s+\w*CodecDescriptor\b))[\s\S]*\b(?:int\d*|integer|bigint)\b'
+        - '(?<![\s\S])(?=[\s\S]*(?:\bdefine\w*Codecs\b|extends\s+\w*CodecDescriptor\b))[\s\S]*\b(?:int\d*|integer|bigint)\b'
 ---
 
 # A driver request says whether it holds raw SQL
