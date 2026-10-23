@@ -176,9 +176,6 @@ export const postgresNativeAuthoringTypes = {
     documentation: 'A calendar date represented as Temporal.PlainDate.',
     output: { codecId: 'pg/date-temporal@1' },
   },
-  // The representation-explicit spellings. Same columns, same precision, same native types — the
-  // only difference is that a read hands back PostgreSQL's own text instead of a `Temporal.*`, so a
-  // value Temporal cannot express still round-trips.
   DateString: {
     kind: 'typeConstructor',
     inferred: true,
@@ -187,7 +184,6 @@ export const postgresNativeAuthoringTypes = {
   },
   TimestampString: {
     kind: 'typeConstructor',
-    inferred: true,
     documentation: 'A timestamp without a time zone represented as PostgreSQL text.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
@@ -197,6 +193,7 @@ export const postgresNativeAuthoringTypes = {
   },
   TimestamptzJsDate: {
     kind: 'typeConstructor',
+    inferred: true,
     documentation:
       'An instant stored as PostgreSQL timestamptz and represented as a JavaScript Date.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -207,6 +204,7 @@ export const postgresNativeAuthoringTypes = {
   },
   TimestampJsDate: {
     kind: 'typeConstructor',
+    inferred: true,
     documentation:
       'A date and time stored as PostgreSQL timestamp and represented as a JavaScript Date, read and written as UTC.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -227,7 +225,6 @@ export const postgresNativeAuthoringTypes = {
   },
   TimestamptzString: {
     kind: 'typeConstructor',
-    inferred: true,
     documentation: 'A timestamp with time zone represented as PostgreSQL text.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
     output: {
@@ -267,7 +264,6 @@ export const postgresNativeAuthoringTypes = {
   },
   IntervalParts: {
     kind: 'typeConstructor',
-    inferred: true,
     documentation:
       'A span of time stored as PostgreSQL interval and represented as { months, days, micros }, with optional fractional-second precision.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],
@@ -278,6 +274,7 @@ export const postgresNativeAuthoringTypes = {
   },
   IntervalString: {
     kind: 'typeConstructor',
+    inferred: true,
     documentation:
       'A span of time stored as PostgreSQL interval and represented as an ISO 8601 duration such as P1Y2M, with optional fractional-second precision.',
     args: [{ kind: 'value', dataType: PG_SIZE_TYPE, name: 'precision', optional: true }],

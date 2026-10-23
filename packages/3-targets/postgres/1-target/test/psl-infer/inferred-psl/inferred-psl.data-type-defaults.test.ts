@@ -154,8 +154,21 @@ describe('printPsl writes each default as the literal the column data type takes
     ['infinity', 'timestamp', "'infinity'::timestamp without time zone"],
     ['-infinity', 'timestamp', "'-infinity'::timestamp without time zone"],
     ['infinity', 'timestamptz', "'infinity'::timestamp with time zone"],
-    ['-infinity', 'date', "'-infinity'::date"],
+    [
+      'microseconds',
+      'timestamptz(6)',
+      "'2024-01-01 01:00:00.123456+00'::timestamp(6) with time zone",
+    ],
   ])(
+    'prints a default of %s on a %s column, which a Date cannot hold, as its raw expression',
+    async (_value, typeText, rawDefault) => {
+      expect(await printedDefaults([introspected('stamp', typeText, rawDefault)])).toEqual({
+        stamp: `@default(sql\`${rawDefault}\`)`,
+      });
+    },
+  );
+
+  it.each([['-infinity', 'date', "'-infinity'::date"]])(
     'prints the %s sentinel on a %s column with the column type tag',
     async (sentinel, typeText, rawDefault) => {
       expect(await printedDefaults([introspected('stamp', typeText, rawDefault)])).toEqual({

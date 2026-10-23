@@ -161,11 +161,11 @@ const INFERRED = [
   'DateString',
   'TimeString',
   'Timetz',
-  'TimestampString',
-  'TimestamptzString',
+  'TimestampJsDate',
+  'TimestamptzJsDate',
   'Bit',
   'VarBit',
-  'IntervalParts',
+  'IntervalString',
   'pg.enum',
 ];
 
@@ -414,6 +414,7 @@ describe('postgresNativeAuthoringTypes', () => {
     expect(everyPostgresConstructor).not.toHaveProperty('TimestamptzDate');
     expect(postgresNativeAuthoringTypes).toHaveProperty('TimestamptzJsDate', {
       kind: 'typeConstructor',
+      inferred: true,
       documentation:
         'An instant stored as PostgreSQL timestamptz and represented as a JavaScript Date.',
       args: [{ kind: 'value', dataType: 'pg/int4', name: 'precision', optional: true }],

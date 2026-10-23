@@ -5,6 +5,7 @@ import { postgresScalarAndNativeTypeConstructors } from '../src/core/type-constr
 const TEMPORAL_CODEC_IDS = [
   'pg/date-temporal@1',
   'pg/timestamp-temporal@1',
+  'pg/timestamp-instant@1',
   'pg/timestamptz-temporal@1',
   'pg/time-temporal@1',
 ];

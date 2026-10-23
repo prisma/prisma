@@ -30,6 +30,10 @@ export {
   type InferredTypeConstructor,
   type InferredTypeConstructors,
   inferredTypeConstructors,
+  type PslTypeArgument,
+  sameInNormalForm,
+  type WrittenPslTypeCall,
   writtenTypeArguments,
+  writtenTypeChoiceCall,
 } from '../core/psl-build/inferred-type-constructors';
 export { toEnumMemberName } from '../core/psl-build/psl-names';

@@ -1,4 +1,8 @@
-import type { DataTypeSupport } from '@internal/framework-components/authoring';
+import {
+  type AuthoringTypeNamespace,
+  authoringTypeConstructorArguments,
+  type DataTypeSupport,
+} from '@internal/framework-components/authoring';
 import type { DataType } from '@internal/framework-components/codec';
 import { resolveReportedSqlType } from '@internal/sql-contract/data-type';
 import type { ReportedSqlType, SqlColumnIR } from '@internal/sql-schema-ir/types';
@@ -6,15 +10,19 @@ import { InternalError } from '@internal/utils/internal-error';
 import { sqlFamilyError } from '../errors';
 import {
   fewestArgumentsCall,
+  type InferredTypeConstructor,
   type InferredTypeConstructors,
+  type PslTypeArgument,
+  sameInNormalForm,
   writtenTypeArguments,
+  writtenTypeChoiceCall,
 } from './inferred-type-constructors';
 
-/** A call to a type constructor as PSL writes it: the constructor's path, its arguments' text, and the value each argument gives the constructor. */
+/** A type call as PSL writes it, and the explicit type constructor it becomes, with the value of each of its arguments. */
 export interface PslTypeCall {
   readonly path: readonly string[];
-  readonly args: readonly string[];
-  readonly values: readonly unknown[];
+  readonly args: readonly PslTypeArgument[];
+  readonly explicit: { readonly path: readonly string[]; readonly values: readonly unknown[] };
 }
 
 /** The PSL type `contract infer` writes for a column that is not an enum, by table and column name. */
@@ -37,28 +45,60 @@ function reportedTypeOf(column: SqlColumnIR, tableName: string): ReportedSqlType
   return column.reportedType;
 }
 
+/** The call to the type choice that becomes `marked` with every parameter in `params`, compared in the normal form, as `db verify` compares the column. */
+function convenienceCall(
+  marked: InferredTypeConstructor,
+  params: Readonly<Record<string, unknown>>,
+  authoringTypes: AuthoringTypeNamespace,
+  support: DataTypeSupport,
+): PslTypeCall | undefined {
+  const values = authoringTypeConstructorArguments(marked.descriptor, {
+    codecId: marked.descriptor.output.codecId,
+    typeParams: params,
+  });
+  const written =
+    values &&
+    writtenTypeChoiceCall({
+      authoringTypes,
+      call: { path: marked.path, args: values },
+      dataTypes: support,
+      sameOutput: sameInNormalForm(marked.dataType),
+    });
+  return values && written && { ...written, explicit: { path: marked.path, values } };
+}
+
 function writtenCall(
   constructors: InferredTypeConstructors,
   dataTypes: readonly DataType[],
+  authoringTypes: AuthoringTypeNamespace,
   support: DataTypeSupport,
   reported: ReportedSqlType,
 ): PslTypeCall | undefined {
   const resolved = resolveReportedSqlType(reported, dataTypes);
   const marked = resolved && constructors.get(resolved.dataType.id);
-  const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
-  const args = call && marked && writtenTypeArguments(marked.descriptor, call.args, support);
-  return call && args && { path: call.path, args, values: call.args };
+  if (resolved === undefined || marked === undefined) return undefined;
+  const convenience = convenienceCall(marked, resolved.typeParams, authoringTypes, support);
+  if (convenience !== undefined) return convenience;
+  const call = fewestArgumentsCall(marked, resolved.typeParams);
+  const args = call && writtenTypeArguments(marked.descriptor, call.args, support);
+  return (
+    call &&
+    args && {
+      path: call.path,
+      args: args.map((text) => ({ name: undefined, text })),
+      explicit: { path: call.path, values: call.args },
+    }
+  );
 }
 
 /**
- * The type of every column of `tables` that `isEnumColumn` does not claim: the call, with the
- * fewest arguments, to the constructor marked `inferred` for the data type that claims the
- * column's reported type. When any column has no such call, throws
- * `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` listing every one of them.
+ * The type of every column of `tables` that `isEnumColumn` does not claim, through the constructor marked `inferred` for the data type that claims the column's reported type: the type choice call that becomes it, with only the arguments that differ from the defaults, or else the call to it with the fewest arguments. When any column has no such call, throws `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` listing every one of them.
  */
 export function inferColumnTypes(input: {
   readonly tables: readonly IntrospectedTable[];
   readonly constructors: InferredTypeConstructors;
+  /** The stack's type namespace, whose type choices infer writes where one becomes a marked constructor. */
+  readonly authoringTypes: AuthoringTypeNamespace;
   /** The stack's data types, whose literals write each argument. */
   readonly dataTypes: DataTypeSupport;
   readonly isEnumColumn: (column: SqlColumnIR) => boolean;
@@ -70,7 +110,13 @@ export function inferColumnTypes(input: {
     for (const column of columns) {
       if (input.isEnumColumn(column)) continue;
       const reported = reportedTypeOf(column, tableName);
-      const call = writtenCall(input.constructors, dataTypes, input.dataTypes, reported);
+      const call = writtenCall(
+        input.constructors,
+        dataTypes,
+        input.authoringTypes,
+        input.dataTypes,
+        reported,
+      );
       if (call === undefined) {
         unclaimed.push(
           `${schemaName}.${tableName}.${column.name}: ${reported.text}${column.many === true ? '[]' : ''}`,

@@ -26,7 +26,6 @@ export {
   authoringTypeConstructorArguments,
   authoringTypeConstructors,
   findAuthoringTypeConstructorCall,
-  sameAuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
 export type {
   AssembledDataTypeSupport,

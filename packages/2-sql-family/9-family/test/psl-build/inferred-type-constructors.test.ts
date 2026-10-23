@@ -14,6 +14,7 @@ import {
   fewestArgumentsCall,
   inferredTypeConstructors,
   writtenTypeArguments,
+  writtenTypeChoiceCall,
 } from '../../src/core/psl-build/inferred-type-constructors';
 
 const numeric = sqlDataType('t/numeric', {
@@ -41,6 +42,16 @@ const int = sqlDataType('t/int', {
   texts: [{ text: 'int', written: true, catalog: true }],
 });
 
+const stamp = sqlDataType('t/stamp', {
+  read: (json) => json,
+  params: type({ 'precision?': 'number.integer >= 0 & number.integer <= 6' }),
+  texts: [
+    { text: 'stamp', written: true, catalog: true },
+    { text: 'stamp({precision})', written: true, catalog: true },
+  ],
+  normalize: (params) => (params.precision === undefined ? { ...params, precision: 6 } : params),
+});
+
 const labelled = sqlDataType('t/labelled', {
   read: (json) => json,
   params: type({ label: 'string' }),
@@ -66,6 +77,28 @@ const authoringTypes = {
       },
     },
   },
+  StampDate: {
+    kind: 'typeConstructor',
+    inferred: true,
+    args: [{ kind: 'value', dataType: 't/int', name: 'precision', optional: true }],
+    output: { codecId: 't/stamp-date@1', typeParams: { precision: { kind: 'arg', index: 0 } } },
+  },
+  StampText: {
+    kind: 'typeConstructor',
+    args: [{ kind: 'value', dataType: 't/int', name: 'precision', optional: true }],
+    output: { codecId: 't/stamp-text@1', typeParams: { precision: { kind: 'arg', index: 0 } } },
+  },
+  Stamp: {
+    kind: 'typeChoice',
+    args: [
+      { kind: 'option', name: 'value', values: ['date', 'text'], default: 'date', optional: true },
+      { kind: 'value', dataType: 't/int', name: 'precision', optional: true },
+    ],
+    choices: [
+      { when: { value: 'date' }, type: 'StampDate', defaults: { precision: 3 } },
+      { when: { value: 'text' }, type: 'StampText' },
+    ],
+  },
   ext: {
     Labelled: {
       kind: 'typeConstructor',
@@ -80,6 +113,8 @@ const dataTypeOfCodec: Record<string, string> = {
   't/text@1': 't/text',
   't/numeric@1': 't/numeric',
   't/labelled@1': 't/labelled',
+  't/stamp-date@1': 't/stamp',
+  't/stamp-text@1': 't/stamp',
 };
 
 const constructors = inferredTypeConstructors({
@@ -90,7 +125,7 @@ const constructors = inferredTypeConstructors({
         ? undefined
         : ({ dataType: dataTypeOfCodec[codecId] } as unknown as AnyCodecDescriptor),
   },
-  dataTypeLookup: createDataTypeLookup([numeric, text, labelled]),
+  dataTypeLookup: createDataTypeLookup([numeric, text, labelled, stamp]),
 });
 
 const dataTypes: DataTypeSupport = {
@@ -112,7 +147,7 @@ const dataTypes: DataTypeSupport = {
       documentation: 'Text.',
     },
   },
-  lookup: createDataTypeLookup([int, numeric, text, labelled]),
+  lookup: createDataTypeLookup([int, numeric, text, labelled, stamp]),
   dataTypeOfCodec: () => undefined,
 };
 
@@ -123,6 +158,7 @@ describe('inferredTypeConstructors', () => {
     ).toEqual({
       't/text': ['Text'],
       't/numeric': ['Numeric'],
+      't/stamp': ['StampDate'],
       't/labelled': ['ext', 'Labelled'],
     });
   });
@@ -162,6 +198,33 @@ const catalog = (text: string): ReportedSqlType => ({
   name: undefined,
 });
 
+describe('writtenTypeChoiceCall', () => {
+  const write = (path: readonly string[], args: readonly unknown[]) =>
+    writtenTypeChoiceCall({ authoringTypes, call: { path, args }, dataTypes });
+
+  it('writes the type choice call that becomes the constructor call, each argument by name', () => {
+    expect([
+      write(['StampDate'], [3]),
+      write(['StampText'], [2]),
+      write(['StampText'], []),
+    ]).toEqual([
+      { path: ['Stamp'], args: [] },
+      {
+        path: ['Stamp'],
+        args: [
+          { name: 'value', text: 'text' },
+          { name: 'precision', text: '2' },
+        ],
+      },
+      { path: ['Stamp'], args: [{ name: 'value', text: 'text' }] },
+    ]);
+  });
+
+  it('writes nothing for a call no type choice reproduces exactly, or one no type choice names', () => {
+    expect([write(['StampDate'], []), write(['Numeric'], [10])]).toEqual([undefined, undefined]);
+  });
+});
+
 describe('writtenTypeArguments', () => {
   const numericConstructor = authoringTypes.Numeric;
 
@@ -182,7 +245,13 @@ describe('writtenTypeArguments', () => {
 
 describe('inferColumnTypes', () => {
   const infer = (tables: readonly IntrospectedTable[]) =>
-    inferColumnTypes({ tables, constructors, dataTypes, isEnumColumn: () => false });
+    inferColumnTypes({
+      tables,
+      constructors,
+      authoringTypes,
+      dataTypes,
+      isEnumColumn: () => false,
+    });
 
   it("writes each column as its data type's marked constructor, quoting a string argument", () => {
     const typeOf = infer([
@@ -201,8 +270,34 @@ describe('inferColumnTypes', () => {
       },
     ]);
     expect({ amount: typeOf('thing', 'amount'), label: typeOf('thing', 'label') }).toEqual({
-      amount: { path: ['Numeric'], args: ['10'], values: [10] },
-      label: { path: ['ext', 'Labelled'], args: ['"gold"'], values: ['gold'] },
+      amount: {
+        path: ['Numeric'],
+        args: [{ name: undefined, text: '10' }],
+        explicit: { path: ['Numeric'], values: [10] },
+      },
+      label: {
+        path: ['ext', 'Labelled'],
+        args: [{ name: undefined, text: '"gold"' }],
+        explicit: { path: ['ext', 'Labelled'], values: ['gold'] },
+      },
+    });
+  });
+
+  it('writes the type choice that becomes the marked constructor, with the arguments that differ from its defaults', () => {
+    const typeOf = infer([
+      {
+        schemaName: 'public',
+        tableName: 'event',
+        columns: [column('at', catalog('stamp')), column('paid', catalog('stamp(3)'))],
+      },
+    ]);
+    expect({ at: typeOf('event', 'at'), paid: typeOf('event', 'paid') }).toEqual({
+      at: {
+        path: ['Stamp'],
+        args: [{ name: 'precision', text: '6' }],
+        explicit: { path: ['StampDate'], values: [6] },
+      },
+      paid: { path: ['Stamp'], args: [], explicit: { path: ['StampDate'], values: [3] } },
     });
   });
 

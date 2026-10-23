@@ -158,6 +158,7 @@ export function inferredColumnTypesOf(
       codecLookup: inferBuildContext.codecLookup,
       dataTypeLookup: inferBuildContext.dataTypes.lookup,
     }),
+    authoringTypes: inferBuildContext.authoringContributions.type,
     dataTypes: inferBuildContext.dataTypes,
     isEnumColumn: (column) => column.reportedType?.kind === 'enum',
   });
