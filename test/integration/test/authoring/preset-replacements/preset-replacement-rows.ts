@@ -59,26 +59,38 @@ export type MongoRow = PresetReplacementRow<MongoHelpers, MongoField>;
 
 type FamilyHelpers = PostgresHelpers | SqliteHelpers;
 
-/** The SQL family's presets, on a target whose fixed-length text is written `char` in PSL and `charType` in TypeScript. */
-function familyRows<Helpers extends FamilyHelpers>(
-  char: (length: number) => string,
-  charType: (helpers: Helpers, length: number) => ScalarFieldBuilder,
-): readonly SqlRow<Helpers>[] {
+type IdentifierAlias = 'UuidString' | 'Ulid' | 'Nanoid' | 'Cuid2' | 'Ksuid';
+
+/** How a target writes fixed-length text and the identifier type aliases: `char` and `alias` in PSL, `charType` and `aliasType` in TypeScript. */
+interface IdentifierColumns<Helpers> {
+  readonly char: (length: number) => string;
+  readonly charType: (helpers: Helpers, length: number) => ScalarFieldBuilder;
+  readonly alias: (name: IdentifierAlias) => string;
+  readonly aliasType: (helpers: Helpers, name: IdentifierAlias) => ScalarFieldBuilder;
+}
+
+/** The SQL family's presets, each replaced by its identifier alias, or by fixed-length text for a nanoid of another size. */
+function familyRows<Helpers extends FamilyHelpers>({
+  char,
+  charType,
+  alias,
+  aliasType,
+}: IdentifierColumns<Helpers>): readonly SqlRow<Helpers>[] {
   return [
     {
-      model: 'UuidString',
-      psl: { preset: 'uuidString()', replacement: char(36) },
-      ts: (h) => charType(h, 36),
+      model: 'UuidStringColumn',
+      psl: { preset: 'uuidString()', replacement: alias('UuidString') },
+      ts: (h) => aliasType(h, 'UuidString'),
     },
     {
-      model: 'Ulid',
-      psl: { preset: 'ulid()', replacement: char(26) },
-      ts: (h) => charType(h, 26),
+      model: 'UlidColumn',
+      psl: { preset: 'ulid()', replacement: alias('Ulid') },
+      ts: (h) => aliasType(h, 'Ulid'),
     },
     {
-      model: 'Nanoid',
-      psl: { preset: 'nanoid()', replacement: char(21) },
-      ts: (h) => charType(h, 21),
+      model: 'NanoidColumn',
+      psl: { preset: 'nanoid()', replacement: alias('Nanoid') },
+      ts: (h) => aliasType(h, 'Nanoid'),
     },
     {
       model: 'NanoidSized',
@@ -86,38 +98,44 @@ function familyRows<Helpers extends FamilyHelpers>(
       ts: (h) => charType(h, 12),
     },
     {
-      model: 'Cuid2',
-      psl: { preset: 'cuid2()', replacement: char(24) },
-      ts: (h) => charType(h, 24),
+      model: 'Cuid2Column',
+      psl: { preset: 'cuid2()', replacement: alias('Cuid2') },
+      ts: (h) => aliasType(h, 'Cuid2'),
     },
     {
-      model: 'Ksuid',
-      psl: { preset: 'ksuid()', replacement: char(27) },
-      ts: (h) => charType(h, 27),
+      model: 'KsuidColumn',
+      psl: { preset: 'ksuid()', replacement: alias('Ksuid') },
+      ts: (h) => aliasType(h, 'Ksuid'),
     },
     {
       model: 'IdUuidv4String',
       id: true,
-      psl: { preset: 'id.uuidv4String()', replacement: `${char(36)} @id @onCreate(uuid())` },
-      ts: (h) => charType(h, 36).id().onCreate(h.gen.uuid()),
+      psl: {
+        preset: 'id.uuidv4String()',
+        replacement: `${alias('UuidString')} @id @onCreate(uuid())`,
+      },
+      ts: (h) => aliasType(h, 'UuidString').id().onCreate(h.gen.uuid()),
     },
     {
       model: 'IdUuidv7String',
       id: true,
-      psl: { preset: 'id.uuidv7String()', replacement: `${char(36)} @id @onCreate(uuid(7))` },
-      ts: (h) => charType(h, 36).id().onCreate(h.gen.uuid(7)),
+      psl: {
+        preset: 'id.uuidv7String()',
+        replacement: `${alias('UuidString')} @id @onCreate(uuid(7))`,
+      },
+      ts: (h) => aliasType(h, 'UuidString').id().onCreate(h.gen.uuid(7)),
     },
     {
       model: 'IdUlid',
       id: true,
-      psl: { preset: 'id.ulid()', replacement: `${char(26)} @id @onCreate(ulid())` },
-      ts: (h) => charType(h, 26).id().onCreate(h.gen.ulid()),
+      psl: { preset: 'id.ulid()', replacement: `${alias('Ulid')} @id @onCreate(ulid())` },
+      ts: (h) => aliasType(h, 'Ulid').id().onCreate(h.gen.ulid()),
     },
     {
       model: 'IdNanoid',
       id: true,
-      psl: { preset: 'id.nanoid()', replacement: `${char(21)} @id @onCreate(nanoid())` },
-      ts: (h) => charType(h, 21).id().onCreate(h.gen.nanoid()),
+      psl: { preset: 'id.nanoid()', replacement: `${alias('Nanoid')} @id @onCreate(nanoid())` },
+      ts: (h) => aliasType(h, 'Nanoid').id().onCreate(h.gen.nanoid()),
     },
     {
       model: 'IdNanoidSized',
@@ -131,43 +149,45 @@ function familyRows<Helpers extends FamilyHelpers>(
     {
       model: 'IdCuid2',
       id: true,
-      psl: { preset: 'id.cuid2()', replacement: `${char(24)} @id @onCreate(cuid(2))` },
-      ts: (h) => charType(h, 24).id().onCreate(h.gen.cuid(2)),
+      psl: { preset: 'id.cuid2()', replacement: `${alias('Cuid2')} @id @onCreate(cuid(2))` },
+      ts: (h) => aliasType(h, 'Cuid2').id().onCreate(h.gen.cuid(2)),
     },
     {
       model: 'IdKsuid',
       id: true,
-      psl: { preset: 'id.ksuid()', replacement: `${char(27)} @id @onCreate(ksuid())` },
-      ts: (h) => charType(h, 27).id().onCreate(h.gen.ksuid()),
+      psl: { preset: 'id.ksuid()', replacement: `${alias('Ksuid')} @id @onCreate(ksuid())` },
+      ts: (h) => aliasType(h, 'Ksuid').id().onCreate(h.gen.ksuid()),
     },
   ];
 }
 
 /** The replacements of `field.generated(...)`, which only the SQL TypeScript builder had. */
-function generatedRows<Helpers extends FamilyHelpers>(
-  char: (length: number) => string,
-  charType: (helpers: Helpers, length: number) => ScalarFieldBuilder,
-): readonly SqlRow<Helpers>[] {
+function generatedRows<Helpers extends FamilyHelpers>({
+  char,
+  charType,
+  alias,
+  aliasType,
+}: IdentifierColumns<Helpers>): readonly SqlRow<Helpers>[] {
   return [
     {
       model: 'GeneratedUuidv4',
-      psl: { replacement: `${char(36)} @onCreate(uuid())` },
-      ts: (h) => charType(h, 36).onCreate(h.gen.uuid()),
+      psl: { replacement: `${alias('UuidString')} @onCreate(uuid())` },
+      ts: (h) => aliasType(h, 'UuidString').onCreate(h.gen.uuid()),
     },
     {
       model: 'GeneratedUuidv7',
-      psl: { replacement: `${char(36)} @onCreate(uuid(7))` },
-      ts: (h) => charType(h, 36).onCreate(h.gen.uuid(7)),
+      psl: { replacement: `${alias('UuidString')} @onCreate(uuid(7))` },
+      ts: (h) => aliasType(h, 'UuidString').onCreate(h.gen.uuid(7)),
     },
     {
       model: 'GeneratedUlid',
-      psl: { replacement: `${char(26)} @onCreate(ulid())` },
-      ts: (h) => charType(h, 26).onCreate(h.gen.ulid()),
+      psl: { replacement: `${alias('Ulid')} @onCreate(ulid())` },
+      ts: (h) => aliasType(h, 'Ulid').onCreate(h.gen.ulid()),
     },
     {
       model: 'GeneratedNanoid',
-      psl: { replacement: `${char(21)} @onCreate(nanoid())` },
-      ts: (h) => charType(h, 21).onCreate(h.gen.nanoid()),
+      psl: { replacement: `${alias('Nanoid')} @onCreate(nanoid())` },
+      ts: (h) => aliasType(h, 'Nanoid').onCreate(h.gen.nanoid()),
     },
     {
       model: 'GeneratedNanoidSized',
@@ -176,32 +196,40 @@ function generatedRows<Helpers extends FamilyHelpers>(
     },
     {
       model: 'GeneratedCuid2',
-      psl: { replacement: `${char(24)} @onCreate(cuid(2))` },
-      ts: (h) => charType(h, 24).onCreate(h.gen.cuid(2)),
+      psl: { replacement: `${alias('Cuid2')} @onCreate(cuid(2))` },
+      ts: (h) => aliasType(h, 'Cuid2').onCreate(h.gen.cuid(2)),
     },
     {
       model: 'GeneratedKsuid',
-      psl: { replacement: `${char(27)} @onCreate(ksuid())` },
-      ts: (h) => charType(h, 27).onCreate(h.gen.ksuid()),
+      psl: { replacement: `${alias('Ksuid')} @onCreate(ksuid())` },
+      ts: (h) => aliasType(h, 'Ksuid').onCreate(h.gen.ksuid()),
     },
     {
       model: 'GeneratedUuidv4Id',
       id: true,
-      psl: { replacement: `${char(36)} @id @onCreate(uuid())` },
-      ts: (h) => charType(h, 36).id().onCreate(h.gen.uuid()),
+      psl: { replacement: `${alias('UuidString')} @id @onCreate(uuid())` },
+      ts: (h) => aliasType(h, 'UuidString').id().onCreate(h.gen.uuid()),
     },
   ];
 }
 
+const postgresIdentifierColumns: IdentifierColumns<PostgresHelpers> = {
+  char: (length) => `Char(${length})`,
+  charType: ({ field, type }, length) => field.column(type.Char(length)),
+  alias: (name) => name,
+  aliasType: ({ field, type }, name) => field.column(type[name]()),
+};
+
+const sqliteIdentifierColumns: IdentifierColumns<SqliteHelpers> = {
+  char: (length) => `sql.Char(${length})`,
+  charType: ({ field, type }, length) => field.column(type.sql.Char(length)),
+  alias: (name) => `sql.${name}`,
+  aliasType: ({ field, type }, name) => field.column(type.sql[name]()),
+};
+
 export const postgresRows: readonly SqlRow<PostgresHelpers>[] = [
-  ...familyRows<PostgresHelpers>(
-    (length) => `Char(${length})`,
-    ({ field, type }, length) => field.column(type.Char(length)),
-  ),
-  ...generatedRows<PostgresHelpers>(
-    (length) => `Char(${length})`,
-    ({ field, type }, length) => field.column(type.Char(length)),
-  ),
+  ...familyRows(postgresIdentifierColumns),
+  ...generatedRows(postgresIdentifierColumns),
   {
     model: 'Text',
     psl: { preset: 'text()', replacement: 'String' },
@@ -429,21 +457,15 @@ export const postgresRows: readonly SqlRow<PostgresHelpers>[] = [
   {
     model: 'IdUuidv4StringNamed',
     id: true,
-    psl: { replacement: 'Char(36) @id(map: "IdUuidv4StringNamed_pk") @onCreate(uuid())' },
+    psl: { replacement: 'UuidString @id(map: "IdUuidv4StringNamed_pk") @onCreate(uuid())' },
     ts: ({ field, type, gen }) =>
-      field.column(type.Char(36)).id({ name: 'IdUuidv4StringNamed_pk' }).onCreate(gen.uuid()),
+      field.column(type.UuidString()).id({ name: 'IdUuidv4StringNamed_pk' }).onCreate(gen.uuid()),
   },
 ];
 
 export const sqliteRows: readonly SqlRow<SqliteHelpers>[] = [
-  ...familyRows<SqliteHelpers>(
-    (length) => `sql.Char(${length})`,
-    ({ field, type }, length) => field.column(type.sql.Char(length)),
-  ),
-  ...generatedRows<SqliteHelpers>(
-    (length) => `sql.Char(${length})`,
-    ({ field, type }, length) => field.column(type.sql.Char(length)),
-  ),
+  ...familyRows(sqliteIdentifierColumns),
+  ...generatedRows(sqliteIdentifierColumns),
   {
     model: 'CreatedAt',
     psl: { preset: 'temporal.createdAt()', replacement: 'temporal.CreatedAt' },

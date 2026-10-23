@@ -24,8 +24,8 @@
       "model": "CreatedAtString",
       "namespace": "public"
     },
-    "Cuid2": {
-      "model": "Cuid2",
+    "Cuid2Column": {
+      "model": "Cuid2Column",
       "namespace": "public"
     },
     "DateColumn": {
@@ -128,16 +128,16 @@
       "model": "JsonbColumn",
       "namespace": "public"
     },
-    "Ksuid": {
-      "model": "Ksuid",
+    "KsuidColumn": {
+      "model": "KsuidColumn",
       "namespace": "public"
     },
     "MappedUpdatedAt": {
       "model": "MappedUpdatedAt",
       "namespace": "public"
     },
-    "Nanoid": {
-      "model": "Nanoid",
+    "NanoidColumn": {
+      "model": "NanoidColumn",
       "namespace": "public"
     },
     "NanoidSized": {
@@ -204,8 +204,8 @@
       "model": "TimetzBothPhases",
       "namespace": "public"
     },
-    "Ulid": {
-      "model": "Ulid",
+    "UlidColumn": {
+      "model": "UlidColumn",
       "namespace": "public"
     },
     "UpdateOnlyWithDefault": {
@@ -232,8 +232,8 @@
       "model": "UuidNative",
       "namespace": "public"
     },
-    "UuidString": {
-      "model": "UuidString",
+    "UuidStringColumn": {
+      "model": "UuidStringColumn",
       "namespace": "public"
     }
   },
@@ -396,7 +396,7 @@
               "table": "CreatedAtString"
             }
           },
-          "Cuid2": {
+          "Cuid2Column": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -427,7 +427,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Cuid2"
+              "table": "Cuid2Column"
             }
           },
           "DateColumn": {
@@ -1143,7 +1143,7 @@
               "table": "JsonbColumn"
             }
           },
-          "Ksuid": {
+          "KsuidColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -1174,7 +1174,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Ksuid"
+              "table": "KsuidColumn"
             }
           },
           "MappedUpdatedAt": {
@@ -1208,7 +1208,7 @@
               "table": "MappedUpdatedAt"
             }
           },
-          "Nanoid": {
+          "NanoidColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -1239,7 +1239,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Nanoid"
+              "table": "NanoidColumn"
             }
           },
           "NanoidSized": {
@@ -1765,7 +1765,7 @@
               "table": "TimetzBothPhases"
             }
           },
-          "Ulid": {
+          "UlidColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -1796,7 +1796,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "Ulid"
+              "table": "UlidColumn"
             }
           },
           "UpdateOnlyWithDefault": {
@@ -1985,7 +1985,7 @@
               "table": "UuidNative"
             }
           },
-          "UuidString": {
+          "UuidStringColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -2016,7 +2016,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "UuidString"
+              "table": "UuidStringColumn"
             }
           }
         }
@@ -2128,7 +2128,7 @@
               },
               "uniques": []
             },
-            "Cuid2": {
+            "Cuid2Column": {
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -2645,7 +2645,7 @@
               },
               "uniques": []
             },
-            "Ksuid": {
+            "KsuidColumn": {
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -2688,7 +2688,7 @@
               },
               "uniques": []
             },
-            "Nanoid": {
+            "NanoidColumn": {
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -3058,7 +3058,7 @@
               },
               "uniques": []
             },
-            "Ulid": {
+            "UlidColumn": {
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -3205,7 +3205,7 @@
               },
               "uniques": []
             },
-            "UuidString": {
+            "UuidStringColumn": {
               "columns": {
                 "id": {
                   "codecId": "pg/int4@1",
@@ -3234,7 +3234,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7544e37cd9754b23d177e8f4c446463198d9b9f7df336953aabbdddfc8607c55"
+    "storageHash": "d44d725316bd8067730874483a24dfcaeef20dc26199e383a7b408b314483b10"
   },
   "execution": {
     "executionHash": "7e34a597e8e959eb298b2579d5595cbb1b1b5a6be32eff21fafd083e40cd646a",

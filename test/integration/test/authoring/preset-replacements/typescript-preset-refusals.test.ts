@@ -77,12 +77,12 @@ const BOTH = ['onCreate', 'onUpdate'] as const;
 type Case = readonly [helper: string, model: string, write: Write];
 
 const SQL_FAMILY_CASES: readonly Case[] = [
-  ['uuidString', 'UuidString', first],
-  ['ulid', 'Ulid', first],
-  ['nanoid', 'Nanoid', first],
+  ['uuidString', 'UuidStringColumn', first],
+  ['ulid', 'UlidColumn', first],
+  ['nanoid', 'NanoidColumn', first],
   ['nanoid', 'NanoidSized', sized(12)],
-  ['cuid2', 'Cuid2', first],
-  ['ksuid', 'Ksuid', first],
+  ['cuid2', 'Cuid2Column', first],
+  ['ksuid', 'KsuidColumn', first],
   ['id.uuidv4String', 'IdUuidv4String', first],
   ['id.uuidv7String', 'IdUuidv7String', first],
   ['id.ulid', 'IdUlid', first],

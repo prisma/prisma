@@ -8,8 +8,8 @@
       "model": "CreatedAt",
       "namespace": "__unbound__"
     },
-    "Cuid2": {
-      "model": "Cuid2",
+    "Cuid2Column": {
+      "model": "Cuid2Column",
       "namespace": "__unbound__"
     },
     "DatetimeBothPhases": {
@@ -80,28 +80,28 @@
       "model": "IdUuidv7String",
       "namespace": "__unbound__"
     },
-    "Ksuid": {
-      "model": "Ksuid",
+    "KsuidColumn": {
+      "model": "KsuidColumn",
       "namespace": "__unbound__"
     },
-    "Nanoid": {
-      "model": "Nanoid",
+    "NanoidColumn": {
+      "model": "NanoidColumn",
       "namespace": "__unbound__"
     },
     "NanoidSized": {
       "model": "NanoidSized",
       "namespace": "__unbound__"
     },
-    "Ulid": {
-      "model": "Ulid",
+    "UlidColumn": {
+      "model": "UlidColumn",
       "namespace": "__unbound__"
     },
     "UpdatedAt": {
       "model": "UpdatedAt",
       "namespace": "__unbound__"
     },
-    "UuidString": {
-      "model": "UuidString",
+    "UuidStringColumn": {
+      "model": "UuidStringColumn",
       "namespace": "__unbound__"
     }
   },
@@ -140,7 +140,7 @@
               "table": "CreatedAt"
             }
           },
-          "Cuid2": {
+          "Cuid2Column": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -171,7 +171,7 @@
                 }
               },
               "namespaceId": "__unbound__",
-              "table": "Cuid2"
+              "table": "Cuid2Column"
             }
           },
           "DatetimeBothPhases": {
@@ -666,7 +666,7 @@
               "table": "IdUuidv7String"
             }
           },
-          "Ksuid": {
+          "KsuidColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -697,10 +697,10 @@
                 }
               },
               "namespaceId": "__unbound__",
-              "table": "Ksuid"
+              "table": "KsuidColumn"
             }
           },
-          "Nanoid": {
+          "NanoidColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -731,7 +731,7 @@
                 }
               },
               "namespaceId": "__unbound__",
-              "table": "Nanoid"
+              "table": "NanoidColumn"
             }
           },
           "NanoidSized": {
@@ -768,7 +768,7 @@
               "table": "NanoidSized"
             }
           },
-          "Ulid": {
+          "UlidColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -799,7 +799,7 @@
                 }
               },
               "namespaceId": "__unbound__",
-              "table": "Ulid"
+              "table": "UlidColumn"
             }
           },
           "UpdatedAt": {
@@ -833,7 +833,7 @@
               "table": "UpdatedAt"
             }
           },
-          "UuidString": {
+          "UuidStringColumn": {
             "fields": {
               "id": {
                 "nullable": false,
@@ -864,7 +864,7 @@
                 }
               },
               "namespaceId": "__unbound__",
-              "table": "UuidString"
+              "table": "UuidStringColumn"
             }
           }
         }
@@ -896,7 +896,7 @@
               },
               "uniques": []
             },
-            "Cuid2": {
+            "Cuid2Column": {
               "columns": {
                 "id": {
                   "codecId": "sqlite/integer@1",
@@ -1264,7 +1264,7 @@
               },
               "uniques": []
             },
-            "Ksuid": {
+            "KsuidColumn": {
               "columns": {
                 "id": {
                   "codecId": "sqlite/integer@1",
@@ -1287,7 +1287,7 @@
               },
               "uniques": []
             },
-            "Nanoid": {
+            "NanoidColumn": {
               "columns": {
                 "id": {
                   "codecId": "sqlite/integer@1",
@@ -1333,7 +1333,7 @@
               },
               "uniques": []
             },
-            "Ulid": {
+            "UlidColumn": {
               "columns": {
                 "id": {
                   "codecId": "sqlite/integer@1",
@@ -1376,7 +1376,7 @@
               },
               "uniques": []
             },
-            "UuidString": {
+            "UuidStringColumn": {
               "columns": {
                 "id": {
                   "codecId": "sqlite/integer@1",
@@ -1404,7 +1404,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "d76dec1d5f217b814ae2b81a8c6261e96fc2d6b62668bb2b35c9eb9144e99178"
+    "storageHash": "84b8ac5e0c0568c79b0bd48599d9d9c8938149c7eef2b9fa1b9f2c47e9625413"
   },
   "execution": {
     "executionHash": "f339d9fa2b91e93921419fec1bf34e71868d2a7744d470e72606c4c391690bda",
