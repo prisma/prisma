@@ -2097,9 +2097,7 @@ export class InsertAst extends QueryAst {
     }
     if (this.onConflict?.action.kind === 'do-update-set') {
       for (const value of Object.values(this.onConflict.action.set)) {
-        if (value.kind === 'param-ref' || value.kind === 'prepared-param-ref') {
-          refs.push(value);
-        }
+        refs.push(...value.collectParamRefs());
       }
     }
     for (const item of this.returning ?? []) {

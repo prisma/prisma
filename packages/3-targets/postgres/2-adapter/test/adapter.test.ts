@@ -34,7 +34,9 @@ import {
   UpdateAst,
   WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
+import { cfExpr, table } from '@internal/sql-relational-core/contract-free';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
+import { litParams } from '@repo/test-utils/lowered-params';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql-family/9-family/test/test-sql-contract-serializer';
 import { createPostgresAdapter } from '../src/core/adapter';
@@ -301,6 +303,30 @@ describe('Postgres adapter', () => {
     expect(adapter.lower(deleteAst, { contract }).sql).toBe(
       'DELETE FROM "user" WHERE "user"."id" = $1 RETURNING "user"."id"',
     );
+  });
+
+  it('binds a parameter inside an ON CONFLICT DO UPDATE SET expression', () => {
+    const user = table(TableSource.named('user'), {
+      id: { codecId: 'pg/int4@1', nullable: false },
+      email: { codecId: 'pg/text@1', nullable: false },
+    });
+    const suffixed = cfExpr.fn({
+      method: 'append',
+      template: '{{self}} || {{arg0}}',
+      self: cfExpr.columnRef('excluded', 'email'),
+      args: [cfExpr.param('!', 'pg/text@1')],
+      returns: { codecId: 'pg/text@1', nullable: false },
+    });
+    const ast = user
+      .upsert({ id: 1, email: 'a@example.com' })
+      .onConflict(user.email)
+      .doUpdate({ email: suffixed.ast })
+      .build();
+
+    expect(adapter.lower(ast, { contract })).toEqual({
+      sql: 'INSERT INTO "user" ("id", "email") VALUES ($1, $2) ON CONFLICT ("email") DO UPDATE SET "email" = excluded."email" || $3',
+      params: litParams(1, 'a@example.com', '!'),
+    });
   });
 
   it('renders the alias on the target of insert, update and delete', () => {
