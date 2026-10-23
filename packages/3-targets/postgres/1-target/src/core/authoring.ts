@@ -1,4 +1,4 @@
-import { sqlIdentifierTypeAliases, sqlTargetTypeConstructors } from '@internal/family-sql/pack';
+import { generatedIdColumnAliases, sqlTargetTypeConstructors } from '@internal/family-sql/pack';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeFactoryOutput,
@@ -124,7 +124,7 @@ const PSL_ROLE_BLOCK_OUTSIDE_UNBOUND_NAMESPACE: ContributedPslDiagnosticCode =
  */
 export const postgresAuthoringTypes = {
   .../* @__PURE__ */ sqlTargetTypeConstructors({ sizeType: PG_SIZE_TYPE }),
-  ...sqlIdentifierTypeAliases,
+  ...generatedIdColumnAliases,
   BigIntNumber: {
     kind: 'typeConstructor',
     documentation:

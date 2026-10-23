@@ -2,8 +2,8 @@ import type { AuthoringTypeAliasDescriptor } from '@internal/framework-component
 
 const CHAR_CODEC_ID = 'sql/char@1';
 
-/** The column of each identifier format the client generates, named by a type alias that carries no generator, so a foreign key uses it as its key does. ADR 307. */
-export const sqlIdentifierTypeAliases = {
+/** The column of each id format the client generates, named by a type alias that carries no generator, so a foreign key uses it as its key does. The SQL family contributes them in `sql`, and a target may also name them at the top level. ADR 307. */
+export const generatedIdColumnAliases = {
   UuidString: {
     kind: 'typeAlias',
     documentation: 'Fixed-length text of 36 characters, the column a UUID is stored in as text.',
@@ -31,3 +31,8 @@ export const sqlIdentifierTypeAliases = {
     output: { type: { codecId: CHAR_CODEC_ID, typeParams: { length: 27 } } },
   },
 } as const satisfies Record<string, AuthoringTypeAliasDescriptor>;
+
+export type GeneratedIdColumnAlias = keyof typeof generatedIdColumnAliases;
+
+/** Where a stack names a generated id column alias, in the order a rewrite prefers: a target's own top-level name, then the family's `sql.` name. */
+export const GENERATED_ID_ALIAS_NAMESPACES = [[], ['sql']] as const;

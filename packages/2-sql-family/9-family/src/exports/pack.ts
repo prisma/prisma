@@ -11,12 +11,12 @@ import {
   sqlFamilyGeneratorFunctions,
 } from '../core/generator-functions';
 
+export { generatedIdColumnAliases } from '@internal/sql-contract/generated-id-column-aliases';
 export { sqlTargetTypeConstructors } from '../core/authoring-type-constructors';
 export {
   idGeneratorFunctionBindings,
   sqlIntegerArgumentGeneratorFunctions,
 } from '../core/generator-functions';
-export { sqlIdentifierTypeAliases } from '../core/identifier-type-aliases';
 
 const sqlFamilyPackBase = {
   kind: 'family',

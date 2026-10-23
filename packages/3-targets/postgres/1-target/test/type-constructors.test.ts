@@ -1,4 +1,4 @@
-import { sqlIdentifierTypeAliases } from '@internal/family-sql/pack';
+import { generatedIdColumnAliases } from '@internal/family-sql/pack';
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import {
   collectScalarTypeConstructors,
@@ -47,7 +47,7 @@ describe('the type constructors the target contributes', () => {
 
   it('contributes the identifier type aliases as top-level names, beside Char and Uuid', () => {
     const { UuidString, Ulid, Nanoid, Cuid2, Ksuid } = postgresAuthoringTypes;
-    expect({ UuidString, Ulid, Nanoid, Cuid2, Ksuid }).toEqual(sqlIdentifierTypeAliases);
+    expect({ UuidString, Ulid, Nanoid, Cuid2, Ksuid }).toEqual(generatedIdColumnAliases);
   });
 
   it.each([
