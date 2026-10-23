@@ -129,7 +129,7 @@ const CELLS: ReadonlyArray<{
     target: 'postgres',
     authoring: 'typescript',
     hashes: {
-      storageHash: '2c53f8e505613541dda0de4ebeaf62bc480cecfea6e37dc5f34ceb44bb7f0d65',
+      storageHash: 'cc9d4ebfe093981ab7ea8fdc2332c00214f9c7d0267e723ca3983ffb5e68cbe6',
       executionHash: '91162cb5749f09907ced481b9863bd25166b8a213775335fede5c23e58eb135c',
       profileHash: POSTGRES_PROFILE_HASH,
     },

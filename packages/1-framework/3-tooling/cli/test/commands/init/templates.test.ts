@@ -69,7 +69,9 @@ describe('templates', () => {
       expect(schema).toContain('defineContract');
       expect(schema).toContain("from '@internal/postgres/contract-builder'");
       expect(schema).toContain('username: field.column(type.String()).optional()');
-      expect(schema).toContain('id: field.column(type.Char(36)).id().onCreate(gen.uuid(7))');
+      expect(schema).toContain('id: field.column(type.Uuid()).id().onCreate(gen.uuid(7))');
+      expect(schema).toContain('authorId: field.column(type.Uuid())');
+      expect(schema).not.toContain('type.Char(');
       expect(schema).toContain('updatedAt: field.column(type.temporal.UpdatedAtString())');
       expect(schema).not.toMatch(/field\.(id|temporal)\.|field\.(text|uuidString)\(/);
     });

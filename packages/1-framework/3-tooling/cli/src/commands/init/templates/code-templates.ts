@@ -142,7 +142,7 @@ export const contract = defineContract(
     models: {
       User: model('User', {
         fields: {
-          id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
+          id: field.column(type.Uuid()).id().onCreate(gen.uuid(7)),
           email: field.column(type.String()).unique(),
           username: field.column(type.String()).optional(),
           name: field.column(type.String()).optional(),
@@ -231,7 +231,7 @@ function starterSchemaTsPostgres(builder: string): string {
 export const contract = defineContract({}, ({ field, model, rel, gen, type }) => {
   const User = model('User', {
     fields: {
-      id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
+      id: field.column(type.Uuid()).id().onCreate(gen.uuid(7)),
       email: field.column(type.String()).unique(),
       username: field.column(type.String()).optional(),
       name: field.column(type.String()).optional(),
@@ -242,10 +242,10 @@ export const contract = defineContract({}, ({ field, model, rel, gen, type }) =>
 
   const Post = model('Post', {
     fields: {
-      id: field.column(type.Char(36)).id().onCreate(gen.uuid(7)),
+      id: field.column(type.Uuid()).id().onCreate(gen.uuid(7)),
       title: field.column(type.String()),
       content: field.column(type.String()).optional(),
-      authorId: field.column(type.Char(36)),
+      authorId: field.column(type.Uuid()),
       createdAt: field.column(type.temporal.CreatedAtString()),
       updatedAt: field.column(type.temporal.UpdatedAtString()),
     },
