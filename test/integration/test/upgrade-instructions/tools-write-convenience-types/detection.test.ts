@@ -81,6 +81,8 @@ describe('the detection of the changes the tools writing convenience types make'
       alias: detects('  createdAt temporal.CreatedAt\n'),
       typescript: detects('createdAt: field.column(type.DateTime()).onCreate(gen.now()),'),
       temporalPreset: detects('  createdAt temporal.timestamptz(0, onCreate: now)\n'),
+      jsDatePreset: detects("createdAt: field.temporal.timestamptzJsDate(3, 'now'),"),
+      jsDatePresetPsl: detects('  createdAt temporal.timestamptzJsDate(3, onCreate: now)\n'),
       stringPreset: detects('  createdAt temporal.timestamptzString(0)\n'),
       databaseDefault: detects('  createdAt DateTime @default(now())\n'),
     }).toEqual({
@@ -89,6 +91,8 @@ describe('the detection of the changes the tools writing convenience types make'
       alias: true,
       typescript: true,
       temporalPreset: true,
+      jsDatePreset: true,
+      jsDatePresetPsl: true,
       stringPreset: false,
       databaseDefault: false,
     });
