@@ -174,7 +174,7 @@ export const contract = defineContract(
 
     const User = model('User', {
       fields: {
-        id: field.column(type.UuidString()).id().onCreate(gen.uuid(7)).sql({ id: { name: 'user_pkey' } }),
+        id: field.column(type.Uuid()).id().onCreate(gen.uuid(7)).sql({ id: { name: 'user_pkey' } }),
         shortName: ShortName,
         role: field.namedType(Role),
         embedding: Embedding1536.optional(),
@@ -185,8 +185,8 @@ export const contract = defineContract(
 
     const Post = model('Post', {
       fields: {
-        id: field.column(type.UuidString()).id().onCreate(gen.uuid(7)),
-        authorId: field.column(type.UuidString()),
+        id: field.column(type.Uuid()).id().onCreate(gen.uuid(7)),
+        authorId: field.column(type.Uuid()),
         title: field.column(type.String()),
       },
     });

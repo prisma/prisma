@@ -122,6 +122,8 @@ Each identifier preset is replaced by the type alias for its column: `UuidString
 
 A foreign key that holds one of these identifiers uses the alias alone, as in `authorId Ulid`, because its value is copied from the row it points at.
 
+A model, composite type or type alias your schema declares with an alias's name, such as `model Ulid`, hides the top-level alias: `Ulid` then names your declaration. Write `sql.Ulid` in that schema instead; it names the same column.
+
 To write a generated id once, declare a mixin and include it with `+` in each model:
 
 ```prisma

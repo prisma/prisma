@@ -29,7 +29,7 @@ const contract = defineContract({ /* ... */ }, ({ field, model, gen, type }) => 
   models: {
     Product: model('Product', {
       fields: {
-        id: field.column(type.UuidString()).id().onCreate(gen.uuid()),
+        id: field.column(type.Uuid()).id().onCreate(gen.uuid()),
         spec: field.column(arktypeJson(ProductSchema)),
       },
     }).sql({ table: 'product' }),

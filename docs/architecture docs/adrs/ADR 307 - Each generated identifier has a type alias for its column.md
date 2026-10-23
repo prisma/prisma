@@ -63,6 +63,8 @@ Identifier columns appear in almost every model, as primary keys and as foreign 
 | `Cuid2` | `Char(24)` | `@onCreate(cuid(2))` |
 | `Ksuid` | `Char(27)` | `@onCreate(ksuid())` |
 
+The UUID alias is named `UuidString`, not `Uuid`, because `Uuid` already names the native Postgres `uuid` column. The same name is used on every SQL target, so a schema reads the same on each.
+
 The alias does not carry the generator, because two kinds of field use the same column:
 
 - The primary key generates a new value.
@@ -140,6 +142,8 @@ id: field.column(type.Ulid()).id().onCreate(gen.ulid()),
 authorId: field.column(type.Ulid()),
 ```
 
+On SQLite and MySQL the alias is in the `sql` namespace, as in PSL: `field.column(type.sql.Ulid())`.
+
 The TypeScript form of the mixin is a constant the user declares and reuses:
 
 ```ts
@@ -151,6 +155,7 @@ const UlidId = field.column(type.Ulid()).id().onCreate(gen.ulid());
 - **An alias is only a name.** `Ulid` stores the same column as `Char(26)`, so the contract, its storage hash and its execution hash are the same whichever one a schema writes.
 - **A generating id writes three parts:** the alias, `@id`, and the generator. That is longer than a single name, but each part says one thing, and the mixin gives a single name to a user who wants one.
 - **The length check still applies.** A field that uses an alias is checked against its generator like any other field.
+- **A schema's own name hides the top-level alias.** A model, composite type or type alias the schema declares with the name `Ulid` takes that name, so `Ulid` names the declaration, not the column. `sql.Ulid` still names the column.
 
 ## Alternatives considered
 
