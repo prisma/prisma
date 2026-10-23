@@ -99,6 +99,20 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
+  it('stops a pooled stream the caller breaks out of without reading the rest of the result', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        const started = Date.now();
+        for await (const _row of driver.query({ sql: slowRows })) break;
+        const elapsedMs = Date.now() - started;
+        expect({
+          quick: elapsedMs < 3000,
+          next: await collect(driver.query({ sql: 'SELECT 1 AS n' })),
+        }).toEqual({ quick: true, next: [{ n: '1' }] });
+      }),
+    );
+  });
+
   it('commits and rolls back a transaction on one connection, and reports affected rows', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

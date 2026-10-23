@@ -71,6 +71,8 @@ class Leases {
 /** A pooled connection lent to one caller. `done` gives it back to the pool, or evicts it when it may be in an unknown state. */
 interface Lent {
   readonly connection: PoolConnection;
+  /** What to do when the caller stops reading a stream early: evict a connection the pool lent for this one statement, or read and drop the rest of the result on a connection the caller holds, whose session must survive. */
+  readonly onEarlyExit: 'evict' | 'drain';
   done(evict: boolean): void;
 }
 
@@ -79,13 +81,18 @@ interface StreamOutcome {
   evict: boolean;
 }
 
+interface StreamOptions {
+  readonly onEarlyExit: Lent['onEarlyExit'];
+  readonly outcome: StreamOutcome;
+}
+
 /**
- * Streams the rows of `request` on `connection` as the text MySQL sends. A caller that stops reading early leaves the rest of the result unread; the connection reads and drops it before the stream finishes, so the connection stays usable. mysql2 tells a streaming query nothing when its connection is lost, so the stream listens to the connection and ends with `DRIVER.NOT_CONNECTED`. A lost connection, or a fatal error, sets `outcome.evict`.
+ * Streams the rows of `request` on `connection` as the text MySQL sends. When the caller stops reading early, the connection is evicted, or on a held connection it reads and drops the rest of the result so its session stays usable. mysql2 tells a streaming query nothing when its connection is lost, so the stream listens to the connection and ends with `DRIVER.NOT_CONNECTED`. A lost connection, or a fatal error, sets `outcome.evict`.
  */
 async function* streamRows<Row>(
   connection: PoolConnection,
   request: SqlExecuteRequest,
-  outcome: StreamOutcome,
+  { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
   const command = connection.query({ sql: formatted(request), typeCast: serverText });
   let settle: () => void = () => {};
@@ -115,7 +122,14 @@ async function* streamRows<Row>(
     if (isFatal(error)) outcome.evict = true;
     throw normalizeMysqlError(error);
   } finally {
-    if (!completed && !failed && !outcome.evict) connection.resume();
+    const stoppedEarly = !completed && !failed && !outcome.evict;
+    if (stoppedEarly && onEarlyExit === 'evict') {
+      outcome.evict = true;
+      stream.destroy();
+      settle();
+    } else if (stoppedEarly) {
+      connection.resume();
+    }
     if (!failed) await finished;
     connection.off('end', onLost);
     connection.off('error', onLost);
@@ -129,7 +143,10 @@ abstract class MysqlQueryable implements SqlQueryable {
     const lent = await this.lend();
     const outcome: StreamOutcome = { evict: false };
     try {
-      yield* streamRows<Row>(lent.connection, request, outcome);
+      yield* streamRows<Row>(lent.connection, request, {
+        onEarlyExit: lent.onEarlyExit,
+        outcome,
+      });
     } finally {
       lent.done(outcome.evict);
     }
@@ -162,7 +179,7 @@ class MysqlConnectionImpl extends MysqlQueryable implements SqlConnection {
   }
 
   protected async lend(): Promise<Lent> {
-    return { connection: this.#connection, done: () => {} };
+    return { connection: this.#connection, onEarlyExit: 'drain', done: () => {} };
   }
 
   async beginTransaction(): Promise<SqlTransaction> {
@@ -190,7 +207,7 @@ class MysqlTransactionImpl extends MysqlQueryable implements SqlTransaction {
   }
 
   protected async lend(): Promise<Lent> {
-    return { connection: this.#connection, done: () => {} };
+    return { connection: this.#connection, onEarlyExit: 'drain', done: () => {} };
   }
 
   async commit(): Promise<void> {
@@ -247,6 +264,7 @@ export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
       const connection = await this.#acquire();
       return {
         connection,
+        onEarlyExit: 'evict',
         done: (evict) => {
           if (evict) connection.destroy();
           else connection.release();
