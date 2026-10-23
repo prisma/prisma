@@ -127,10 +127,10 @@ describe('mapPslHelperArgs argument kinds', () => {
   it('names the values a named option takes when a name is quoted in its place', () => {
     const { diagnostics } = callMap(
       [positional('"string"')],
-      [{ kind: 'option', name: 'value', values: ['string', 'temporal'] }],
+      [{ kind: 'option', name: 'as', values: ['string', 'temporal'] }],
     );
     expect(diagnostics[0]?.message).toMatch(
-      / argument #1 is "string", but argument "value" takes one of these names, written without quotes: string, temporal\.$/,
+      / argument #1 is "string", but argument "as" takes one of these names, written without quotes: string, temporal\.$/,
     );
     expect(diagnostics[0]?.message).not.toMatch(/cannot parse/);
   });

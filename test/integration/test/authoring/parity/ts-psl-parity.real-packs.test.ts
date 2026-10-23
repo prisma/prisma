@@ -362,15 +362,17 @@ ${calls.map((call) => `  ${call.column} ${pslFieldType(call)}`).join('\n')}
             fields: {
               id: field.column(int4Column).id(),
               paid: field.column(type.DateTime()),
-              settled: field.column(type.DateTime('temporal')),
-              legacy: field.column(type.DateTime('jsDate', 'timestamp', 6)),
-              text: field.column(type.DateTime('string', 'timestamp')),
+              settled: field.column(type.DateTime({ as: 'temporal' })),
+              legacy: field.column(
+                type.DateTime({ as: 'jsDate', storage: 'timestamp', precision: 6 }),
+              ),
+              text: field.column(type.DateTime({ as: 'string', storage: 'timestamp' })),
               ship: field.column(type.Date()),
-              shipT: field.column(type.Date('temporal')),
-              opens: field.column(type.Time(undefined, undefined, 0)),
-              local: field.column(type.Time('string', 'timetz')),
-              period: field.column(type.Duration(undefined, undefined, 3)),
-              parts: field.column(type.Duration('parts')),
+              shipT: field.column(type.Date({ as: 'temporal' })),
+              opens: field.column(type.Time({ precision: 0 })),
+              local: field.column(type.Time({ as: 'string', storage: 'timetz' })),
+              period: field.column(type.Duration({ precision: 3 })),
+              parts: field.column(type.Duration({ as: 'parts' })),
             },
           }).sql({ table: 'Sample' }),
         },
@@ -380,15 +382,15 @@ ${calls.map((call) => `  ${call.column} ${pslFieldType(call)}`).join('\n')}
     const interpreted = interpretWithRealPacks(`model Sample {
   id      Int @id
   paid    DateTime
-  settled DateTime(value: temporal)
+  settled DateTime(as: temporal)
   legacy  DateTime(jsDate, timestamp, 6)
-  text    DateTime(value: string, column: timestamp)
+  text    DateTime(as: string, storage: timestamp)
   ship    Date
   shipT   Date(temporal)
   opens   Time(precision: 0)
-  local   Time(column: timetz)
+  local   Time(storage: timetz)
   period  Duration(precision: 3)
-  parts   Duration(value: parts)
+  parts   Duration(as: parts)
 }
 `);
 

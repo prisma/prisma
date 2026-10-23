@@ -118,24 +118,6 @@ type TypeHelperFunction<
     ) => StorageTypeFromDescriptor<Descriptor, CanonicalArguments<Args, Params, ValueTypes>>
   : () => StorageTypeFromDescriptor<Descriptor, readonly []>;
 
-/** The value a call writes for each argument of a type choice, by the argument's name; `undefined` for one it leaves out. */
-type WrittenChoiceArguments<
-  Args extends readonly AuthoringTypeChoiceArgument[],
-  Params extends readonly unknown[],
-> = Args extends readonly [
-  infer Head extends AuthoringTypeChoiceArgument,
-  ...infer Tail extends readonly AuthoringTypeChoiceArgument[],
-]
-  ? {
-      readonly [Name in Head['name']]: Params extends readonly [infer Written, ...unknown[]]
-        ? Written
-        : undefined;
-    } & WrittenChoiceArguments<
-      Tail,
-      Params extends readonly [unknown, ...infer Rest] ? Rest : readonly []
-    >
-  : Record<never, never>;
-
 type RowDefault<Row extends AuthoringTypeChoiceRow, Name extends string> = Row extends {
   readonly defaults: infer Defaults;
 }
@@ -147,7 +129,7 @@ type RowDefault<Row extends AuthoringTypeChoiceRow, Name extends string> = Row e
 /** The arguments a type choice passes on to the constructor its row chooses, by that constructor's argument positions: the written value, or the row's default. */
 type PassedOnArguments<
   Parameters extends readonly AuthoringArgumentDescriptor[],
-  Written extends Record<string, unknown>,
+  Written extends object,
   Row extends AuthoringTypeChoiceRow,
 > = {
   readonly [Index in keyof Parameters]: Parameters[Index] extends {
@@ -163,7 +145,7 @@ type PassedOnArguments<
 
 type ChosenStorageType<
   Chosen,
-  Written extends Record<string, unknown>,
+  Written extends object,
   Row extends AuthoringTypeChoiceRow,
   ValueTypes extends DataTypeArgumentTypes,
 > = Chosen extends AuthoringTypeConstructorDescriptor
@@ -185,73 +167,84 @@ type ParameterNames<Chosen> = Chosen extends {
     : never
   : never;
 
-type RowArgument<
-  Head extends AuthoringTypeChoiceArgument,
+type RowValue<
+  Row extends AuthoringTypeChoiceRow,
+  Name extends string,
+> = Name extends keyof Row['when'] ? Row['when'][Name] : never;
+
+/** Whether `Row` gives the option `Argument` its default, so a call choosing the row may leave it out. */
+type RowTakesDefault<
+  Argument extends AuthoringTypeChoiceArgument,
+  Row extends AuthoringTypeChoiceRow,
+> = Argument extends { readonly default: infer Default }
+  ? RowValue<Row, Argument['name']> extends Default
+    ? true
+    : false
+  : true;
+
+/** The options a call choosing `Row` must write: those whose value in the row is not their default. */
+type RequiredRowOptions<
+  Args extends readonly AuthoringTypeChoiceArgument[],
+  Row extends AuthoringTypeChoiceRow,
+> = {
+  readonly [Argument in Args[number] as Argument extends { readonly kind: 'option' }
+    ? RowTakesDefault<Argument, Row> extends true
+      ? never
+      : Argument['name']
+    : never]: RowValue<Row, Argument['name']>;
+};
+
+/** What else a call choosing `Row` may write: an option the row gives its default, and an argument the chosen constructor takes. */
+type OptionalRowArguments<
+  Args extends readonly AuthoringTypeChoiceArgument[],
   Row extends AuthoringTypeChoiceRow,
   Chosen,
   ValueTypes extends DataTypeArgumentTypes,
-> = Head extends { readonly kind: 'option'; readonly default: infer Default }
-  ? Head['name'] extends keyof Row['when']
-    ? Row['when'][Head['name']] | (Row['when'][Head['name']] extends Default ? undefined : never)
-    : never
-  : Head['name'] extends ParameterNames<Chosen>
-    ? ArgTypeFromDescriptor<Head, ValueTypes> | undefined
-    : undefined;
+> = {
+  readonly [Argument in Args[number] as Argument extends { readonly kind: 'option' }
+    ? RowTakesDefault<Argument, Row> extends true
+      ? Argument['name']
+      : never
+    : Argument['name'] extends ParameterNames<Chosen>
+      ? Argument['name']
+      : never]?:
+    | (Argument extends { readonly kind: 'option' }
+        ? RowValue<Row, Argument['name']>
+        : ArgTypeFromDescriptor<Argument, ValueTypes>)
+    | undefined;
+};
 
-/** Whether a call must write `Head` to choose `Row`: an option whose value in the row is not its default. */
-type RowRequires<
-  Head extends AuthoringTypeChoiceArgument,
-  Row extends AuthoringTypeChoiceRow,
-> = Head extends { readonly kind: 'option'; readonly default: infer Default }
-  ? Head['name'] extends keyof Row['when']
-    ? Row['when'][Head['name']] extends Default
-      ? false
-      : true
-    : false
-  : false;
+/** `Params`, with every key `Allowed` does not name typed `never`, so a call writing such a key does not compile. */
+type OnlyKeys<Params, Allowed extends PropertyKey> = Params & {
+  readonly [Key in Exclude<keyof Params, Allowed>]: never;
+};
 
 type RowArguments<
   Args extends readonly AuthoringTypeChoiceArgument[],
   Row extends AuthoringTypeChoiceRow,
   Chosen,
   ValueTypes extends DataTypeArgumentTypes,
-> = {
-  readonly [Index in keyof Args]: RowArgument<Args[Index], Row, Chosen, ValueTypes>;
-};
+> = RequiredRowOptions<Args, Row> & OptionalRowArguments<Args, Row, Chosen, ValueTypes>;
 
-type RowRequirements<
-  Args extends readonly AuthoringTypeChoiceArgument[],
-  Row extends AuthoringTypeChoiceRow,
-> = { readonly [Index in keyof Args]: RowRequires<Args[Index], Row> };
-
-/** The arguments as a tuple whose trailing elements, after the last one a call must write, are optional. */
-type TrailingOptional<
-  Elements extends readonly unknown[],
-  Requirements extends readonly boolean[],
-> = Requirements extends readonly [...infer RestRequirements extends readonly boolean[], infer Last]
-  ? Last extends true
-    ? Elements
-    : Elements extends readonly [...infer RestElements, infer LastElement]
-      ? readonly [...TrailingOptional<RestElements, RestRequirements>, LastElement?]
-      : readonly []
-  : readonly [];
-
-/** What a call choosing `Row` may write for each argument: the row's value for an option, left out only when that is the option's default, and a value for an argument the chosen constructor takes. */
-type RowParameters<
+type RowObjectHelperFunction<
   Args extends readonly AuthoringTypeChoiceArgument[],
   Row extends AuthoringTypeChoiceRow,
   Chosen,
   ValueTypes extends DataTypeArgumentTypes,
-> = TrailingOptional<RowArguments<Args, Row, Chosen, ValueTypes>, RowRequirements<Args, Row>>;
+> = <const Params extends RowArguments<Args, Row, Chosen, ValueTypes>>(
+  args: OnlyKeys<Params, keyof RowArguments<Args, Row, Chosen, ValueTypes>>,
+) => ChosenStorageType<Chosen, Params, Row, ValueTypes>;
 
+/** A call choosing `Row`: with no arguments too when the row gives every option its default. */
 type RowHelperFunction<
   Args extends readonly AuthoringTypeChoiceArgument[],
   Row extends AuthoringTypeChoiceRow,
   Chosen,
   ValueTypes extends DataTypeArgumentTypes,
-> = <const Params extends RowParameters<Args, Row, Chosen, ValueTypes>>(
-  ...args: Params
-) => ChosenStorageType<Chosen, WrittenChoiceArguments<Args, Params>, Row, ValueTypes>;
+> = keyof RequiredRowOptions<Args, Row> extends never
+  ? (() => ChosenStorageType<Chosen, Record<never, never>, Row, ValueTypes>) &
+      RowObjectHelperFunction<Args, Row, Chosen, ValueTypes>
+  : RowObjectHelperFunction<Args, Row, Chosen, ValueTypes>;
 
 type RowOverloads<
   Args extends readonly AuthoringTypeChoiceArgument[],
@@ -271,7 +264,7 @@ type RowOverloads<
       RowOverloads<Args, Rest, Namespace, ValueTypes>
   : unknown;
 
-/** A type choice's helper: one overload per row, so a call is typed by the row its option values choose, and a combination with no row does not compile. */
+/** A type choice's helper, which takes its arguments as one object keyed by name: one overload per row, so a call is typed by the row its option values choose, and a combination with no row, an unknown key, or an argument the chosen type does not take does not compile. */
 type TypeChoiceHelperFunction<
   Descriptor extends AuthoringTypeChoiceDescriptor,
   Namespace,

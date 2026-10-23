@@ -10,30 +10,61 @@ const { type } = createComposedAuthoringHelpers({
 });
 
 test('a bare call resolves to the default row, with its parameter defaults', () => {
+  expectTypeOf(type.Moment()).not.toBeAny();
   expectTypeOf(type.Moment()).toEqualTypeOf(type.TimestamptzTemporal(3));
+  expectTypeOf(type.Moment({})).toEqualTypeOf(type.TimestamptzTemporal(3));
   expectTypeOf(type.Moment().codecId).toEqualTypeOf<'pg/timestamptz-temporal@1'>();
 });
 
 test('a written precision replaces the row default', () => {
-  expectTypeOf(type.Moment('temporal', 'tz', 6)).toEqualTypeOf(type.TimestamptzTemporal(6));
+  expectTypeOf(type.Moment({ precision: 6 })).toEqualTypeOf(type.TimestamptzTemporal(6));
+  expectTypeOf(type.Moment({ as: 'temporal', storage: 'tz', precision: 6 })).toEqualTypeOf(
+    type.TimestamptzTemporal(6),
+  );
 });
 
 test('each row resolves to the type it names', () => {
-  expectTypeOf(type.Moment('temporal', 'local')).toEqualTypeOf(type.TimestampTemporal());
-  expectTypeOf(type.Moment('temporal', 'local', 6)).toEqualTypeOf(type.TimestampTemporal(6));
-  expectTypeOf(type.Moment('string', 'local')).toEqualTypeOf(type.TimestampString());
+  expectTypeOf(type.Moment({ storage: 'local' })).toEqualTypeOf(type.TimestampTemporal());
+  expectTypeOf(type.Moment({ storage: 'local', precision: 6 })).toEqualTypeOf(
+    type.TimestampTemporal(6),
+  );
+  expectTypeOf(type.Moment({ as: 'string', storage: 'local' })).toEqualTypeOf(
+    type.TimestampString(),
+  );
+  expectTypeOf(type.Moment({ as: 'date', storage: 'local' })).toEqualTypeOf(type.DateString());
   expectTypeOf(type.Day()).toEqualTypeOf(type.DateString());
-  expectTypeOf(type.Day('temporal')).toEqualTypeOf(type.DateTemporal());
+  expectTypeOf(type.Day({ as: 'temporal' })).toEqualTypeOf(type.DateTemporal());
 });
 
 test('an option argument takes only the values it lists', () => {
-  // @ts-expect-error Moment's value is temporal or string
-  type.Moment('jsDate');
+  // @ts-expect-error Moment's as is temporal, string or date
+  type.Moment({ as: 'jsDate' });
 });
 
 test('an unlisted combination does not compile', () => {
-  // @ts-expect-error value: string chooses no type with the default column tz
-  type.Moment('string');
+  // @ts-expect-error as: string chooses no type with the default storage tz
+  type.Moment({ as: 'string' });
+});
+
+test('an argument the chosen type does not take does not compile', () => {
   // @ts-expect-error DateString takes no precision
-  type.Day('string', 3);
+  type.Moment({ as: 'date', storage: 'local', precision: 3 });
+  // @ts-expect-error Day passes on no precision
+  type.Day({ precision: 3 });
+});
+
+test('a key the type choice has no argument for does not compile', () => {
+  // @ts-expect-error Moment has no argument value
+  type.Moment({ value: 'string' });
+  // @ts-expect-error Moment has no argument bogus
+  type.Moment({ as: 'temporal', bogus: 1 });
+  // @ts-expect-error Moment has no argument bogus
+  type.Moment({ storage: 'local', bogus: 1 });
+});
+
+test('positional arguments do not compile', () => {
+  // @ts-expect-error a type choice takes one object
+  type.Moment('temporal');
+  // @ts-expect-error a type choice takes one object
+  type.Moment({}, {});
 });

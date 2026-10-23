@@ -48,14 +48,14 @@ export const targetPack = {
         args: [
           {
             kind: 'option',
-            name: 'value',
-            values: ['temporal', 'string'],
+            name: 'as',
+            values: ['temporal', 'string', 'date'],
             default: 'temporal',
             optional: true,
           },
           {
             kind: 'option',
-            name: 'column',
+            name: 'storage',
             values: ['tz', 'local'],
             default: 'tz',
             optional: true,
@@ -64,12 +64,13 @@ export const targetPack = {
         ],
         choices: [
           {
-            when: { value: 'temporal', column: 'tz' },
+            when: { as: 'temporal', storage: 'tz' },
             type: 'TimestamptzTemporal',
             defaults: { precision: 3 },
           },
-          { when: { value: 'temporal', column: 'local' }, type: 'TimestampTemporal' },
-          { when: { value: 'string', column: 'local' }, type: 'TimestampString' },
+          { when: { as: 'temporal', storage: 'local' }, type: 'TimestampTemporal' },
+          { when: { as: 'string', storage: 'local' }, type: 'TimestampString' },
+          { when: { as: 'date', storage: 'local' }, type: 'DateString' },
         ],
       },
       Day: {
@@ -77,15 +78,15 @@ export const targetPack = {
         args: [
           {
             kind: 'option',
-            name: 'value',
+            name: 'as',
             values: ['string', 'temporal'],
             default: 'string',
             optional: true,
           },
         ],
         choices: [
-          { when: { value: 'string' }, type: 'DateString' },
-          { when: { value: 'temporal' }, type: 'DateTemporal' },
+          { when: { as: 'string' }, type: 'DateString' },
+          { when: { as: 'temporal' }, type: 'DateTemporal' },
         ],
       },
     },

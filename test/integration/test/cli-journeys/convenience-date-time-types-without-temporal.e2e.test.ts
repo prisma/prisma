@@ -1,5 +1,5 @@
 /**
- * Journey: a schema written with the convenience date and time types `DateTime`, `Date`, `Time` and `Duration`, at their defaults and with the choices that need no `Temporal`, emits, creates its table, and is written and read by an application that runs with no global `Temporal`. Each field reads the kind of value its convenience type chooses: a JavaScript `Date` for `DateTime`, a string for `Date`, `Time` and `Duration`, and the `{ months, days, micros }` object for `Duration(value: parts)`. The client generates `updatedAt` with `now()` in that process.
+ * Journey: a schema written with the convenience date and time types `DateTime`, `Date`, `Time` and `Duration`, at their defaults and with the choices that need no `Temporal`, emits, creates its table, and is written and read by an application that runs with no global `Temporal`. Each field reads the kind of value its convenience type chooses: a JavaScript `Date` for `DateTime`, a string for `Date`, `Time` and `Duration`, and the `{ months, days, micros }` object for `Duration(as: parts)`. The client generates `updatedAt` with `now()` in that process.
  */
 import { writeFileSync } from 'node:fs';
 import { join } from 'pathe';
@@ -26,14 +26,14 @@ const SCHEMA = `// use prisma-8
 model Order {
   id        Int                                   @id
   paidAt    DateTime
-  legacyAt  DateTime(column: timestamp)
-  textAt    DateTime(value: string, precision: 6)
+  legacyAt  DateTime(storage: timestamp)
+  textAt    DateTime(as: string, precision: 6)
   shipBy    Date
   opensAt   Time(precision: 0)
-  localAt   Time(column: timetz)
+  localAt   Time(storage: timetz)
   period    Duration
-  parts     Duration(value: parts)
-  settledAt DateTime(value: temporal)?
+  parts     Duration(as: parts)
+  settledAt DateTime(as: temporal)?
   updatedAt DateTime @onCreate(now()) @onUpdate(now())
 
   @@map("order")

@@ -10,6 +10,7 @@ export {
   assertTypeChoicesValid,
   isAuthoringTypeChoiceOption,
   resolveAuthoringTypeChoice,
+  typeChoiceArgumentsFromObject,
   typeChoiceCombinationText,
   typeConstructorLookup,
 } from '../shared/authoring-type-choice';

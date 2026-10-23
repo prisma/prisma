@@ -713,15 +713,15 @@ namespace other { model Hidden { id Int } }`,
                 args: [
                   {
                     kind: 'option',
-                    name: 'value',
+                    name: 'as',
                     values: ['date', 'text'],
                     default: 'date',
                     optional: true,
                   },
                 ],
                 choices: [
-                  { when: { value: 'date' }, type: 'Stamp' },
-                  { when: { value: 'text' }, type: 'Stamp' },
+                  { when: { as: 'date' }, type: 'Stamp' },
+                  { when: { as: 'text' }, type: 'Stamp' },
                 ],
               },
               Stamp: { kind: 'typeConstructor', output: { codecId: 'fixture/value' } },

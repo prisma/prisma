@@ -35,22 +35,22 @@ const types = {
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['temporal', 'string'],
         default: 'temporal',
         optional: true,
       },
-      { kind: 'option', name: 'column', values: ['tz', 'local'], default: 'tz', optional: true },
+      { kind: 'option', name: 'storage', values: ['tz', 'local'], default: 'tz', optional: true },
       precision,
     ],
     choices: [
       {
-        when: { value: 'temporal', column: 'tz' },
+        when: { as: 'temporal', storage: 'tz' },
         type: 'TimestamptzTemporal',
         defaults: { precision: 3 },
       },
-      { when: { value: 'temporal', column: 'local' }, type: 'TimestampTemporal' },
-      { when: { value: 'string', column: 'local' }, type: 'TimestampString' },
+      { when: { as: 'temporal', storage: 'local' }, type: 'TimestampTemporal' },
+      { when: { as: 'string', storage: 'local' }, type: 'TimestampString' },
     ],
   },
   Day: {
@@ -58,7 +58,7 @@ const types = {
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['string', 'temporal'],
         default: 'string',
         optional: true,
@@ -66,8 +66,8 @@ const types = {
       precision,
     ],
     choices: [
-      { when: { value: 'string' }, type: 'DateString' },
-      { when: { value: 'temporal' }, type: 'DateTemporal' },
+      { when: { as: 'string' }, type: 'DateString' },
+      { when: { as: 'temporal' }, type: 'DateTemporal' },
     ],
   },
   Label: {
@@ -75,15 +75,15 @@ const types = {
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['text', 'number'],
         default: 'text',
         optional: true,
       },
     ],
     choices: [
-      { when: { value: 'text' }, type: 'String' },
-      { when: { value: 'number' }, type: 'Int' },
+      { when: { as: 'text' }, type: 'String' },
+      { when: { as: 'number' }, type: 'Int' },
     ],
   },
 } satisfies AuthoringTypeNamespace;
@@ -132,9 +132,9 @@ describe('a type choice in a field type', () => {
       lowered(
         model(
           'bare Moment',
-          'named Moment(value: string, column: local)',
+          'named Moment(as: string, storage: local)',
           'positional Moment(temporal, local, 6)',
-          'day Day(value: temporal)',
+          'day Day(as: temporal)',
           'list Moment[]',
           'maybe Moment?',
         ),
@@ -160,24 +160,24 @@ describe('a type choice in a field type', () => {
   });
 
   it('refuses an unlisted combination at the argument that makes it invalid', () => {
-    const line = 'at Moment(value: string, column: tz)';
-    const start = '  '.length + line.indexOf('column');
+    const line = 'at Moment(as: string, storage: tz)';
+    const start = '  '.length + line.indexOf('storage');
     expect(diagnostics(model(line))).toEqual([
       {
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message:
-          'Field "T.at" type "Moment": Argument "column" of Moment cannot be tz when value is string; write one of: local.',
-        columns: [start + 1, start + 1 + 'column: tz'.length],
+          'Field "T.at" type "Moment": Argument "storage" of Moment cannot be tz with as: string; write one of: local.',
+        columns: [start + 1, start + 1 + 'storage: tz'.length],
       },
     ]);
   });
 
   it('refuses a value the option does not list, naming the values it does', () => {
-    expect(diagnostics(model('at Day(value: jsDate)'))).toMatchObject([
+    expect(diagnostics(model('at Day(as: jsDate)'))).toMatchObject([
       {
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message:
-          'Field "T.at" type "Day": Argument "value" of Day is jsDate; write one of: string, temporal.',
+          'Field "T.at" type "Day": Argument "as" of Day is jsDate; write one of: string, temporal.',
       },
     ]);
   });
@@ -187,13 +187,13 @@ describe('a type choice in a field type', () => {
       {
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message:
-          'Field "T.at" type "Day": Argument "precision" of Day does not apply to DateString, the type that value: string chooses.',
+          'Field "T.at" type "Day": Argument "precision" of Day does not apply to DateString, the type that as: string chooses.',
       },
     ]);
   });
 
   it('refuses a precision the chosen type’s codec refuses, naming the argument of the choice', () => {
-    const line = 'at Moment(value: temporal, column: local, precision: 7)';
+    const line = 'at Moment(as: temporal, storage: local, precision: 7)';
     const start = '  '.length + line.indexOf('precision');
     expect(diagnostics(model(line))).toEqual([
       {
@@ -210,7 +210,7 @@ describe('a type choice behind a types {} alias', () => {
   it('emits what the type it chooses emits', () => {
     expect(
       lowered(`types {
-  Stamp = Moment(value: string, column: local)
+  Stamp = Moment(as: string, storage: local)
   Plain = Moment
 }
 ${model('stamp Stamp', 'plain Plain')}`),
@@ -223,7 +223,7 @@ describe('attributes on a field typed by a type choice', () => {
     expect(lowered(model('label Label @default("a")'))).toEqual(
       lowered(model('label String @default("a")')),
     );
-    expect(diagnostics(model('label Label(value: number) @default("a")'))).toMatchObject([
+    expect(diagnostics(model('label Label(as: number) @default("a")'))).toMatchObject([
       { code: 'PSL_VALUE_TYPE_INCOMPATIBLE' },
     ]);
   });
@@ -231,7 +231,7 @@ describe('attributes on a field typed by a type choice', () => {
   it('admit a @default by the codec the alias’s call chooses', () => {
     expect(
       diagnostics(`types {
-  Count = Label(value: number)
+  Count = Label(as: number)
 }
 ${model('count Count @default("a")')}`),
     ).toMatchObject([{ code: 'PSL_VALUE_TYPE_INCOMPATIBLE' }]);
@@ -242,7 +242,7 @@ ${model('count Count @default("a")')}`),
       lowered(
         model(
           'a Moment @onCreate(now()) @onUpdate(now())',
-          'b Moment(value: string, column: local) @onCreate(now())',
+          'b Moment(as: string, storage: local) @onCreate(now())',
           'c Day @onCreate(now())',
         ),
       ),
@@ -260,7 +260,7 @@ ${model('count Count @default("a")')}`),
   it('resolve generators through an alias written as a type choice', () => {
     expect(
       lowered(`types {
-  Stamp = Moment(value: string, column: local) @onCreate(now())
+  Stamp = Moment(as: string, storage: local) @onCreate(now())
 }
 ${model('stamp Stamp')}`),
     ).toEqual(lowered(model('stamp TimestampString @onCreate(now())')));

@@ -16,6 +16,7 @@ import {
   isAuthoringTypeConstructorDescriptor,
   readWrittenValueAs,
   resolveAuthoringTypeChoice,
+  typeChoiceArgumentsFromObject,
   typeConstructorLookup,
   validateAuthoringHelperArguments,
   validateAuthoringTypeChoiceParams,
@@ -146,11 +147,12 @@ export function createTypeHelpersFromNamespace(
       const helperPath = currentPath.join('.');
       const constructorNamed = typeConstructorLookup(namespace);
       helpers[key] = (...written: readonly unknown[]): AuthoredStorageTypeInstance => {
-        validateAuthoringHelperArguments(helperPath, value.args, written);
+        const args = typeChoiceArgumentsFromObject(helperPath, value, written);
+        validateAuthoringHelperArguments(helperPath, value.args, args);
         const chosen = resolveAuthoringTypeChoice({
           helperPath,
           descriptor: value,
-          args: readValueArguments(helperPath, value.args, written, lookups.dataTypes),
+          args: readValueArguments(helperPath, value.args, args, lookups.dataTypes),
           constructorNamed,
         });
         const output = instantiateAuthoringTypeConstructor(chosen.descriptor, chosen.args);

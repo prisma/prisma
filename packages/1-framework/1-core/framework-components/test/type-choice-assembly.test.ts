@@ -14,9 +14,9 @@ const precision = {
   optional: true,
 } as const;
 
-const valueOption = {
+const asOption = {
   kind: 'option',
-  name: 'value',
+  name: 'as',
   values: ['date', 'text'],
   default: 'date',
   optional: true,
@@ -25,10 +25,10 @@ const valueOption = {
 const choice = (overrides: Partial<AuthoringTypeChoiceDescriptor> = {}) =>
   ({
     kind: 'typeChoice',
-    args: [valueOption, precision],
+    args: [asOption, precision],
     choices: [
-      { when: { value: 'date' }, type: 'WideDate', defaults: { precision: 3 } },
-      { when: { value: 'text' }, type: 'WideText' },
+      { when: { as: 'date' }, type: 'WideDate', defaults: { precision: 3 } },
+      { when: { as: 'text' }, type: 'WideText' },
     ],
     ...overrides,
   }) satisfies AuthoringTypeChoiceDescriptor;
@@ -65,14 +65,14 @@ describe('assertTypeChoicesValid', () => {
   });
 
   it('refuses a row naming a constructor no component registers, naming the pack and the name', () => {
-    expect(check(choice({ choices: [{ when: { value: 'date' }, type: 'Missing' }] }))).toThrow(
+    expect(check(choice({ choices: [{ when: { as: 'date' }, type: 'Missing' }] }))).toThrow(
       'Type choice "Moment" contributed by "x-pack" chooses "Missing", which is not a type constructor any component registers beside it.',
     );
   });
 
   it('refuses a default no row matches', () => {
-    expect(check(choice({ choices: [{ when: { value: 'text' }, type: 'WideText' }] }))).toThrow(
-      'Type choice "Moment" contributed by "x-pack" has no row for its defaults value: date, so it cannot be written bare.',
+    expect(check(choice({ choices: [{ when: { as: 'text' }, type: 'WideText' }] }))).toThrow(
+      'Type choice "Moment" contributed by "x-pack" has no row for its defaults as: date, so it cannot be written bare.',
     );
   });
 
@@ -80,13 +80,11 @@ describe('assertTypeChoicesValid', () => {
     expect(
       check(
         choice({
-          args: [
-            { kind: 'option', name: 'value', values: ['text'], default: 'date', optional: true },
-          ],
+          args: [{ kind: 'option', name: 'as', values: ['text'], default: 'date', optional: true }],
         }),
       ),
     ).toThrow(
-      'Type choice "Moment" contributed by "x-pack" defaults option "value" to date, which it does not list.',
+      'Type choice "Moment" contributed by "x-pack" defaults option "as" to date, which it does not list.',
     );
   });
 
@@ -95,13 +93,13 @@ describe('assertTypeChoicesValid', () => {
       check(
         choice({
           choices: [
-            { when: { value: 'date' }, type: 'WideDate' },
-            { when: { value: 'json' }, type: 'WideText' },
+            { when: { as: 'date' }, type: 'WideDate' },
+            { when: { as: 'json' }, type: 'WideText' },
           ],
         }),
       ),
     ).toThrow(
-      'Type choice "Moment" contributed by "x-pack" has a row for value: json, which does not give every option one of its values.',
+      'Type choice "Moment" contributed by "x-pack" has a row for as: json, which does not give every option one of its values.',
     );
   });
 
@@ -110,8 +108,8 @@ describe('assertTypeChoicesValid', () => {
       check(
         choice({
           choices: [
-            { when: { value: 'date' }, type: 'WideDate', defaults: { scale: 2 } },
-            { when: { value: 'text' }, type: 'WideText' },
+            { when: { as: 'date' }, type: 'WideDate', defaults: { scale: 2 } },
+            { when: { as: 'text' }, type: 'WideText' },
           ],
         }),
       ),
@@ -125,14 +123,14 @@ describe('assertTypeChoicesValid', () => {
       check(
         choice({
           choices: [
-            { when: { value: 'date' }, type: 'WideDate' },
-            { when: { value: 'text' }, type: 'WideText' },
-            { when: { value: 'date' }, type: 'WideText' },
+            { when: { as: 'date' }, type: 'WideDate' },
+            { when: { as: 'text' }, type: 'WideText' },
+            { when: { as: 'date' }, type: 'WideText' },
           ],
         }),
       ),
     ).toThrow(
-      'Type choice "Moment" contributed by "x-pack" has two rows for value: date; each combination chooses one type.',
+      'Type choice "Moment" contributed by "x-pack" has two rows for as: date; each combination chooses one type.',
     );
   });
 
@@ -141,8 +139,8 @@ describe('assertTypeChoicesValid', () => {
       check(
         choice({
           choices: [
-            { when: { value: 'date' }, type: 'WideDate' },
-            { when: { value: 'text' }, type: 'WideText', defaults: { precision: 3 } },
+            { when: { as: 'date' }, type: 'WideDate' },
+            { when: { as: 'text' }, type: 'WideText', defaults: { precision: 3 } },
           ],
         }),
       ),
@@ -152,7 +150,7 @@ describe('assertTypeChoicesValid', () => {
   });
 
   it('refuses a passed-on argument of another data type than the chosen constructor takes', () => {
-    expect(check(choice({ args: [valueOption, { ...precision, dataType: 'test/text' }] }))).toThrow(
+    expect(check(choice({ args: [asOption, { ...precision, dataType: 'test/text' }] }))).toThrow(
       'Type choice "Moment" contributed by "x-pack" passes "precision" as a value of data type "test/text" to "WideDate", which takes "test/int".',
     );
   });
@@ -167,7 +165,7 @@ describe('createControlStack', () => {
         id: 'tgt',
         version: '0.0.1',
         authoring: {
-          type: { Moment: choice({ choices: [{ when: { value: 'date' }, type: 'Missing' }] }) },
+          type: { Moment: choice({ choices: [{ when: { as: 'date' }, type: 'Missing' }] }) },
         },
       },
       extensions: [],

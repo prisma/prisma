@@ -296,24 +296,24 @@ const precision = {
 } as const;
 
 /**
- * The convenience date and time types. Each is a type choice: its `value` and `column` arguments choose the explicit type it becomes, and `precision` is passed on to that type. ADR 279.
+ * The convenience date and time types. Each is a type choice: its `as` and `storage` arguments choose the explicit type it becomes, and `precision` is passed on to that type. ADR 279.
  */
 export const postgresConvenienceDateTimeTypes = {
   DateTime: {
     kind: 'typeChoice',
     documentation:
-      'A moment in time. `value` is what the application reads: jsDate (a JavaScript Date), temporal (Temporal.Instant) or string. `column` is timestamptz or timestamp, a timestamp read and written as UTC.',
+      'A moment in time. `as` is what the application reads: jsDate (a JavaScript Date), temporal (Temporal.Instant) or string. `storage` is timestamptz or timestamp, a timestamp read and written as UTC.',
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['jsDate', 'temporal', 'string'],
         default: 'jsDate',
         optional: true,
       },
       {
         kind: 'option',
-        name: 'column',
+        name: 'storage',
         values: ['timestamptz', 'timestamp'],
         default: 'timestamptz',
         optional: true,
@@ -322,55 +322,55 @@ export const postgresConvenienceDateTimeTypes = {
     ],
     choices: [
       {
-        when: { value: 'jsDate', column: 'timestamptz' },
+        when: { as: 'jsDate', storage: 'timestamptz' },
         type: 'TimestamptzJsDate',
         defaults: { precision: 3 },
       },
-      { when: { value: 'temporal', column: 'timestamptz' }, type: 'TimestamptzTemporal' },
-      { when: { value: 'string', column: 'timestamptz' }, type: 'TimestamptzString' },
+      { when: { as: 'temporal', storage: 'timestamptz' }, type: 'TimestamptzTemporal' },
+      { when: { as: 'string', storage: 'timestamptz' }, type: 'TimestamptzString' },
       {
-        when: { value: 'jsDate', column: 'timestamp' },
+        when: { as: 'jsDate', storage: 'timestamp' },
         type: 'TimestampJsDate',
         defaults: { precision: 3 },
       },
-      { when: { value: 'temporal', column: 'timestamp' }, type: 'TimestampInstant' },
-      { when: { value: 'string', column: 'timestamp' }, type: 'TimestampString' },
+      { when: { as: 'temporal', storage: 'timestamp' }, type: 'TimestampInstant' },
+      { when: { as: 'string', storage: 'timestamp' }, type: 'TimestampString' },
     ],
   },
   Date: {
     kind: 'typeChoice',
     documentation:
-      'A calendar date. `value` is what the application reads: string, such as "2024-02-29", or temporal (Temporal.PlainDate).',
+      'A calendar date. `as` is what the application reads: string, such as "2024-02-29", or temporal (Temporal.PlainDate).',
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['string', 'temporal'],
         default: 'string',
         optional: true,
       },
-      { kind: 'option', name: 'column', values: ['date'], default: 'date', optional: true },
+      { kind: 'option', name: 'storage', values: ['date'], default: 'date', optional: true },
     ],
     choices: [
-      { when: { value: 'string', column: 'date' }, type: 'DateString' },
-      { when: { value: 'temporal', column: 'date' }, type: 'DateTemporal' },
+      { when: { as: 'string', storage: 'date' }, type: 'DateString' },
+      { when: { as: 'temporal', storage: 'date' }, type: 'DateTemporal' },
     ],
   },
   Time: {
     kind: 'typeChoice',
     documentation:
-      'A time of day. `value` is what the application reads: string, such as "09:30:00", or temporal (Temporal.PlainTime). `column` is time, or timetz with value string.',
+      'A time of day. `as` is what the application reads: string, such as "09:30:00", or temporal (Temporal.PlainTime). `storage` is time, or timetz with as: string.',
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['string', 'temporal'],
         default: 'string',
         optional: true,
       },
       {
         kind: 'option',
-        name: 'column',
+        name: 'storage',
         values: ['time', 'timetz'],
         default: 'time',
         optional: true,
@@ -378,29 +378,35 @@ export const postgresConvenienceDateTimeTypes = {
       precision,
     ],
     choices: [
-      { when: { value: 'string', column: 'time' }, type: 'TimeString' },
-      { when: { value: 'temporal', column: 'time' }, type: 'TimeTemporal' },
-      { when: { value: 'string', column: 'timetz' }, type: 'Timetz' },
+      { when: { as: 'string', storage: 'time' }, type: 'TimeString' },
+      { when: { as: 'temporal', storage: 'time' }, type: 'TimeTemporal' },
+      { when: { as: 'string', storage: 'timetz' }, type: 'Timetz' },
     ],
   },
   Duration: {
     kind: 'typeChoice',
     documentation:
-      'A length of time. `value` is what the application reads: string, an ISO 8601 duration such as "P1M", or parts, the object { months, days, micros }.',
+      'A length of time. `as` is what the application reads: string, an ISO 8601 duration such as "P1M", or parts, the object { months, days, micros }.',
     args: [
       {
         kind: 'option',
-        name: 'value',
+        name: 'as',
         values: ['string', 'parts'],
         default: 'string',
         optional: true,
       },
-      { kind: 'option', name: 'column', values: ['interval'], default: 'interval', optional: true },
+      {
+        kind: 'option',
+        name: 'storage',
+        values: ['interval'],
+        default: 'interval',
+        optional: true,
+      },
       precision,
     ],
     choices: [
-      { when: { value: 'string', column: 'interval' }, type: 'IntervalString' },
-      { when: { value: 'parts', column: 'interval' }, type: 'IntervalParts' },
+      { when: { as: 'string', storage: 'interval' }, type: 'IntervalString' },
+      { when: { as: 'parts', storage: 'interval' }, type: 'IntervalParts' },
     ],
   },
 } as const satisfies AuthoringTypeNamespace;

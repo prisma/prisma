@@ -71,13 +71,19 @@ const narrowDate: AuthoringTypeConstructorDescriptor = {
 const moment: AuthoringTypeChoiceDescriptor = {
   kind: 'typeChoice',
   args: [
-    { kind: 'option', name: 'value', values: ['date', 'text'], default: 'date', optional: true },
-    { kind: 'option', name: 'column', values: ['wide', 'narrow'], default: 'wide', optional: true },
+    { kind: 'option', name: 'as', values: ['date', 'text'], default: 'date', optional: true },
+    {
+      kind: 'option',
+      name: 'storage',
+      values: ['wide', 'narrow'],
+      default: 'wide',
+      optional: true,
+    },
   ],
   choices: [
-    { when: { value: 'date', column: 'wide' }, type: 'WideDate' },
-    { when: { value: 'text', column: 'wide' }, type: 'WideText' },
-    { when: { value: 'date', column: 'narrow' }, type: 'NarrowDate' },
+    { when: { as: 'date', storage: 'wide' }, type: 'WideDate' },
+    { when: { as: 'text', storage: 'wide' }, type: 'WideText' },
+    { when: { as: 'date', storage: 'narrow' }, type: 'NarrowDate' },
   ],
 };
 
@@ -227,16 +233,16 @@ describe('createBinder — contributed types', () => {
     const { resolve, binder, symbolTable } = bindProject(
       [
         'types {',
-        '  Stamp = Moment(value: text)',
+        '  Stamp = Moment(as: text)',
         '}',
         'model Post {',
         '  bare Moment',
-        '  named Moment(column: narrow)',
+        '  named Moment(storage: narrow)',
         '  positional Moment(text)',
         '  aliased Stamp',
-        '  refused Moment(value: text, column: narrow)',
+        '  refused Moment(as: text, storage: narrow)',
         '  unknownNamed Moment(bogus: narrow)',
-        '  twice Moment(text, value: date)',
+        '  twice Moment(text, as: date)',
         '}',
       ].join('\n'),
     );

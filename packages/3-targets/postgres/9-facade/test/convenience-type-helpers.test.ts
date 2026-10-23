@@ -9,7 +9,7 @@ describe('a convenience type helper', () => {
           Order: model('Order', {
             fields: {
               id: field.id.uuidv4String(),
-              at: field.column(type.DateTime(undefined, undefined, 7)),
+              at: field.column(type.DateTime({ precision: 7 })),
             },
           }),
         },

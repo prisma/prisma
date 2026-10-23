@@ -62,11 +62,52 @@ function rowMatches(
   return names.every((name) => row.when[name] === chosen.get(name));
 }
 
-/** How a combination of option values is written, as in `value: date, column: narrow`. */
+/** How a combination of option values is written, as in `as: string, storage: timestamp`. */
 export function typeChoiceCombinationText(row: AuthoringTypeChoiceRow): string {
   return Object.entries(row.when)
     .map(([name, value]) => `${name}: ${value}`)
     .join(', ');
+}
+
+function listedNames(names: readonly string[]): string {
+  return names.length < 2
+    ? names.join('')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
+function isArgumentObject(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * The values of a type choice call that writes its arguments as one object, by the choice's argument positions, as {@link resolveAuthoringTypeChoice} reads them. `written` is the call's arguments: none, or one object keyed by argument name. Anything else, and a key the choice has no argument for, is refused with `CONTRACT.ARGUMENT_INVALID`.
+ */
+export function typeChoiceArgumentsFromObject(
+  helperPath: string,
+  descriptor: AuthoringTypeChoiceDescriptor,
+  written: readonly unknown[],
+): readonly unknown[] {
+  const names = descriptor.args.map((argument) => argument.name);
+  const [first] = written;
+  const object = written.length === 0 ? {} : first;
+  if (written.length > 1 || !isArgumentObject(object)) {
+    const example = descriptor.args.find(isAuthoringTypeChoiceOption);
+    const sample = example === undefined ? '' : `{ ${example.name}: '${example.default}' }`;
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `${helperPath} takes its arguments as one object with the keys ${listedNames(names)}, such as ${helperPath}(${sample}).`,
+      { helperPath },
+    );
+  }
+  const unknown = Object.keys(object).find((key) => !names.includes(key));
+  if (unknown !== undefined) {
+    throw runtimeError(
+      'CONTRACT.ARGUMENT_INVALID',
+      `${helperPath} has no argument "${unknown}"; its arguments are ${listedNames(names)}.`,
+      { helperPath },
+    );
+  }
+  return names.map((name) => object[name]);
 }
 
 /**
@@ -105,10 +146,10 @@ export function resolveAuthoringTypeChoice(input: {
       fitting.some((row) => row.when[argument.name] === candidate),
     );
     if (!accepted.includes(String(value))) {
-      const others = decided.map((name) => `${name} is ${chosen.get(name)}`).join(' and ');
+      const others = decided.map((name) => `${name}: ${chosen.get(name)}`).join(', ');
       refuse(
         index,
-        `${label(index)} cannot be ${String(value)} when ${others}; write one of: ${accepted.join(', ')}.`,
+        `${label(index)} cannot be ${String(value)} with ${others}; write one of: ${accepted.join(', ')}.`,
       );
     }
     chosen.set(argument.name, String(value));
