@@ -5350,6 +5350,40 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  packages/9-public/@prisma/orm-mysql:
+    dependencies:
+      '@prisma/orm-family-sql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-family-sql
+      '@prisma/orm-framework':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-framework
+      '@prisma/orm-target-mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-target-mysql
+      '@prisma/orm-toolchain':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-toolchain
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
+    devDependencies:
+      '@internal/mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../3-targets/mysql/9-facade
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   packages/9-public/@prisma/orm-postgres:
     dependencies:
       '@prisma/orm-family-sql':
@@ -5469,6 +5503,49 @@ importers:
       '@internal/target-mongo':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../3-targets/mongo/1-target
+      '@repo/tsconfig':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../0-config/tsconfig
+      '@repo/tsdown':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../0-config/tsdown
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/9-public/@prisma/orm-target-mysql:
+    dependencies:
+      '@prisma/orm-family-sql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-family-sql
+      '@prisma/orm-framework':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-framework
+      '@prisma/orm-toolchain':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../orm-toolchain
+      '@standard-schema/spec':
+        specifier: 1.1.0
+        version: 1.1.0
+      arktype:
+        specifier: ^2.2.2
+        version: 2.2.7
+      mysql2:
+        specifier: 3.15.3
+        version: 3.15.3
+    devDependencies:
+      '@internal/adapter-mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../3-targets/mysql/2-adapter
+      '@internal/driver-mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../3-targets/mysql/3-driver
+      '@internal/target-mysql':
+        specifier: workspace:8.0.0-rc.20
+        version: link:../../../3-targets/mysql/1-target
       '@repo/tsconfig':
         specifier: workspace:8.0.0-rc.20
         version: link:../../../0-config/tsconfig
