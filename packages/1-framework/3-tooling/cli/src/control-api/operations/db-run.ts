@@ -521,7 +521,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
 }
 
 /** The origin of a database whose marker names no readable contract: no models. */
-const EMPTY_ORIGIN = { domain: { namespaces: {} } };
+const EMPTY_ORIGIN = { domain: { namespaces: {} }, storage: { namespaces: {} } };
 
 /** The planner refused to plan: the error the command reports. */
 interface PlanningRefused {

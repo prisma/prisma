@@ -1,4 +1,3 @@
-import type { ContractWithDomain } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
   type FieldCoordinate,
@@ -21,7 +20,7 @@ import {
   type UnusedConsent,
 } from '../../utils/cli-errors';
 import type { ConsentVerb } from './parse-consent';
-import { resolveStatements } from './resolve-statements';
+import { resolveStatements, type StatementContract } from './resolve-statements';
 import { statementFlag } from './statement-flag';
 import type { StatementText } from './statement-text';
 
@@ -99,9 +98,9 @@ export interface PlannedQuestions {
 
 /** The contracts a statement names things in, and the statements the plan carries out so far. */
 export interface StatementContracts {
-  readonly origin: ContractWithDomain;
+  readonly origin: StatementContract;
   /** The destination contract; needed only to name a field of a renamed model. */
-  readonly destination?: ContractWithDomain;
+  readonly destination?: StatementContract;
   /** The rename, convert and backfill statements the plan carries out, in the order given. */
   readonly statements: readonly StatementText[];
 }
@@ -285,7 +284,7 @@ function renamedByPlan(subject: MigrationSubject, contracts: StatementContracts)
 /** Whether the destination still has the subject's model or field, under the name a rename gives it. */
 function inDestination(
   subject: MigrationSubject,
-  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+  contracts: StatementContracts & { readonly destination: StatementContract },
 ): boolean {
   if (subject.kind === 'storage') return false;
   const model = renamedModel(subject, contracts) ?? subject;
@@ -298,7 +297,7 @@ function inDestination(
 /** Checks a statement typed at a question against the plan's other statements. */
 function resolvesWith(
   statement: StatementText,
-  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+  contracts: StatementContracts & { readonly destination: StatementContract },
 ): Result<ResolvedMigrationStatement | undefined, string> {
   const resolved = resolveStatements({
     statements: [...contracts.statements, statement],
@@ -311,7 +310,7 @@ function resolvesWith(
 }
 
 type DataLossContracts = StatementContracts & {
-  readonly destination: ContractWithDomain;
+  readonly destination: StatementContract;
   readonly originKnown: boolean;
   /** Whether the command writes a migration whose conversion the user fills in. */
   readonly canConvert: boolean;
@@ -324,7 +323,7 @@ type DataLossContracts = StatementContracts & {
  */
 function missingFieldModel(
   subject: MigrationSubject,
-  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+  contracts: StatementContracts & { readonly destination: StatementContract },
 ): ModelCoordinate | undefined {
   if (subject.kind !== 'field') return undefined;
   const model = renamedModel(subject, contracts) ?? subject;
@@ -544,7 +543,7 @@ function withNamespaceDeleteOnFirstQuestion(
 function acceptingNamespaceAnswers(
   question: PlanQuestion,
   removedNamespace: string | undefined,
-  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+  contracts: StatementContracts & { readonly destination: StatementContract },
 ): PlanQuestion {
   if (removedNamespace === undefined) return question;
   const namespaceAnswer = (verb: PlanQuestionVerb, text: string): NamespaceAnswer | undefined => {
@@ -599,9 +598,9 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly statements: readonly StatementText[];
   readonly preAnswers: readonly StatementText[];
   readonly consentAll: { readonly [verb in ConsentVerb]: boolean };
-  readonly origin: ContractWithDomain;
+  readonly origin: StatementContract;
   readonly originKnown: boolean;
-  readonly destination: ContractWithDomain;
+  readonly destination: StatementContract;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (statements: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
 }): Promise<

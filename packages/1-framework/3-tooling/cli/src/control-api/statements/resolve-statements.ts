@@ -6,6 +6,8 @@ import {
   type ContractFieldType,
   type ContractModelBase,
   type ContractWithDomain,
+  type StorageBase,
+  valueObjectAt,
 } from '@internal/contract/types';
 import type { CliStructuredError } from '@internal/errors/control';
 import {
@@ -35,12 +37,17 @@ import {
 import { statementFlag } from './statement-flag';
 import type { StatementText } from './statement-text';
 
+/** A contract statements resolve against: its domain models, and the value objects its storage holds. */
+export type StatementContract = ContractWithDomain & {
+  readonly storage: Pick<StorageBase, 'namespaces'>;
+};
+
 /**
  * The origin contract statements resolve against, or where the command looked
  * for it without finding it.
  */
 export type StatementOrigin =
-  | { readonly kind: 'contract'; readonly contract: ContractWithDomain }
+  | { readonly kind: 'contract'; readonly contract: StatementContract }
   | {
       readonly kind: 'missing';
       readonly hash: string | null;
@@ -57,14 +64,14 @@ export interface ResolveStatementsInput {
   /** The statements as the user wrote them, in the order given. */
   readonly statements: readonly StatementText[];
   readonly origin: StatementOrigin;
-  readonly destination: ContractWithDomain;
+  readonly destination: StatementContract;
 }
 
 type Side = 'old' | 'new';
 
 interface NamedContract {
   readonly name: 'origin' | 'destination';
-  readonly contract: ContractWithDomain;
+  readonly contract: StatementContract;
 }
 
 interface FoundModel {
@@ -159,8 +166,15 @@ function modelIn(
   return Object.hasOwn(namespace.models, name) ? namespace.models[name] : undefined;
 }
 
-function hasValueObject(namespace: ApplicationDomainNamespace, name: string): boolean {
-  return namespace.valueObjects !== undefined && Object.hasOwn(namespace.valueObjects, name);
+function hasValueObject(contract: StatementContract, namespaceId: string, name: string): boolean {
+  return (
+    valueObjectAt(contract.storage, {
+      plane: 'storage',
+      namespaceId,
+      entityKind: 'valueObject',
+      entityName: name,
+    }) !== undefined
+  );
 }
 
 function modelAt(
@@ -208,7 +222,7 @@ function lookupModelInNamespace(
       model,
     };
   }
-  if (hasValueObject(namespace, name)) {
+  if (hasValueObject(contract.contract, namespaceId, name)) {
     return { kind: 'refused', ...valueObjectRefusal(displayName(namespaceId, name)) };
   }
   return {
@@ -262,7 +276,10 @@ function lookupModel(
       fix: `Name the model with its namespace, for example ${candidates[0]}.`,
     };
   }
-  if (Object.values(namespaces).some((namespace) => hasValueObject(namespace, name))) {
+  const storageNamespaceIds = Object.keys(contract.contract.storage.namespaces);
+  if (
+    storageNamespaceIds.some((namespaceId) => hasValueObject(contract.contract, namespaceId, name))
+  ) {
     return { kind: 'refused', ...valueObjectRefusal(name) };
   }
   return {
@@ -904,7 +921,7 @@ function typeText(type: ContractFieldType): string {
         ? type.codecId
         : `${type.codecId}(${JSON.stringify(type.typeParams)})`;
     case 'valueObject':
-      return type.name;
+      return type.entityName;
     case 'union':
       return type.members.map(typeText).join(' | ');
   }
