@@ -55,4 +55,19 @@ describe('the detection of the changes the tools writing convenience types make'
       otherNamespace: false,
     });
   });
+
+  it('matches a timestamp default with digits below a millisecond, and not one without', () => {
+    const detects = (content: string) => matches('date-default-below-a-millisecond', content);
+    expect({
+      micro: detects(
+        '  at DateTime(precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)\n',
+      ),
+      local: detects(
+        '  at DateTime(column: timestamp) @default(timestamp`2024-01-01T01:00:00.1234`)\n',
+      ),
+      mysql: detects('  at DateTime(6) @default(datetime`2024-01-01T01:00:00.123456`)\n'),
+      milli: detects('  at DateTime @default(timestamptz`2024-01-01T01:00:00.123Z`)\n'),
+      zeros: detects('  at DateTime @default(timestamptz`2024-01-01T01:00:00.123000Z`)\n'),
+    }).toEqual({ micro: true, local: true, mysql: true, milli: false, zeros: false });
+  });
 });

@@ -13,9 +13,15 @@ import type { ColumnTypeOf } from '@internal/family-sql/psl-build';
 import { type Codec, codecForRef } from '@internal/framework-components/codec';
 import type { SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { isInternalError } from '@internal/utils/internal-error';
-import { pgJson, pgJsonb } from '../data-types';
+import {
+  pgJson,
+  pgJsonb,
+  pgTimestamp,
+  pgTimestampStoredText,
+  pgTimestamptz,
+  pgTimestamptzStoredText,
+} from '../data-types';
 import { readPostgresDefault } from '../default-normalizer';
-import { heldTimestampDefault } from '../held-timestamp-defaults';
 import { inferredCodecRef } from './infer-default-codec';
 import { jsonKeepsEveryNumber } from './json-exact-numbers';
 
@@ -92,13 +98,33 @@ export async function readDefaultWithCodec(
   }
   const read = await readReportedDefault(codec, reported.literal, raw);
   if (!('resolvedDefault' in read)) return rawExpression;
-  const held = heldTimestampDefault(codec.dataType.id, reported.literal);
-  const value = read.resolvedDefault.kind === 'literal' ? read.resolvedDefault.value : undefined;
-  const readValues = reported.literal.kind === 'value' ? [value] : value;
-  if (held !== undefined && JSON.stringify(held) !== JSON.stringify(readValues)) {
+  const storedText = TIMESTAMP_STORED_TEXT.get(codec.dataType.id);
+  if (
+    storedText !== undefined &&
+    !readsEveryDigit(storedText, reported.literal, read.resolvedDefault)
+  ) {
     return rawExpression;
   }
   return read.resolvedDefault;
+}
+
+/** The value each timestamp type holds for the text PostgreSQL prints. A `Date` codec of these types reads only milliseconds. */
+const TIMESTAMP_STORED_TEXT: ReadonlyMap<string, (text: string) => string> = new Map([
+  [pgTimestamp.id, pgTimestampStoredText],
+  [pgTimestamptz.id, pgTimestamptzStoredText],
+]);
+
+/** Whether the codec read each body as the value the column holds, so a `Date` codec's millisecond reading of a microsecond default is printed as the raw expression instead. */
+function readsEveryDigit(
+  storedText: (text: string) => string,
+  literal: ReportedLiteralDefault,
+  read: ColumnDefault,
+): boolean {
+  const value = read.kind === 'literal' ? read.value : undefined;
+  const values = literal.kind === 'value' ? [value] : Array.isArray(value) ? value : [];
+  return bodiesOf(literal).every(
+    (body, index) => typeof body !== 'string' || storedText(body) === values[index],
+  );
 }
 
 const JSON_TYPES: ReadonlySet<string> = new Set([pgJson.id, pgJsonb.id]);

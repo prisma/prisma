@@ -254,7 +254,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "4112ac3ce103e3d2a35be6c5247b235837e9ab35b2e56fe2a4cddbffe6b055b8",
+    "storageHash": "5772a67257453bdad9ff5ce4e2b5098608b3719f70f3479194fe2bfd6b446050",
     "namespaces": {
       "public": {
         "id": "public",
@@ -330,8 +330,8 @@
                     "precision": 6
                   },
                   "default": {
-                    "kind": "literal",
-                    "value": "2024-01-02T03:04:05.123456"
+                    "kind": "function",
+                    "expression": "'2024-01-02T03:04:05.123456'::timestamp(6)"
                   }
                 },
                 "tzZ": {

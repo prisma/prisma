@@ -134,6 +134,8 @@ The tools that write a schema for you write the convenience types, with only the
 - `prisma contract print` writes each column as the convenience call that becomes its explicit type exactly, such as `DateTime(value: temporal)` for `TimestamptzTemporal`, and otherwise the explicit type.
 - `prisma7Schema(...)` reads Prisma 7's `DateTime` as `TimestampJsDate(3)`, a `timestamp(3)` column read as a `Date` as Prisma 7 read it, printed `DateTime(column: timestamp)`, and `@db.Timestamptz(p)` as `TimestamptzJsDate(p)`.
 
+On a column read as a `Date` (`TimestamptzJsDate`, `TimestampJsDate`, and `DateTime` at its default), a default with digits below a millisecond is refused: write it with a string or `Temporal` type, or as a `sql` expression. A TypeScript contract cannot write one, because its `.default()` takes a `Date`. `db verify` compares a default on such a column as the application reads it, so it does not see a difference smaller than a millisecond.
+
 `temporal.CreatedAt` is `DateTime @onCreate(now())` and `temporal.UpdatedAt` is `DateTime @onCreate(now()) @onUpdate(now())`. Five types read and write `Temporal` values: `TimestamptzTemporal`, `TimestampTemporal`, `TimestampInstant`, `DateTemporal` and `TimeTemporal`, which the convenience types choose with `value: temporal`. Their TypeScript types come from `temporal-spec`, so a project needs no global `Temporal` declarations to type them. An application that uses them needs a global `Temporal`: on a runtime without one, such as Node.js 24, install it, for example with `import 'temporal-polyfill/full/global'`.
 
 ## SQLite

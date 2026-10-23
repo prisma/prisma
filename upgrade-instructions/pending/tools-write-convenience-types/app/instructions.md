@@ -14,6 +14,13 @@ changes:
       glob: "**/*.{prisma,ts,mts,cts,tsx}"
       matches:
         - '(?<![\w$])temporal\.(?:Created|Updated)At(?:String|JsDate)?(?![\w$])'
+  - id: date-default-below-a-millisecond
+    summary: |
+      On PostgreSQL and MySQL, a column read as a JavaScript `Date` (`DateTime` at its default, `TimestamptzJsDate`, `TimestampJsDate`, MySQL's `DateTime`) now refuses a `@default` with digits below a millisecond, which a `Date` cannot hold, and `prisma contract emit` reports it. Keep the default by changing the field to `DateTime(value: string)` or `DateTime(value: temporal)`, or by writing the default as a `sql` expression.
+    detection:
+      glob: "**/*.prisma"
+      matches:
+        - '@default\((?:timestamp(?:tz)?|datetime)`[^`]*\.\d{3}\d*[1-9]'
 ---
 
 # The tools write the convenience date and time types
@@ -66,3 +73,20 @@ In a TypeScript contract, `field.column(type.temporal.CreatedAtString())` become
 To move a `temporal.CreatedAt` or `temporal.UpdatedAt` field to the new default instead, keep the alias and update the code that reads it to a `Date`. Its column becomes `timestamptz(3)`, which rounds stored values to milliseconds, so plan it with `prisma migration plan --delete <Model>.<field>` and apply it with `prisma db migrate`, or run `prisma db update --delete <Model>.<field>`.
 
 The detection also matches `temporal.CreatedAt` and `temporal.UpdatedAt` in SQLite and MongoDB projects. There they keep their meaning and need no change.
+
+## `date-default-below-a-millisecond`
+
+A JavaScript `Date` holds milliseconds. A column read as a `Date` now refuses a default with more digits, instead of storing it and reading it back at the millisecond. For a field such as
+
+```prisma
+at DateTime(precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)
+```
+
+write one of:
+
+```prisma
+at DateTime(value: string, precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)
+at DateTime(precision: 6) @default(sql`'2024-01-01 01:00:00.123456+00'::timestamptz`)
+```
+
+The first reads the field as a string, which keeps every digit. The second keeps the field a `Date` and the database default as written. Run `prisma contract emit` again. A Prisma 7 schema read by `prisma7Schema(...)` needs no change: such a default is kept as the SQL Prisma 7 created.

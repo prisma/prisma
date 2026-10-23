@@ -14,7 +14,6 @@ import {
   checkSqlDefaultText,
   contractColumns,
   type ReadColumnDefault,
-  type ReportedLiteralDefault,
   readColumnDefault,
 } from '@internal/family-sql/control';
 import {
@@ -23,7 +22,6 @@ import {
 } from '@internal/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
 import {
-  type Codec,
   type CodecLookupWithDescriptors,
   codecForRef,
   type DataType,
@@ -101,10 +99,7 @@ import type {
   PostgresDropType,
   RlsPolicyOperation,
 } from '@internal/target-postgres/ddl';
-import {
-  heldTimestampDefault,
-  readPostgresDefault,
-} from '@internal/target-postgres/default-normalizer';
+import { readPostgresDefault } from '@internal/target-postgres/default-normalizer';
 import { postgresError } from '@internal/target-postgres/errors';
 import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from '@internal/target-postgres/marker-lock';
 import { introspectedTypeText } from '@internal/target-postgres/native-type-normalizer';
@@ -787,14 +782,13 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     if (codec === undefined) return {};
     const expression = column?.defaultExpression;
     const written = expression === undefined ? undefined : readPostgresDefault(expression, many);
-    const read = await readColumnDefault(
+    return readColumnDefault(
       codec,
       { literal: reported.literal, raw: rawDefault },
       expression !== undefined && written?.kind === 'literal'
         ? { literal: written.literal, expression }
         : undefined,
     );
-    return withHeldTimestamp(codec, reported.literal, read);
   }
 
   private async resolveNamespaceSchemas(
@@ -1555,36 +1549,6 @@ function freezeStringArray(values: readonly string[]): readonly string[] {
 
 /** What introspection holds of a column's reported default. */
 type ReadDefault = ReadColumnDefault | { readonly resolvedDefault?: ColumnDefault };
-
-/**
- * The codec's reading of a reported default, unless the column is a `timestamp` or `timestamptz` whose `Date` codec read fewer digits than the column holds: then the value the column holds, which the contract's default is compared with.
- */
-function withHeldTimestamp(
-  codec: Codec,
-  literal: ReportedLiteralDefault,
-  read: ReadColumnDefault,
-): ReadColumnDefault {
-  if (!('resolvedDefault' in read)) return read;
-  const held = heldTimestampDefault(codec.dataType.id, literal);
-  const value = read.resolvedDefault.kind === 'literal' ? read.resolvedDefault.value : undefined;
-  const readValues = literal.kind === 'value' ? [value] : value;
-  if (held === undefined || JSON.stringify(held) === JSON.stringify(readValues)) return read;
-  const heldValue = (text: string) => codec.dataType.fromContract(text, {});
-  if (literal.kind === 'list') {
-    return {
-      ...read,
-      resolvedDefault: { kind: 'literal', value: [...held] },
-      defaultValue: held.map((text) => (text === null ? null : heldValue(text))),
-    };
-  }
-  const [text] = held;
-  if (typeof text !== 'string') return read;
-  return {
-    ...read,
-    resolvedDefault: { kind: 'literal', value: text },
-    defaultValue: heldValue(text),
-  };
-}
 
 /** The tables a contract declares in one database schema, and the ids of the contract namespaces that resolve to it. */
 interface DeclaredInSchema {

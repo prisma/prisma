@@ -168,6 +168,35 @@ describe('printPsl writes each default as the literal the column data type takes
     },
   );
 
+  it('prints a list default with an element a Date cannot hold as its raw expression, and one it holds as a literal list', async () => {
+    const micro =
+      "ARRAY['2024-01-01 01:00:00.123+00'::timestamp with time zone, '2024-01-01 01:00:00.123456+00'::timestamp with time zone]";
+    const milli =
+      "ARRAY['2024-01-01 01:00:00.123+00'::timestamp with time zone, '2024-01-01 01:00:00.5+00'::timestamp with time zone]";
+    expect(
+      await printedDefaults([
+        introspected('micro', 'timestamptz(6)', micro, { many: true }),
+        introspected('milli', 'timestamptz(6)', milli, { many: true }),
+      ]),
+    ).toEqual({
+      micro: `@default(sql\`${micro}\`)`,
+      milli:
+        '@default([timestamptz`2024-01-01T01:00:00.123Z`, timestamptz`2024-01-01T01:00:00.5Z`])',
+    });
+  });
+
+  it('prints a timestamp default written with an offset as the instant, when a Date holds it', async () => {
+    expect(
+      await printedDefaults([
+        introspected(
+          'stamp',
+          'timestamptz(6)',
+          "'2024-01-01 03:00:00.5+02'::timestamp with time zone",
+        ),
+      ]),
+    ).toEqual({ stamp: '@default(timestamptz`2024-01-01T01:00:00.5Z`)' });
+  });
+
   it.each([['-infinity', 'date', "'-infinity'::date"]])(
     'prints the %s sentinel on a %s column with the column type tag',
     async (sentinel, typeText, rawDefault) => {
