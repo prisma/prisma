@@ -18,3 +18,8 @@ export function normalizeMysqlError(error: unknown): unknown {
     ...ifDefined('sqlState', error.sqlState),
   });
 }
+
+/** Whether mysql2 reported `error` as fatal, which leaves its connection unusable. */
+export function isFatal(error: unknown): error is Error {
+  return error instanceof Error && 'fatal' in error && error.fatal === true;
+}

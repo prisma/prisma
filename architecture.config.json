@@ -1363,6 +1363,12 @@
       "plane": "migration"
     },
     {
+      "glob": "packages/3-targets/mysql/3-driver/src/exports/runtime.ts",
+      "domain": "targets",
+      "layer": "drivers",
+      "plane": "runtime"
+    },
+    {
       "glob": "packages/3-targets/mysql/9-facade/src/exports/config.ts",
       "domain": "extensions",
       "layer": "adapters",

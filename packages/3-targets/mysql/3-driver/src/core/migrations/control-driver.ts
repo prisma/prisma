@@ -9,12 +9,9 @@ import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { type Connection, createConnection } from 'mysql2/promise';
 import { mysqlConnectionOptions } from '../connection-options';
 import { mysqlDriverDescriptorMeta } from '../descriptor-meta';
-import { normalizeMysqlError } from '../normalize-error';
+import { isFatal, normalizeMysqlError } from '../normalize-error';
 import { serverText } from '../server-text';
-
-function isFatal(error: unknown): error is Error {
-  return error instanceof Error && 'fatal' in error && error.fatal === true;
-}
+import { SESSION_SETUP } from '../session-setup';
 
 function connectionLost(cause: Error) {
   return errorRuntime('DRIVER.NOT_CONNECTED', 'MySQL connection lost or closed', {
@@ -76,12 +73,6 @@ export class MysqlControlDriver implements SqlControlDriverInstance<'mysql'> {
     await this.connection.end().catch(() => {});
   }
 }
-
-/** The statements every new connection runs before any other. mysql2 escapes a quote in a parameter with a backslash, which MySQL reads as text under NO_BACKSLASH_ESCAPES, so the session clears that mode. The session runs in UTC, so `CURRENT_TIMESTAMP` writes the UTC time the codecs read. */
-const SESSION_SETUP = [
-  "SET SESSION sql_mode = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', @@SESSION.sql_mode, ','), ',NO_BACKSLASH_ESCAPES,', ','))",
-  "SET SESSION time_zone = '+00:00'",
-] as const;
 
 async function connect(url: string, options?: ControlDriverConnectOptions): Promise<Connection> {
   const connection = await createConnection(mysqlConnectionOptions(url, options?.connectTimeoutMs));
