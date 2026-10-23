@@ -49,7 +49,14 @@ interface RenderContext {
   readonly codecs: MysqlCodecDescriptorRegistry;
   /** The params, appended as each `?` is written, so their order is the order the placeholders appear in. */
   readonly params: LoweredParam[];
+  /** Set when the statement builds an array with `GROUP_CONCAT`, whose length limit the statement then raises itself. */
+  readonly uses: { groupConcat: boolean };
 }
+
+/**
+ * Raises `group_concat_max_len` for this statement only, past any result a connection can send, so an ordered include does not depend on how the driver set up its session. MySQL takes `SET_VAR` only on the outermost `SELECT`.
+ */
+const GROUP_CONCAT_HINT = '/*+ SET_VAR(group_concat_max_len = 4294967295) */';
 
 /** MySQL's documented way to write an `OFFSET` with no `LIMIT`: the largest row count it takes. */
 const NO_LIMIT = '18446744073709551615';
@@ -72,8 +79,12 @@ export function renderMysqlSql(
   contract: MysqlContract | undefined,
   codecs: MysqlCodecDescriptorRegistry,
 ): LoweredStatement {
-  const ctx: RenderContext = { contract, codecs, params: [] };
-  const sql = renderStatement(ast, ctx);
+  const ctx: RenderContext = { contract, codecs, params: [], uses: { groupConcat: false } };
+  const rendered = renderStatement(ast, ctx);
+  const sql =
+    ast.kind === 'select' && ctx.uses.groupConcat
+      ? rendered.replace(/^SELECT /, `SELECT ${GROUP_CONCAT_HINT} `)
+      : rendered;
   return Object.freeze({ sql, params: ctx.params });
 }
 
@@ -418,9 +429,10 @@ function renderJsonElementText(projection: AnyJsonValueProjection, ctx: RenderCo
 }
 
 /**
- * `JSON_ARRAYAGG` takes no `ORDER BY`, and MySQL drops a derived table's `ORDER BY` when the outer query aggregates, so an ordered array is built as text with `GROUP_CONCAT`, which keeps its own order, and cast to JSON. The driver raises `group_concat_max_len`, so a longer array fails the cast rather than losing rows. With no rows the aggregate is NULL; an empty array is `JSON_ARRAY()`, so the column stays JSON and a nested include stays an array.
+ * `JSON_ARRAYAGG` takes no `ORDER BY`, and MySQL drops a derived table's `ORDER BY` when the outer query aggregates, so an ordered array is built as text with `GROUP_CONCAT`, which keeps its own order, and cast to JSON. The statement raises `group_concat_max_len` itself (see `GROUP_CONCAT_HINT`). With no rows the aggregate is NULL; an empty array is `JSON_ARRAY()`, so the column stays JSON and a nested include stays an array.
  */
 function renderJsonArrayAgg(expr: JsonArrayAggExpr, ctx: RenderContext): string {
+  if (expr.orderBy !== undefined) ctx.uses.groupConcat = true;
   const aggregated =
     expr.orderBy === undefined
       ? `JSON_ARRAYAGG(${renderJsonValue(expr.expr, ctx)})`

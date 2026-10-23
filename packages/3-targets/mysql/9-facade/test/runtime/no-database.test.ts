@@ -40,7 +40,7 @@ describe('a MySQL client with no database', () => {
         params: ['ADMIN'],
       },
       orm: {
-        sql: "SELECT `User`.`id` AS `id`, (SELECT COALESCE(CAST(CONCAT('[', GROUP_CONCAT(JSON_OBJECT('title', `posts__rows`.`title`) ORDER BY `posts__rows`.`posts__order_0` DESC SEPARATOR ','), ']') AS JSON), JSON_ARRAY()) AS `posts` FROM (SELECT `Post`.`title` AS `title`, `Post`.`title` AS `posts__order_0` FROM `Post` WHERE `Post`.`authorId` = `User`.`id` ORDER BY `Post`.`title` DESC) AS `posts__rows`) AS `posts` FROM `User` WHERE `User`.`role` = ?",
+        sql: "SELECT /*+ SET_VAR(group_concat_max_len = 4294967295) */ `User`.`id` AS `id`, (SELECT COALESCE(CAST(CONCAT('[', GROUP_CONCAT(JSON_OBJECT('title', `posts__rows`.`title`) ORDER BY `posts__rows`.`posts__order_0` DESC SEPARATOR ','), ']') AS JSON), JSON_ARRAY()) AS `posts` FROM (SELECT `Post`.`title` AS `title`, `Post`.`title` AS `posts__order_0` FROM `Post` WHERE `Post`.`authorId` = `User`.`id` ORDER BY `Post`.`title` DESC) AS `posts__rows`) AS `posts` FROM `User` WHERE `User`.`role` = ?",
         params: ['ADMIN'],
       },
       driverCreated: 0,

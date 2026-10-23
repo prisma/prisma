@@ -69,15 +69,15 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
-  it('sets up every connection: no backslash escapes mode, UTC, and a group_concat_max_len as large as a packet', async (test) => {
+  it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         const [row] = await collect(
           driver.query<Record<string, string>>({
-            sql: "SELECT @@SESSION.time_zone AS tz, FIND_IN_SET('NO_BACKSLASH_ESCAPES', @@SESSION.sql_mode) AS nbe, @@SESSION.group_concat_max_len = @@SESSION.max_allowed_packet AS raised",
+            sql: "SELECT @@SESSION.time_zone AS tz, FIND_IN_SET('NO_BACKSLASH_ESCAPES', @@SESSION.sql_mode) AS nbe",
           }),
         );
-        expect(row).toEqual({ tz: '+00:00', nbe: '0', raised: '1' });
+        expect(row).toEqual({ tz: '+00:00', nbe: '0' });
       }),
     );
   });

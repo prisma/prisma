@@ -114,6 +114,28 @@ describe('MySQL includes through the ORM', { timeout: timeouts.databaseOperation
     });
   });
 
+  it('returns an ordered include longer than the session group_concat_max_len in full', async (test) => {
+    const titles = Array.from(
+      { length: 40 },
+      (_, i) => `post ${String(i).padStart(2, '0')} ${'x'.repeat(60)}`,
+    );
+    const rows = titles.map((title, i) => `(${i + 1}, '${title}', 1)`).join(', ');
+    await withSeededDatabase(
+      test,
+      [
+        ...exampleDatabase.slice(0, 3),
+        `INSERT INTO \`Post\` (\`id\`, \`title\`, \`authorId\`) VALUES ${rows}`,
+      ],
+      async (url) => {
+        await using db = mysql({ contract, url, verifyMarker: false });
+        const user = await db.orm.User.select('id')
+          .include('posts', (posts) => posts.select('title').orderBy((p) => p.title.desc()))
+          .first({ id: 1 });
+        expect(user).toEqual({ id: 1, posts: [...titles].reverse().map((title) => ({ title })) });
+      },
+    );
+  });
+
   it('returns whole rows for the include calls the project spec shows', async (test) => {
     await withSeededDatabase(test, exampleDatabase, async (url) => {
       await using db = mysql({ contract, url, verifyMarker: false });
