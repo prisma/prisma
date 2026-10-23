@@ -81,6 +81,28 @@ describe('MySQL includes through the ORM', { timeout: timeouts.databaseOperation
     });
   });
 
+  it('carries an enum column through an include as its member', async (test) => {
+    await withSeededDatabase(
+      test,
+      [
+        ...exampleDatabase,
+        "INSERT INTO `Post` (`id`, `title`, `authorId`) VALUES (5, 'Epsilon', 3)",
+      ],
+      async (url) => {
+        await using db = mysql({ contract, url, verifyMarker: false });
+        const posts = await db.orm.Post.select('id')
+          .include('author', (author) => author.select('role'))
+          .where((p) => p.id.gte(4))
+          .orderBy((p) => p.id.asc())
+          .all();
+        expect(posts).toEqual([
+          { id: 4, author: { role: 'ADMIN' } },
+          { id: 5, author: { role: 'USER' } },
+        ]);
+      },
+    );
+  });
+
   it('keeps a to-many include in the order it asks for, both ways', async (test) => {
     await withSeededDatabase(test, exampleDatabase, async (url) => {
       await using db = mysql({ contract, url, verifyMarker: false });
