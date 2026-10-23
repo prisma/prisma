@@ -179,7 +179,6 @@ function createTestSetup(extras: readonly Codec<string>[] = [], driverOptions?: 
 
 function rawExecutionPlan(overrides?: Partial<SqlExecutionPlan>): SqlExecutionPlan {
   return {
-    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),
@@ -204,7 +203,6 @@ function projectingExecutionPlan(
     ProjectionItem.of(alias, ColumnRef.of(table, column), { codecId }),
   ]);
   return {
-    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast,

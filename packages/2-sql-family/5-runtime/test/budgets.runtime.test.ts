@@ -6,7 +6,6 @@ import { createSetup, meta } from './transaction-activity-fixtures';
 
 function boundedSelect(): SqlExecutionPlan {
   return {
-    containsRawSql: false,
     sql: 'select id from t limit 1',
     params: [],
     ast: SelectAst.from(TableSource.named('t')).withLimit(1),

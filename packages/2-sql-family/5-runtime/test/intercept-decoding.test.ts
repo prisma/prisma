@@ -185,7 +185,6 @@ function createJsonProjectionPlan(alias: string): SqlExecutionPlan {
     ProjectionItem.of(alias, ColumnRef.of('users', alias), { codecId: 'pg/jsonb@1' }),
   ]);
   return {
-    containsRawSql: false,
     sql: 'select profile from users',
     params: [],
     ast,

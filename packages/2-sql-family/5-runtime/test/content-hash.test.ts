@@ -19,7 +19,6 @@ function makeExec(overrides?: {
   meta?: Partial<PlanMeta>;
 }): SqlExecutionPlan {
   return {
-    containsRawSql: false,
     sql: overrides?.sql ?? 'select 1',
     params: overrides?.params ?? [],
     ast: stubAst(),

@@ -37,6 +37,5 @@ export function lowerSqlPlan<Row>(
     params,
     ast: queryPlan.ast,
     meta: queryPlan.meta,
-    containsRawSql: queryPlan.ast.containsRawSql(),
   });
 }

@@ -201,7 +201,6 @@ function buildRuntime({
 function createPlan(): SqlExecutionPlan {
   const ast = SelectAst.from(TableSource.named('users'));
   return {
-    containsRawSql: false,
     sql: 'select * from users',
     params: [],
     ast,

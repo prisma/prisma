@@ -150,7 +150,6 @@ describe('SQL middleware context surface', () => {
 
     const ast = SelectAst.from(TableSource.named('users'));
     const plan: SqlExecutionPlan = {
-      containsRawSql: false,
       sql: 'select * from users',
       params: [],
       ast,

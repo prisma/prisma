@@ -235,7 +235,6 @@ function createRawExecutionPlan<Row = Record<string, unknown>>(
 ): SqlExecutionPlan<Row> {
   const metaOverrides = overrides?.meta;
   return {
-    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),

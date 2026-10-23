@@ -250,7 +250,6 @@ function rawPlan<Row = Record<string, unknown>>(
   overrides?: Partial<SqlExecutionPlan<Row>>,
 ): SqlExecutionPlan<Row> {
   return {
-    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),

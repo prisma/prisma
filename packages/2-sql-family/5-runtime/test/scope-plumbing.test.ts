@@ -194,7 +194,6 @@ function createTestSetup(middleware: readonly SqlMiddleware[]) {
 
 function createRawExecutionPlan(): SqlExecutionPlan {
   return {
-    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),

@@ -306,7 +306,6 @@ export function createTestSetup(options?: {
 
 export function stubPlan(): SqlExecutionPlan<Record<string, unknown>> {
   return {
-    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: SelectAstCtor.from(TableSource.named('stub')),

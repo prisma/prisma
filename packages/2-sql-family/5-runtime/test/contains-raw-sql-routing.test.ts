@@ -7,7 +7,7 @@ import type {
 } from '@internal/sql-relational-core/ast';
 import { RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { AffectedCount } from '@internal/sql-relational-core/expression';
-import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { planFromAst } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
 import type { RuntimeQueryable } from '../src/sql-runtime';
@@ -131,5 +131,23 @@ describe('whether a statement contains raw SQL, as the driver receives it', () =
     await connection.release();
 
     expect(sent).toEqual(eachPathWithAndWithoutRawSql('transaction'));
+  });
+
+  it('is read from the AST of a plan that arrives already lowered', async () => {
+    const { runtime, sent } = setup();
+    const lowered = (plan: SqlQueryPlan<unknown>): SqlExecutionPlan => ({
+      sql: 'SELECT 1',
+      params: [],
+      ast: plan.ast,
+      meta: plan.meta,
+    });
+
+    await runtime.execute(lowered(rawStatement()));
+    await runtime.execute(lowered(builtStatement()));
+
+    expect(sent).toEqual([
+      { via: 'driver', method: 'execute', containsRawSql: true },
+      { via: 'driver', method: 'execute', containsRawSql: false },
+    ]);
   });
 });

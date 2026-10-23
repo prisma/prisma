@@ -85,7 +85,6 @@ function buildAstPlan(options: {
   }
 
   return {
-    containsRawSql: false,
     sql: 'SELECT 1',
     params: refs.map((ref) => ref.value),
     ast,
@@ -99,7 +98,6 @@ function buildAstPlan(options: {
 
 function buildRawPlan(params: readonly unknown[] = []): SqlExecutionPlan {
   return {
-    containsRawSql: false,
     sql: 'SELECT 1',
     params: [...params],
     ast: stubAst(),

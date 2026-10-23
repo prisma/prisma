@@ -42,7 +42,6 @@ function buildPlan(params: readonly ParamSpec[]): SqlExecutionPlan {
   }
 
   return {
-    containsRawSql: false,
     sql: 'SELECT 1',
     params: refs.map((ref) => ref.value),
     ast,
