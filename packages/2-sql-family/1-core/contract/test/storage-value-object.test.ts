@@ -186,6 +186,26 @@ describe('validateSqlContractFully with a value object in storage', () => {
     ).toThrow(/Contract structural validation failed/);
   });
 
+  it.each([
+    [
+      'a union',
+      {
+        nullable: false,
+        type: { kind: 'union', members: [text.type, valueObjectType('Address')] },
+      },
+      'union',
+    ],
+    ['a dictionary', { ...text, dict: true }, 'dictionary'],
+  ])('refuses a member that is %s, naming the member', (_case, member, kind) => {
+    const contract = contractWith(valueObjectType('Shape'), {
+      Address: address,
+      Shape: { fields: { either: member } },
+    });
+    expect(() => validateSqlContractFully(contract)).toThrow(
+      `value object member "either" is a ${kind}; SQL value objects hold no unions or dictionaries`,
+    );
+  });
+
   it('refuses value objects in the domain plane, and says to re-emit', () => {
     const contract = contractWith(valueObjectType('Address'));
     const old = {

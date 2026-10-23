@@ -278,19 +278,19 @@ describe('value objects', () => {
     ).toThrow(refusal({ namespaceId: 'auth', names: ['Address'] }));
   });
 
-  it('refuses a value-object member whose type is a union', () => {
-    expect(
-      withAddress({
+  it('never reaches a value-object member that is a union, which deserializing refuses', () => {
+    expect(() =>
+      addressContract({
         many: false,
         nullable: false,
         type: { kind: 'union', members: [{ kind: 'scalar', codecId: 'pg/text@1' }] },
       }),
-    ).toThrow(refusal({ coordinate: '"public".Address.street', kind: 'union' }));
+    ).toThrow('value object member "street" is a union');
   });
 
-  it('refuses a value-object member that is a dictionary', () => {
-    expect(withAddress({ ...TEXT_FIELD, dict: true })).toThrow(
-      refusal({ coordinate: '"public".Address.street' }),
+  it('never reaches a value-object member that is a dictionary, which deserializing refuses', () => {
+    expect(() => addressContract({ ...TEXT_FIELD, dict: true })).toThrow(
+      'value object member "street" is a dictionary',
     );
   });
 

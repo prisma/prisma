@@ -1,3 +1,4 @@
+import { StorageValueObjectSchema } from '@internal/contract/types';
 import { DATA_TYPE_ID_PATTERN } from '@internal/framework-components/codec';
 import { type Type, type } from 'arktype';
 import type { ForeignKeyIndex, ForeignKeyInput, ReferentialAction } from './foreign-key';
@@ -85,6 +86,21 @@ export const ContractFieldTypeSchema = type('unknown').narrow((value, ctx) =>
         'scalar, valueObject (by its storage coordinate: plane, namespaceId, entityKind, entityName), or union field type',
       ),
 );
+
+/**
+ * The framework's value object schema, narrowed to what SQL stores: no member is a union or a dictionary, since the derived check cannot enforce them.
+ */
+export const SqlStorageValueObjectSchema = StorageValueObjectSchema.narrow((valueObject, ctx) => {
+  for (const [name, member] of Object.entries(valueObject.fields)) {
+    const kind = member.type.kind === 'union' ? 'union' : member.dict ? 'dictionary' : undefined;
+    if (kind !== undefined) {
+      return ctx.reject({
+        message: `value object member "${name}" is a ${kind}; SQL value objects hold no unions or dictionaries, since their check cannot enforce them`,
+      });
+    }
+  }
+  return true;
+});
 
 const StorageColumnSchema = type({
   '+': 'reject',

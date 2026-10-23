@@ -1,4 +1,3 @@
-import { StorageValueObjectSchema } from '@internal/contract/types';
 import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
@@ -7,7 +6,11 @@ import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import { CheckConstraint } from './ir/check-constraint';
 import { Index } from './ir/sql-index';
-import { StorageTableSchema, StorageValueSetSchema } from './ir/storage-entry-schemas';
+import {
+  SqlStorageValueObjectSchema,
+  StorageTableSchema,
+  StorageValueSetSchema,
+} from './ir/storage-entry-schemas';
 import { StorageTable, type StorageTableInput } from './ir/storage-table';
 import { StorageValueObject, type StorageValueObjectInput } from './ir/storage-value-object';
 import { StorageValueSet, type StorageValueSetInput } from './ir/storage-value-set';
@@ -54,7 +57,7 @@ export const valueObjectEntityKind: EntityKindDescriptor<
   StorageValueObject
 > = {
   kind: 'valueObject',
-  schema: StorageValueObjectSchema,
+  schema: SqlStorageValueObjectSchema,
   construct: (input) => new StorageValueObject(input),
 };
 
