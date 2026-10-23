@@ -1,16 +1,16 @@
 # @internal/adapter-mysql
 
-MySQL control adapter for Prisma 8.
+MySQL adapter for Prisma 8: query lowering for the runtime, and the control adapter.
 
 ## Package Classification
 
 - **Domain**: targets
 - **Layer**: adapters
-- **Plane**: multi-plane (shared, migration)
+- **Plane**: multi-plane (shared, migration, runtime)
 
 ## Purpose
 
-Reads and writes a MySQL database for the control plane: introspection into the SQL family's schema IR, the marker and ledger, the marker lock, the control tables' DDL and transactions.
+Lowers the queries the ORM and the SQL builder build into MySQL SQL, and reads and writes a MySQL database for the control plane: introspection into the SQL family's schema IR, the marker and ledger, the marker lock, the control tables' DDL and transactions.
 
 ## Responsibilities
 
@@ -18,10 +18,17 @@ Reads and writes a MySQL database for the control plane: introspection into the 
 - **Introspection** (`src/core/migrations/introspection.ts`): reads `information_schema` for `TABLE_SCHEMA = DATABASE()`. A column's type is `COLUMN_TYPE` as reported; `EXTRA` marks `auto_increment` and expression defaults (`DEFAULT_GENERATED`), and an unquoted `COLUMN_DEFAULT` is a literal the column's codec reads. Unique constraints are split from plain indexes by `TABLE_CONSTRAINTS`, and the index InnoDB creates for a foreign key, which carries the key's name and columns, is left out. The mapping takes catalog rows, so it is tested without a server.
 - **Marker and ledger reads and writes**, **`withTransaction`** (`START TRANSACTION`), and the `CREATE TABLE IF NOT EXISTS` statements for the control tables. `initMarker` writes with `INSERT … ON DUPLICATE KEY UPDATE`. MySQL has no `RETURNING`, so `updateMarker` reads and locks the row with `FOR UPDATE` inside the caller's transaction and writes it only when it still holds the expected hash.
 - **`holdMarkerLock`** takes the marker lock, a `GET_LOCK` MySQL holds for the session, around the work it guards and releases it with `RELEASE_LOCK` when that work ends; `db sign` creates the marker table and writes the markers inside it. `lockMarker` takes no lock, because the lock is already held around the transaction. The migration runner takes the same lock through the same helper.
-- **Not yet built**: query lowering refuses with `RUNTIME.AST_UNSUPPORTED`.
+- **Query lowering** (`src/core/sql-renderer.ts`), used by the runtime adapter:
+  - Backtick quoting. Each parameter is written as `?N`, N being its position in `collectOrderedParamRefs`, the order the runtime encodes parameters in; a parameter written twice is bound once. `src/core/placeholders.ts` then checks that every placeholder names a parameter and every parameter has one, and raises `RUNTIME.PARAM_PLACEHOLDER_MISMATCH` otherwise, as for a `?` written into raw SQL text. A bigint parameter is written `CAST(?N AS SIGNED)`, decided from its data type, because MySQL compares text with an integer expression as a double.
+  - `<=>` for IS NOT DISTINCT FROM, a leading `x IS NULL` sort key for NULLS FIRST and NULLS LAST, the largest row count MySQL takes for an `OFFSET` with no `LIMIT`, and an object literal as `CAST('…' AS JSON)`.
+  - A to-one include and an unordered array use `JSON_ARRAYAGG`. A to-many include with an order uses `GROUP_CONCAT(… ORDER BY …)` cast to JSON, because `JSON_ARRAYAGG` takes no `ORDER BY`; the statement raises `group_concat_max_len` itself with a `SET_VAR` hint, so it does not depend on the driver's session. An include with no rows is `JSON_ARRAY()`. Text longer than `max_allowed_packet` makes MySQL's `CONCAT` return NULL with only a warning, so a NULL array with rows fails the statement instead of reading as empty. This size limit applies only once an include has an order.
+  - Refused with `RUNTIME.AST_UNSUPPORTED`: FULL and LATERAL joins, function sources, row locks, DISTINCT ON, non-finite numbers, and writes.
+- **Runtime adapter** (`./runtime`): lowers with the renderer, infers a codec for bare values in raw SQL, and reads the marker from the control tables through `src/core/marker-read.ts`, which the control adapter shares.
+- **Not yet built**: the control adapter's own query lowering, which still refuses with `RUNTIME.AST_UNSUPPORTED`; the control plane runs SQL text.
 
 ## Exports
 
+- `./runtime`: the runtime adapter descriptor
 - `./control`: the control adapter descriptor, `MysqlControlAdapter` and `buildMysqlSchemaIR`
 - `./adapter`: capabilities and contract contributions
 - `./codec-types`: the `CodecTypes` an emitted `contract.d.ts` imports
