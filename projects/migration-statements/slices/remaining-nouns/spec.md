@@ -25,7 +25,7 @@ Without the statements, both commands refuse and print them, as they do today fo
 | Namespace renamed | Old schema and its tables kept silently; new ones created empty | Asked. `--rename billing:finance` renames the schema, before any other statement. `public` and a schema another contract space declares are refused |
 | Namespace removed | Its tables kept silently | Asked, one question per model, and the first question says `--delete billing` answers them all. `--delete billing` drops its tables and the schema. A table no contract declares is its own question, by its storage name |
 | Enum value renamed (stored value changes) | Postgres: the new CHECK fails at apply on rows with the old value. SQLite: planning fails with "no operations" | Asked. `--rename Status.A:Status.B` updates the rows |
-| Enum value removed | Same as above | Asked. `--delete Status.A` sets it to NULL where the field is optional; refused where it is required |
+| Enum value removed | Same as above | Asked, with `--rename` offered first. `--delete Status.A` sets it to NULL where the field is optional and removes it from lists. Where a required column holds it in rows, the apply stops, counts the rows and says how to keep them |
 | Enum value renamed, stored value unchanged (`@map`) | Nothing planned | Same. A `--rename` is accepted and reported with no operations |
 | Field inside a value object renamed | Nothing planned; old keys stay in the JSON | Asked. `--rename Address.street:Address.line1` rewrites the key in every column that holds an `Address` |
 | Field inside a value object removed | Nothing planned; old keys stay | Asked. `--delete Address.street` removes the key |
@@ -80,7 +80,9 @@ Each side of a statement is still one to three names separated by dots. New thin
 - The storage effect is worked out from stored values, not member names.
 - A rename updates every column typed by the enum: scalar columns with `UPDATE … SET col = new WHERE col = old`, list columns with `array_replace`. Enum values inside value object JSON are rewritten in the last PR, with the other JSON rewrites.
 - On Postgres the update runs between dropping the old CHECK and adding the new one.
-- A delete sets the value to NULL in optional columns and removes it from list columns. Where a required column holds it, the statement is refused, naming the column, and the message points to `--rename` or a hand-written migration.
+- A delete sets the value to NULL in optional columns and removes it from list columns. A required column is asked about like any other, and its removal checks rows, not the column: with no row holding the value it applies; while rows hold it, the apply fails with `MIGRATION.PRECHECK_FAILED`, changes nothing, counts the rows, and its next actions give one way to keep them each: add a member and rename the value to it, or keep the rows by hand (change the stored value in the database under `db update`; replace the removal with `this.replaceStoredValue(...)` in the `migration.ts` under `db migrate`). On SQLite the removals run after the table rebuilds, so a column the same change makes optional takes the NULL. A rename into a stored value another origin member already holds is refused, since it would merge their data. Without an origin contract nothing is asked or rewritten, and `--delete Status.ARCHIVED` answers nothing.
+- The operations are `this.replaceStoredValue(...)` and `this.removeStoredValue(...)`, usable in a hand-written `migration.ts`. The planner gives each the column's codec reference (`codecRef`), and the operation writes each value through that codec as the database stores it, as a literal default is written, so a value in another form cannot silently match no row.
+- SQLite has no list columns, so its operations are scalar only. Native Postgres enums are unchanged (decision 2).
 
 **Value object fields (Postgres and SQLite)**
 - The planner finds every column whose type reaches the value object, through nesting and lists. It rewrites the key in each one: `jsonb` operators on Postgres, `json_` functions on SQLite. Only documents that hold the old key are touched.
@@ -121,7 +123,7 @@ PR 3 is separate because it changes the contract shape and every contract with v
 
 | Case | Handling |
 | --- | --- |
-| An enum member keeps its name but its stored value changes | No statement can say this. Asked with `--delete` only; the advice says to write the update by hand, as for `@@map` today |
+| An enum member keeps its name but its stored value changes | No statement can say this. Asked with `--delete` only; the question names, for every column the enum types, the `this.removeStoredValue(...)` call to replace with a `this.replaceStoredValue(...)` call in the `migration.ts` that `migration plan` writes; `db update` cannot keep that data |
 | A removed variant with no columns of its own | Now asked as a model, so its rows are not left behind silently |
 | Renaming `public` | Refused. `public` is target-owned (ADR 223) and Postgres puts it on every search path. On PGlite a non-superuser database owner can run `ALTER SCHEMA public RENAME`, and a plain role cannot, but the refusal does not depend on that. The message says to move the models with `--rename Model:new.Model` instead |
 | `--delete billing` and `--rename billing.Invoice:public.Invoice` in one run | The rename runs first, so that model is kept, and the delete covers the rest |

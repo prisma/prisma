@@ -54,9 +54,9 @@ export function writeTree(root: string, tree: Tree): void {
   }
 }
 
-export function copyFixture(side: 'before' | 'after'): string {
+export function copyFixture(side: 'before' | 'after', fixture = 'nocheck'): string {
   const root = makeWorkDir();
-  cpSync(join(fixturesDir, side), root, { recursive: true });
+  cpSync(join(fixturesDir, fixture, side), root, { recursive: true });
   return root;
 }
 
@@ -67,11 +67,14 @@ export interface Run {
   readonly stderr: string;
 }
 
-export function runScript(root: string, script = appScript): Run {
-  const result = spawnSync(process.execPath, [script, root], { encoding: 'utf8' });
+export function runScript(root: string, script = appScript, args: readonly string[] = []): Run {
+  const result = spawnSync(process.execPath, [script, root, ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, NODE_PATH: '' },
+  });
   return { root, status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
-export function fixtureTree(side: 'before' | 'after'): Tree {
-  return readTree(join(fixturesDir, side));
+export function fixtureTree(side: 'before' | 'after', fixture = 'nocheck'): Tree {
+  return readTree(join(fixturesDir, fixture, side));
 }

@@ -6080,6 +6080,9 @@ importers:
       commander:
         specifier: ^15.0.0
         version: 15.0.0
+      gray-matter:
+        specifier: 'catalog:'
+        version: 4.0.3
       mongodb:
         specifier: 'catalog:'
         version: 7.5.0(socks@2.8.9)

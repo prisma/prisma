@@ -11,7 +11,13 @@ import type {
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   MigrationSubject,
+  RowsHoldingValue,
   TargetMigrationsCapability,
+} from '@internal/framework-components/control';
+import {
+  enumValueCoordinateFromJson,
+  enumValueStatementText,
+  modelStatementText,
 } from '@internal/framework-components/control';
 import type {
   AggregateMigrationEdgeRef,
@@ -28,6 +34,7 @@ import type {
   FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
+  RowsHoldingValueReport,
   RunnerFailureFacts,
 } from '../types';
 
@@ -61,17 +68,40 @@ function failedTypeChangeReport(change: FailedTypeChange, field: string): Failed
     : { field, by: 'conversion', reason: change.reason };
 }
 
+function rowsHoldingValueReport(
+  fact: RowsHoldingValue,
+  contract: OrderedResolution['entry']['destinationContract'],
+): RowsHoldingValueReport {
+  const enumValue = enumValueCoordinateFromJson(fact.enumValue);
+  return {
+    enumValue: enumValueStatementText(contract, enumValue),
+    enumName: modelStatementText(contract, {
+      namespaceId: enumValue.namespaceId,
+      model: enumValue.enum,
+    }),
+    value: fact.value,
+    rows: fact.rows,
+    ...ifDefined('keepDataEdit', fact.keepDataEdit),
+  };
+}
+
 /** What the runner said blocked the failed operation, named as the advice names it. */
 function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): Pick<RunnerFailureFacts, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
+): Pick<
+  RunnerFailureFacts,
+  'failedTypeChange' | 'rowsWithoutValue' | 'rowsHoldingValue' | 'failedMigration'
+> {
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.meta.failingSpace);
   if (resolution === undefined) return {};
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
-  const { failedTypeChange, rowsWithoutValue } = failure.meta;
-  const operationIndex = failedTypeChange?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
+  const { failedTypeChange, rowsWithoutValue, rowsHoldingValue } = failure.meta;
+  const operationIndex =
+    failedTypeChange?.operationIndex ??
+    rowsWithoutValue?.[0]?.operationIndex ??
+    rowsHoldingValue?.operationIndex;
   const edge =
     operationIndex !== undefined
       ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
@@ -92,6 +122,12 @@ function failureReports(
         reason,
         rows,
       })),
+    ),
+    ...ifDefined(
+      'rowsHoldingValue',
+      rowsHoldingValue === undefined
+        ? undefined
+        : rowsHoldingValueReport(rowsHoldingValue, resolution.entry.destinationContract),
     ),
     ...ifDefined(
       'failedMigration',

@@ -292,7 +292,7 @@ function statementRefused(
   };
 }
 
-function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
+export function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
   const node = contract.storage.namespaces[table.namespaceId]?.entries.table?.[table.table];
   return governingControlPolicy(
     { explicitNodeControlPolicy: StorageTable.is(node) ? node.control : undefined },
@@ -463,6 +463,8 @@ class StatementPlanner<TCall extends CallWithCompanions> {
         return this.#planModel(statement);
       case 'field':
         return this.#planField(statement);
+      case 'enumValue':
+        return ok([]);
     }
   }
 

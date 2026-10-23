@@ -4,7 +4,7 @@ to: "8.0.0-rc.20"
 changes:
   - id: stored-contracts-expand-type-aliases
     summary: |
-      A stored SQL contract whose columns name a type alias in `typeRef` no longer loads. Run `scripts/expand-type-aliases/expand-type-aliases.ts` from the project root, then re-emit the contract, then run `prisma db sign` against every database. The script writes each alias's parameters into the columns typed by it, in every stored contract, migration snapshots and the emitted `contract.json` included, and refreshes every hash and reference that changes.
+      A stored SQL contract whose columns name a type alias in `typeRef` no longer loads. Run `scripts/expand-type-aliases/expand-type-aliases.ts` from the project root, then re-emit the contract, then run `prisma db sign` against every database. Sign a database that has not applied every migration with `prisma db sign --contract <the last migration it applied>`, then run `prisma db migrate`. The script writes each alias's parameters into the columns typed by it, in every stored contract, migration snapshots and the emitted `contract.json` included, and refreshes every hash and reference that changes.
     detection:
       glob: "**/contract.json"
       matches:
@@ -30,11 +30,11 @@ changes:
         - '"@prisma/orm-extension-supabase"'
   - id: engine-pin-moves-to-0-9-0
     summary: |
-      The toolchain now requires `@prisma/cli-engine@0.9.0` (up from 0.7.0). A project that depends on `@prisma/cli-engine` itself must move to `0.9.0`.
+      The toolchain now requires `@prisma/cli-engine@0.9.0` (up from 0.7.0). A project whose Prisma config, tests or tooling load `@prisma/cli-engine` alongside the Prisma toolchain must move it to `0.9.0`, in `package.json` or in a `pnpm-workspace.yaml` catalog. A separate CLI that the project builds on the engine is not affected. The detection matches an engine version below 0.9 in either file.
     detection:
-      glob: "**/package.json"
+      glob: "**/{package.json,pnpm-workspace.yaml}"
       matches:
-        - '"@prisma/cli-engine":\s*"[^"]*(?<![\d.])0\.[0-8](?!\d)'
+        - '[\x27"]@prisma/cli-engine[\x27"]\s*:\s*[\x27"]?[^\x27"\n#]*(?<![\d.])0\.[0-8](?!\d)'
   - id: piped-output-needs-json
     summary: |
       A piped Prisma ORM command no longer prints JSON. Without `--json`, stdout receives the command's plain data lines, such as one tab-separated line per migration. A script that reads JSON from `prisma contract …`, `prisma db …`, `prisma migration …` or `prisma orm init` must pass `--json`.
@@ -75,14 +75,14 @@ changes:
     detection:
       glob: "**/*.prisma"
       matches:
-        - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"mongo/(?:double|int64|int64Number|decimal128|date|binary)@1"\s*\))[^}]*\n\s*\w+\s*=\s*"'
+        - 'enum\s+\w+\s*\{(?=[^{}]*@@type\(\s*"mongo/(?:double|int64|int64Number|decimal128|date|binary)@1"\s*\))[^{}]*\n\s*\w+\s*=\s*"'
   - id: mongo-integer-enum-members-with-a-fraction
     summary: |
       A MongoDB PSL number with a fraction, such as `1.0`, is now a Decimal128 value, and no integer type casts from Decimal128, so an Int32 or Int64 member written with a fraction is refused with `PSL_VALUE_TYPE_INCOMPATIBLE` (`Expected a number that mongo/int32 can hold; got mongo/decimal128`). Write the whole number, `One = 1`. The detection matches an Int32 or Int64 enum with a member written with a fraction.
     detection:
       glob: "**/*.prisma"
       matches:
-        - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"mongo/(?:int32|int64|int64Number)@1"\s*\))[^}]*\n\s*\w+\s*=\s*-?\d+\.\d'
+        - 'enum\s+\w+\s*\{(?=[^{}]*@@type\(\s*"mongo/(?:int32|int64|int64Number)@1"\s*\))[^{}]*\n\s*\w+\s*=\s*-?\d+\.\d'
   - id: discriminator-optional-or-list
     summary: |
       A `@@discriminator` field must be required and hold one value, in SQL and MongoDB schemas alike. An optional field is refused with `Discriminator field "<field>" on model "<Model>" must be required, but it is optional. Remove the "?"`, and a list with `... must hold one value, but it is a list. Remove the "[]"`, both `PSL_INVALID_ATTRIBUTE_ARGUMENT`. Make the field required and single: a document or row without the value has no variant. The detection matches a model whose `@@discriminator` names a field declared with `?` or `[]`.
@@ -105,14 +105,14 @@ changes:
       matches:
         - 'was rejected by codec \\?"mongo/'
         - 'must be of type String'
-        - '(?=[\s\S]*@@base\()[\s\S]*PSL_INVALID_DEFAULT_LITERAL'
+        - '(?<![\s\S])(?=[\s\S]*@@base\()[\s\S]*PSL_INVALID_DEFAULT_LITERAL'
   - id: decimal128-spelling
     summary: |
       `mongo/decimal128` stores its values as MongoDB writes them: without leading zeros, keeping negative zero, and only a value a Decimal128 holds exactly. A `contract.json` that stores a Decimal128 value with leading zeros, such as `"007.5"`, is refused when it is loaded with `RUNTIME.DECODE_FAILED`, which names the value to store; emit the contract again. A TypeScript enum member such as `member('Half', '007.5')` is stored as `7.5`, so its contract gets a new hash on the next emit. A value with more than 34 significant digits, counting zeros after the decimal point, such as `1.000000000000000000000000000000000000`, is refused in PSL, TypeScript and `contract.json` instead of being rounded; write a value with at most 34 significant digits. The detection matches a Decimal128 value with leading zeros or more than 34 digits.
     detection:
       glob: "**/*.{json,ts,mts,cts,tsx,prisma}"
       matches:
-        - 'mongo/decimal128@1[\s\S]*?(?:[=,(:]\s*["\x27`]?-?0\d|[=,(:]\s*["\x27`]?-?\d[\d.]{35,})'
+        - '(?<![\s\S])(?=([\s\S]*?mongo/decimal128@1))\1[\s\S]*?(?:[=,(:]\s*["\x27`]?-?0\d(?![0-9a-f]{62}["\x27`])|[=,(:]\s*["\x27`]?-?\d[\d.]{35,})'
   - id: sql-builder-insert-required-columns
     summary: |
       A SQL builder insert, `db.sql.<namespace>.<table>.insert(rows)`, must now include every column that is not nullable and has no default. Leaving one out is a type error that names the column, and so is a value typed `T | undefined` for such a column. Add a real value, narrowed to `T`.
@@ -169,11 +169,11 @@ changes:
 
 Two changes in this release change storage hashes: the type-alias change (`stored-contracts-expand-type-aliases`) and the re-emitted Supabase contract (`supabase-contract-expanded`). Do the steps in this order, and skip a step that does not apply to the project:
 
-1. Commit your work, so the script's changes can be reviewed and undone with git. Then upgrade the Prisma packages. If the project depends on `@prisma/cli-engine` itself, move it to `0.9.0` (`engine-pin-moves-to-0-9-0`).
+1. Commit your work, so the script's changes can be reviewed and undone with git. Then upgrade the Prisma packages. If the project's Prisma config, tests or tooling load `@prisma/cli-engine` alongside the Prisma toolchain, move it to `0.9.0` (`engine-pin-moves-to-0-9-0`).
 2. Rewrite the stored contracts, from the project root, with `scripts/expand-type-aliases/expand-type-aliases.ts` (`stored-contracts-expand-type-aliases`). It leaves a project without type aliases unchanged and says so.
 3. Change the contract source as the entries below say: a TypeScript contract drops its `types` key (`ts-types-key-removed`), and a MongoDB schema rewrites the enum members and discriminators the MongoDB entries name.
 4. Run `prisma contract emit` (this also covers `contract-artifacts-restamp`).
-5. Run `prisma db sign` against every database when step 2 changed a storage hash, or when the project uses the Supabase extension.
+5. Run `prisma db sign` against every database when step 2 changed a storage hash, or when the project uses the Supabase extension. A database that has not applied every migration needs `--contract`, as `stored-contracts-expand-type-aliases` describes.
 6. For each migration that is not applied yet and that `check-expectation` or `check-expectation-raw-sql` matches, run its `migration.ts` again. This is optional.
 7. Change the application code and scripts: add `--json` where a script parses a command's output (`piped-output-needs-json`), rename `accessWidening` (`access-changes-rename`), read `meta.schemaIssues` (`schema-verification-failed-schema-issues`), complete SQL builder inserts and ORM creates (`sql-builder-insert-required-columns`, `orm-create-on-update-only-field`), and move Supabase code to `forRole` (`supabase-for-role-replaces-with-role-methods` and the entries after it).
 
@@ -193,7 +193,7 @@ Migration snapshots, the emitted `contract.json` and any other stored contract w
 node <guide>/scripts/expand-type-aliases/expand-type-aliases.ts
 ```
 
-`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `.git`, `dist` and `build`. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards.
+`<guide>` is the directory that holds this guide. Node 24 or later runs the TypeScript script directly; it needs no `tsx`. The script reads and writes files only and needs no database. It rewrites every SQL contract under the root, skipping `node_modules`, `dist`, `build` and every directory whose name starts with `.`, such as `.git` and the worktrees under `.claude/worktrees/`. That includes a test fixture of an old contract: if you keep one on purpose, restore it with git afterwards.
 
 In each contract it replaces every column's `typeRef` with the parameters of the `storage.types` entry it names, and removes each entry a column named. In a contract of your app's own contract space it also removes every entry that no column names. Your app's contract never needs such an entry: it is an alias that the source declares but no field uses, which a re-emit drops as well, or, in a TypeScript source, a `codec-instance` entry that no field uses, which `ts-types-key-removed` tells you to delete. Only an extension's contract space registers a database type. So in a contract of an extension's contract space, such as the copy of pgvector's space in `migrations/snapshots/`, the script keeps an entry that no column names, such as `vector`, and lists it. It makes the same change in the `contract.d.ts` next to the contract. The script tells the spaces apart by the migrations directory: a snapshot that a migration or ref under `migrations/app/` names is your app's, and one that a migration or ref under any other `migrations/<space>/` names is an extension's. A snapshot that no migration or ref names may be either, so the script keeps its unused entries and lists them. The emitted `contract.json` is your app's.
 
@@ -218,6 +218,15 @@ Each database's marker still holds the old storage hash, so `prisma db verify` a
 ```sh
 prisma db sign --db "$DATABASE_URL"
 ```
+
+A plain `prisma db sign` signs the database against the emitted contract, so it signs only a database that has applied every migration. A database that has not, such as production while the latest migrations wait for review, is refused: `db sign` says its schema does not satisfy the contract, and `prisma db migrate` stops with `MIGRATION.MARKER_MISMATCH`, because the marker holds an old hash that no migration names any more. Sign such a database with the contract of the last migration it applied, then migrate it:
+
+```sh
+prisma db sign --contract <the last migration it applied> --db "$DATABASE_URL"
+prisma db migrate --db "$DATABASE_URL"
+```
+
+`--contract` takes the migration's directory name, such as `20260917T0818_add_post_expires_at`, or the new hash that migration goes to. To find it, run `prisma migration status` against the database. It prints the start of the old hash the marker holds: `Database marker <hash> is not in the on-disk migration graph`. The error of `prisma db migrate` prints the whole hash: `DB marker is <hash>`. Find the line of the script's `<old> -> <new>` list whose old hash is that one. The new hash on that line is the one to sign with, and the migration that goes to it is the last one the database applied.
 
 The script has already written the new hash into each ref, so when `db sign` advances a ref, such as `migrations/app/refs/db.json`, it prints the new hash twice: `Advanced ref "db" → <new hash> (was <new hash>)`. This is expected, and the database is signed.
 
@@ -292,7 +301,9 @@ A contract that composes the Supabase space references it by id, so this change 
 
 ### `engine-pin-moves-to-0-9-0`
 
-For every `package.json` matched by `detection`, change the `@prisma/cli-engine` version (`0.7.0`, `^0.7.0` or any other 0.x below 0.9) to `0.9.0` and reinstall. Projects assembled by the `prisma` CLI resolve the engine automatically.
+This applies to a project whose Prisma config, tests or tooling load `@prisma/cli-engine` alongside the Prisma toolchain. A separate CLI that the project builds on the engine runs its own engine, so it does not have to move with this upgrade.
+
+For every `package.json` or `pnpm-workspace.yaml` catalog matched by `detection`, change the `@prisma/cli-engine` version (`0.7.0`, `^0.7.0` or any other 0.x below 0.9) to `0.9.0` and reinstall. Projects assembled by the `prisma` CLI resolve the engine automatically.
 
 ### `piped-output-needs-json`
 
