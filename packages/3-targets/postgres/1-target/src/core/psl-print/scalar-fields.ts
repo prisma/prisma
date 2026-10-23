@@ -129,7 +129,7 @@ export function buildScalarFields(input: {
     });
     const columnType: PslColumnType =
       field.type.kind === 'valueObject'
-        ? { kind: 'valueObject', typeName: field.type.name }
+        ? { kind: 'valueObject', typeName: field.type.entityName }
         : buildColumnType({
             column,
             inferredConstructors,

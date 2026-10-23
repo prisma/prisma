@@ -212,6 +212,33 @@ policy_select p_read {
 `,
   },
   {
+    name: 'a value object nested in another, a list of nested value objects, and an enum member',
+    schema: `enum Country {
+  @@type("pg/text@1")
+  DE = "DE"
+  FR = "FR"
+}
+
+type Geo {
+  lat Float
+  lng Float
+}
+
+type Address {
+  street  String
+  country Country
+  geo     Geo
+  stops   Geo[]
+}
+
+model Person {
+  id    Int       @id
+  home  Address
+  homes Address[]
+}
+`,
+  },
+  {
     name: 'a list of value objects',
     schema: `type Address {
   street String
