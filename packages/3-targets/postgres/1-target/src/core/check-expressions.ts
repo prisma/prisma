@@ -73,9 +73,6 @@ export function postgresRenderCheckExpressions(
   return candidates;
 }
 
-/**
- * One strict `jsonpath` predicate over the whole column value. Strict mode keeps a comparison from unwrapping an array, and `IS TRUE` makes a predicate that evaluates to unknown fail the check, as a CHECK would otherwise pass on NULL. Member values are read through `keyvalue()`, so an absent member is never an error.
- */
 type JsonTypeOfCodec = (codecId: string) => ValueObjectJsonType;
 
 /** The JSON type each codec declares for a value object member, read from the codec's descriptor. */
@@ -92,6 +89,9 @@ function jsonTypeReader(
   };
 }
 
+/**
+ * One strict `jsonpath` predicate over the whole column value. Strict mode keeps a comparison from unwrapping an array, and `IS TRUE` makes a predicate that evaluates to unknown fail the check, as a CHECK would otherwise pass on NULL. Member values are read through `keyvalue()`, so an absent member is never an error.
+ */
 function valueObjectCheck(
   column: string,
   columnValueObject: ResolvedColumnValueObject,
