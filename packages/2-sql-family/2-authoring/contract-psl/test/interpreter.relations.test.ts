@@ -327,6 +327,31 @@ model Post {
     ]);
   });
 
+  it('reports an unknown composite type member type, not the error the build would find', () => {
+    const result = interpretSqlContract(
+      `type Address {
+  street Foo
+}
+
+model User {
+  id    Int @id
+  posts Post[]
+}
+
+model Post {
+  id       Int  @id
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id], index: "post_author_gone")
+}
+`,
+      { ...baseInput },
+    );
+
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([{ code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find type "Foo"' }]);
+  });
+
   it.each([
     [
       'an over-qualified type',

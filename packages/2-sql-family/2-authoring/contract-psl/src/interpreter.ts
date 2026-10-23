@@ -120,6 +120,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { isStructuredError } from '@internal/utils/structured-error';
+import { compareStrings } from './compare-strings';
 import { contractError } from './contract-errors';
 import { defaultTableName } from './default-table-name';
 import {
@@ -219,16 +220,6 @@ function buildComposedExtensionPackRefs(
         } satisfies ExtensionPackRef<'sql', string>),
     ]),
   );
-}
-
-function compareStrings(left: string, right: string): -1 | 0 | 1 {
-  if (left < right) {
-    return -1;
-  }
-  if (left > right) {
-    return 1;
-  }
-  return 0;
 }
 
 function declarationsHoldingModels(namespace: NamespaceSymbol): ReadonlySet<SyntaxNode> {

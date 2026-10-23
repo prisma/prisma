@@ -7,6 +7,7 @@ import type { AssembledAuthoringContributions } from '@internal/framework-compon
 import type { DescribeUnresolvedType } from '@internal/psl-parser';
 import { describeRemovedFieldPreset } from '@internal/psl-parser/interpret';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
+import { compareStrings } from './compare-strings';
 import { parseQuotedStringLiteral } from './psl-attribute-parsing';
 import { removedSqlFieldPresets } from './removed-field-presets';
 
@@ -23,7 +24,7 @@ function suggestNamespacedTypes(
         ? [`${namespace}.${written}`]
         : [];
     })
-    .sort();
+    .sort(compareStrings);
   return candidates.length === 0
     ? undefined
     : `Cannot find type "${written}". Did you mean ${candidates.join(' or ')}?`;
