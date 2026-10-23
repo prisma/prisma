@@ -166,6 +166,16 @@ describe('psl-enum-members-read-by-the-cast-rule detection', () => {
   ])('skips %s', (_name, source) => {
     expect(detects(patterns, source)).toBe(false);
   });
+
+  it.each([
+    ['enum blocks', 'enum E {\n'],
+    ['typed enum blocks', 'enum E {\n  @@type("pg/int4@1")\n'],
+  ])('reads 400 KB of repeated unclosed %s in linear time', (_name, line) => {
+    const source = line.repeat(Math.ceil(400_000 / line.length));
+    const start = performance.now();
+    const found = detects(patterns, source);
+    expect({ found, fast: performance.now() - start < 1000 }).toEqual({ found: false, fast: true });
+  });
 });
 
 describe('enum-members-compare-by-their-data-type detection', () => {

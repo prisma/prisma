@@ -25,6 +25,10 @@ describe.each(['app', 'extension'] as const)(
         'a renamed named import',
         "import { mongoQuery as query } from '@prisma/orm-mongo/query-builder';\nconst q = query<Contract>({ contractJson });",
       ],
+      [
+        'a default import after other imports from the same module',
+        "import { a } from './a';\nimport type { PostgresClient } from '@prisma/orm-postgres/runtime';\nimport pg from '@prisma/orm-postgres/runtime';\nconst db = pg<Contract<Db>>({ contractJson });",
+      ],
     ])('finds %s', (_name, content) => {
       expect(detects(audience, content)).toBe(true);
     });
@@ -40,6 +44,20 @@ describe.each(['app', 'extension'] as const)(
       ],
     ])('skips %s', (_name, content) => {
       expect(detects(audience, content)).toBe(false);
+    });
+
+    it.each([
+      ['default imports', "import pg from '@prisma/orm-postgres/runtime';\n"],
+      ['renamed imports', "import { default as pg } from '@prisma/orm-postgres/runtime';\n"],
+      ['unclosed import lists', "import pg, { a from '@prisma/orm-postgres/runtime';\n"],
+    ])('reads 400 KB of repeated %s in linear time', (_name, line) => {
+      const content = line.repeat(Math.ceil(400_000 / line.length));
+      const start = performance.now();
+      const found = detects(audience, content);
+      expect({ found, fast: performance.now() - start < 1000 }).toEqual({
+        found: false,
+        fast: true,
+      });
     });
   },
 );

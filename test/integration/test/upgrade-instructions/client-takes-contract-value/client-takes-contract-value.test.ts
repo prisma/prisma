@@ -322,6 +322,7 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ['a static entry', 'mongoStatic<Contract>({ contractJson }).enums'],
     ['the query builder', 'mongoQuery<TContract>({ contractJson: contract })'],
     ['Supabase', 'supabase<Contract>({ url, contractJson, jwtSecret })'],
+    ['a nested type argument', 'postgres<OrmContractOf<Contract>>({ contractJson, url })'],
   ])('finds %s', (_name, content) => {
     expect(detects(content)).toBe(true);
   });

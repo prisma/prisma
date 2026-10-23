@@ -166,7 +166,7 @@ changes:
     detection:
       glob: "**/*.prisma"
       matches:
-        - 'enum\s+\w+\s*\{(?=[^}]*@@type\(\s*"(?!(?:pg/(?:text|char|varchar|uuid|inet|bit|varbit)|sql/(?:text|char|varchar)|sqlite/text|mongo/[\w-]+)@1")[^"]+"\s*\))[^}]*=\s*"'
+        - 'enum\s+\w+\s*\{(?=[^{}]*@@type\(\s*"(?!(?:pg/(?:text|char|varchar|uuid|inet|bit|varbit)|sql/(?:text|char|varchar)|sqlite/text|mongo/[\w-]+)@1")[^"]+"\s*\))[^{}]*=\s*"'
   - id: enum-members-compare-by-their-data-type
     summary: |
       An enum typed by `pg/numeric@1`, `pg/interval@1` or `mongo/decimal128@1` now compares values as its data type does, as PostgreSQL's CHECK constraint already did: `db.enums.<namespace>.<Enum>.has()`, `nameOf()` and `ordinalOf()` find `0.50` as the numeric member `0.5`, and `PT24H` as the interval member `P1D`. Two members that are one value in different forms, such as `0.5` and `0.50`, or `P1D` and `PT24H`, are now refused as duplicates: `CONTRACT.ENUM_INVALID` from `defineContract`, and `PSL_ENUM_DUPLICATE_MEMBER_VALUE` from PSL. Such an enum's members, and a column typed by it, are typed as the codec's type, such as `string` for `pg/numeric@1`, because a read can return a member in another form. This holds both in the emitted `contract.d.ts` and in the types `defineContract` infers. A `mongo/decimal128@1` enum is refused when the contract is built, because a collection validator cannot list BSON decimals, so for it only the types changed.
@@ -198,9 +198,9 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
-        - 'import\s+([\w$]+)\s*(?:,\s*\{[^}]*\}\s*)?from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
-        - 'import\s*(?:[\w$]+\s*,\s*)?\{[^}]*\b(?:default|supabase|mongoQuery|postgresStatic|sqliteStatic|mongoStatic)\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - '(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - '(?<![\s\S])(?:(?!import\s+[\w$]+\s*(?:,\s*\{[^{}]*\}\s*)?from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"])[\s\S])*import\s+([\w$]+)\s*(?:,\s*\{[^{}]*\}\s*)?from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
+        - '(?<![\s\S])(?:(?!import\s*(?:[\w$]+\s*,\s*)?\{[^{}]*\b(?:default|supabase|mongoQuery|postgresStatic|sqliteStatic|mongoStatic)\s+as\s+[\w$]+[^{}]*\}\s*from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"])[\s\S])*import\s*(?:[\w$]+\s*,\s*)?\{[^{}]*\b(?:default|supabase|mongoQuery|postgresStatic|sqliteStatic|mongoStatic)\s+as\s+([\w$]+)[^{}]*\}\s*from\s*[''"]@prisma/orm-(?:(?:postgres|sqlite|mongo)/(?:runtime|serverless|static|query-builder)|extension-supabase/runtime)[''"][\s\S]*(?<![\w$.])\1(?:<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
     script: ./scripts/client-takes-contract-value/contract-from-json.ts
   - id: collections-on-the-client
     summary: |
@@ -208,8 +208,8 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$.])orm\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
-        - 'import\s*\{[^}]*\borm\s+as\s+([\w$]+)[^}]*\}\s*from\s*[''\"][^''\"]+[''\"][\s\S]*(?<![\w$.])\1\s*(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
+        - '(?<![\w$.])orm\s*(?:<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
+        - '(?<![\s\S])(?:(?!import\s*\{[^{}]*\borm\s+as\s+[\w$]+[^{}]*\}\s*from\s*[''\"][^''\"]+[''\"])[\s\S])*import\s*\{[^{}]*\borm\s+as\s+([\w$]+)[^{}]*\}\s*from\s*[''\"][^''\"]+[''\"][\s\S]*(?<![\w$.])\1\s*(?:<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*?,)?\s*collections\s*[,}:]'
   - id: client-query-and-to-sql
     summary: |
       Additive for code that only uses these types. Every SQL client gets `query(plan)` and `execute(plan)`, with the types a transaction's have, and `toSql(plan)`, which returns `{ sql, params }` with no database. A serverless connection gets `query` and `execute` too; the serverless client, `postgresStatic()`, `sqliteStatic()` and every transaction get `toSql`. `postgres()`, `postgresServerless()`, `sqlite()` and `supabase()` take `mode: 'strict' | 'permissive'`. `supabase()` creates its pool on the first query instead of when it is called. Application code can move from `db.runtime().query(plan)` to `db.query(plan)`; code that builds its own object of one of the changed types, such as a test double, must add the new members. The detection matches a file that imports one of the changed types from a Prisma package, calls `runtime().query(` or `runtime().execute(`, or reads the renamed error details or the old message texts.

@@ -30,7 +30,7 @@ const FACADE_ENTRY =
 const SUPABASE_ENTRY = '@prisma/orm-extension-supabase/runtime';
 const FACTORY_EXPORTS = new Set(['default', 'supabase', 'mongoQuery']);
 const DETECTION =
-  /(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]/;
+  /(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^<>()]*(?:<[^<>()]*>[^<>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]/;
 
 interface Edit {
   readonly start: number;

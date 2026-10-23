@@ -29,6 +29,10 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
       'an aliased import',
       "import { orm as createOrm } from './orm-client';\n\nexport const db = createOrm({ runtime, context, collections: { Post: PostCollection } });",
     ],
+    [
+      'an aliased import after other imports, with a nested type argument',
+      "import { a } from './a';\nimport { orm as createOrm } from './orm-client';\n\nexport const db = createOrm<Classes<Contract>>({ runtime, context, collections });",
+    ],
   ])('finds %s', (_name, content) => {
     expect(detects(content)).toBe(true);
   });
@@ -57,5 +61,16 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ],
   ])('skips %s', (_name, content) => {
     expect(detects(content)).toBe(false);
+  });
+
+  it.each([
+    ['renamed imports', "import { orm as o } from './orm';\n"],
+    ['unclosed import lists', "import { orm as o from './orm';\n"],
+    ['type arguments that never close', 'orm<<<<<<<<<<<<<<<<>'],
+  ])('reads 400 KB of repeated %s in linear time', (_name, line) => {
+    const content = line.repeat(Math.ceil(400_000 / line.length));
+    const start = performance.now();
+    const found = detects(content);
+    expect({ found, fast: performance.now() - start < 1000 }).toEqual({ found: false, fast: true });
   });
 });
