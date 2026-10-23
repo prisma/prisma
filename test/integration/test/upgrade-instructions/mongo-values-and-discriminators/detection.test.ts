@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { detectionPatterns, guideChanges } from '../guide-detections';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
@@ -13,12 +14,7 @@ const GUIDE_PATHS = {
 } as const;
 
 function patternsOf(audience: keyof typeof GUIDE_PATHS, id: string): readonly RegExp[] {
-  const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf-8');
-  const block = guide.split(/\n {2}- id: /).find((entry) => entry.startsWith(`${id}\n`));
-  if (block === undefined) throw new Error(`no change ${id}`);
-  return [...block.matchAll(/^ {8}- '(.*)'$/gm)].map(
-    ([, pattern]) => new RegExp((pattern ?? '').replaceAll("''", "'")),
-  );
+  return detectionPatterns(GUIDE_PATHS[audience], id);
 }
 
 function detection(audience: 'app' | 'extension', id: string) {
@@ -173,6 +169,43 @@ describe('decimal128-spelling detection', () => {
   ])('skips %s', (_name, source) => {
     expect(detects(source)).toBe(false);
   });
+});
+
+describe('decimal128-spelling detection on a contract.json', () => {
+  const detects = detection('app', 'decimal128-spelling');
+  const contract = readFileSync(
+    join(repoRoot, 'test/integration/test/mongo/bson-scalars/_fixture/generated/contract.json'),
+    'utf-8',
+  );
+  const storageHash = /"storageHash": "([0-9a-f]{64})"/.exec(contract)?.[1] ?? '';
+
+  it('skips the bson-scalars contract', () => {
+    expect({ storageHash: storageHash.length, detected: detects(contract) }).toEqual({
+      storageHash: 64,
+      detected: false,
+    });
+  });
+
+  it('skips the bson-scalars contract with a storage hash that starts with 0 and a digit', () => {
+    expect(detects(contract.replace(storageHash, `07${storageHash.slice(2)}`))).toBe(false);
+  });
+});
+
+describe('detection patterns that look at the whole file', () => {
+  const lookAheadOverTheFile = String.raw`(?=[\s\S]*`;
+  const startOfFile = String.raw`(?<![\s\S])`;
+
+  it.each(['app', 'extension'] as const)(
+    'start at the start of the file in the %s guide, so each file is read once',
+    (audience) => {
+      const unanchored = guideChanges(GUIDE_PATHS[audience])
+        .flatMap((change) => change.detection?.matches ?? [])
+        .filter(
+          (pattern) => pattern.includes(lookAheadOverTheFile) && !pattern.startsWith(startOfFile),
+        );
+      expect(unanchored).toEqual([]);
+    },
+  );
 });
 
 describe('entity-context-data-types detection', () => {

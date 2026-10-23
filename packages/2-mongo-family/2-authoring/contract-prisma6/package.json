@@ -26,6 +26,7 @@
     "@internal/framework-components": "workspace:8.0.0-rc.20",
     "@internal/mongo-contract": "workspace:8.0.0-rc.20",
     "@internal/mongo-contract-psl": "workspace:8.0.0-rc.20",
+    "@internal/mongo-contract-ts": "workspace:8.0.0-rc.20",
     "@internal/psl-parser": "workspace:8.0.0-rc.20",
     "@internal/utils": "workspace:8.0.0-rc.20",
     "pathe": "^2.0.3"

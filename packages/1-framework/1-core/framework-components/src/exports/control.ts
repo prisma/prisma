@@ -71,6 +71,7 @@ export type {
   MigrationScaffoldContext,
   OpFactoryCall,
   PlanOrigin,
+  RowsHoldingValue,
   RowsWithoutValue,
   SchemaEntityCoordinate,
   SchemaOwnership,
@@ -107,6 +108,8 @@ export {
 } from '../control/control-operation-results';
 export type {
   CoreSchemaView,
+  SchemaLabelPart,
+  SchemaLabelPartRole,
   SchemaTreeNodeOptions,
   SchemaTreeVisitor,
   SchemaViewNodeKind,
@@ -139,8 +142,11 @@ export {
 } from '../control/control-stack';
 export type {
   AppliedMigrationStatement,
+  EnumValueCoordinate,
+  EnumValueCoordinateJson,
   FieldCoordinate,
   FieldCoordinateJson,
+  KeepDataEdit,
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationDataLossKind,
@@ -153,6 +159,7 @@ export type {
   MigrationTemporaryValue,
   ModelCoordinate,
   ModelCoordinateJson,
+  ResolvedEnumValueRenameStatement,
   ResolvedFieldBackfillStatement,
   ResolvedFieldConvertStatement,
   ResolvedFieldRenameStatement,
@@ -163,6 +170,9 @@ export type {
 } from '../control/migration-statements';
 export {
   describeMigrationStatement,
+  enumValueCoordinateFromJson,
+  enumValueCoordinateJson,
+  enumValueStatementText,
   fieldStatementText,
   isRenameStatement,
   migrationStatementJson,

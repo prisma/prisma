@@ -20,14 +20,22 @@ const EXT_HASH = 'e'.repeat(64);
  */
 function createMarkerStore(
   initial: Record<string, StoredMarker>,
-  options: { readonly casLosesOn?: string } = {},
+  options: {
+    readonly casLosesOn?: string;
+    readonly bootstrapSql?: string;
+    readonly holdsMarkerLockOutsideTransaction?: boolean;
+  } = {},
 ) {
   let markers = new Map(Object.entries(initial));
   const events: string[] = [];
   const adapter = {
     familyId: 'sql',
     targetId: 'postgres',
-    bootstrapSignMarkerQueries: () => [],
+    markerLocation: 'stub_marker',
+    bootstrapSignMarkerQueries: () => (options.bootstrapSql === undefined ? [] : [{}]),
+    async lowerToExecuteRequest() {
+      return { sql: options.bootstrapSql, params: [] };
+    },
     async withTransaction<T>(_driver: unknown, fn: () => Promise<T>): Promise<T> {
       const snapshot = new Map(markers);
       events.push('BEGIN');
@@ -44,6 +52,18 @@ function createMarkerStore(
     async lockMarker() {
       events.push('lock');
     },
+    ...(options.holdsMarkerLockOutsideTransaction === true
+      ? {
+          async holdMarkerLock<T>(_driver: unknown, work: () => Promise<T>): Promise<T> {
+            events.push('hold lock');
+            try {
+              return await work();
+            } finally {
+              events.push('release lock');
+            }
+          },
+        }
+      : {}),
     async readMarker(_driver: unknown, space: string) {
       const stored = markers.get(space);
       return stored === undefined
@@ -87,6 +107,12 @@ function createMarkerStore(
       }),
     ),
     events,
+    driver: {
+      async query(sql: string) {
+        events.push(sql);
+        return { rows: [] };
+      },
+    } as unknown as SqlControlDriverInstance<string>,
     markers: () => Object.fromEntries(markers),
   };
 }
@@ -95,6 +121,12 @@ const driver = {} as SqlControlDriverInstance<string>;
 const appContract = buildContract();
 const extContract = buildContract({ storageHash: EXT_HASH, profileHash: 'ext-profile' });
 const appHashes = { storageHash: FIXTURE_HASH, profileHash: 'fixture-profile-v1' };
+
+describe('sql family markerLocation', () => {
+  it('names the marker location its control adapter names', () => {
+    expect(createMarkerStore({}).instance.markerLocation).toBe('stub_marker');
+  });
+});
 
 describe('sql family signSpaces', () => {
   it('writes the marker of every space in one transaction', async () => {
@@ -263,6 +295,47 @@ describe('sql family signSpaces', () => {
     expect(store.markers()).toEqual({
       [APP_SPACE_ID]: { storageHash: 'written-by-migrate', profileHash: 'migrate-profile' },
     });
+  });
+
+  it('takes the lock and creates the marker table inside the transaction that writes markers', async () => {
+    const store = createMarkerStore({}, { bootstrapSql: 'CREATE TABLE IF NOT EXISTS marker' });
+
+    await store.instance.signSpaces({
+      driver: store.driver,
+      spaces: [{ space: APP_SPACE_ID, contract: appContract, expected: null }],
+    });
+
+    expect(store.events).toEqual([
+      'BEGIN',
+      'lock',
+      'CREATE TABLE IF NOT EXISTS marker',
+      'insert app',
+      'COMMIT',
+    ]);
+  });
+
+  it('creates the marker table under a lock held outside the transaction when the adapter holds one', async () => {
+    const store = createMarkerStore(
+      {},
+      {
+        bootstrapSql: 'CREATE TABLE IF NOT EXISTS marker',
+        holdsMarkerLockOutsideTransaction: true,
+      },
+    );
+
+    await store.instance.signSpaces({
+      driver: store.driver,
+      spaces: [{ space: APP_SPACE_ID, contract: appContract, expected: null }],
+    });
+
+    expect(store.events).toEqual([
+      'hold lock',
+      'CREATE TABLE IF NOT EXISTS marker',
+      'BEGIN',
+      'insert app',
+      'COMMIT',
+      'release lock',
+    ]);
   });
 
   it('opens no transaction when there is no space to sign', async () => {

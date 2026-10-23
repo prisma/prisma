@@ -31,10 +31,11 @@ interface JsonRecord {
   [key: string]: Json;
 }
 
-const SKIPPED_DIRECTORIES = new Set(['node_modules', '.git', 'dist', 'build']);
+const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build']);
 const APP_SPACE_ID = 'app';
 const HASH = /^[0-9a-f]{64}$/;
 const TEMPORARY_SUFFIX = '.expand-type-aliases-tmp';
+const BYTE_ORDER_MARK = '\uFEFF';
 
 function isRecord(value: unknown): value is JsonRecord {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
@@ -42,9 +43,13 @@ function isRecord(value: unknown): value is JsonRecord {
   return prototype === Object.prototype || prototype === null;
 }
 
+function withoutByteOrderMark(text: string): string {
+  return text.startsWith(BYTE_ORDER_MARK) ? text.slice(BYTE_ORDER_MARK.length) : text;
+}
+
 function parseJson(text: string): Json | undefined {
   try {
-    const value: Json = JSON.parse(text);
+    const value: Json = JSON.parse(withoutByteOrderMark(text));
     return value;
   } catch {
     return undefined;
@@ -325,7 +330,7 @@ function listFiles(root: string): ProjectFiles {
         continue;
       }
       if (entry.isDirectory() || (entry.isSymbolicLink() && isDirectory(path))) {
-        if (!SKIPPED_DIRECTORIES.has(entry.name)) visit(path);
+        if (!SKIPPED_DIRECTORIES.has(entry.name) && !entry.name.startsWith('.')) visit(path);
         continue;
       }
       if (!isFileEntry(dir, entry)) continue;
@@ -518,12 +523,20 @@ function withStorageHash(contract: JsonRecord, hash: string): JsonRecord {
   return { ...contract, storage: { ...storage, storageHash: hash } };
 }
 
-/** The contract written the way the file held it: a snapshot's canonical line, or indented JSON. */
+function lineEndingOf(text: string): string {
+  return text.includes('\r\n') ? '\r\n' : '\n';
+}
+
+/** The contract written the way the file held it: a snapshot's canonical line, or indented JSON, with the file's byte order mark and line ending. */
 function writtenForm(contract: JsonRecord, original: JsonRecord, text: string): string {
-  const newline = text.endsWith('\n') ? '\n' : '';
-  if (text === `${canonicalizeJson(original)}${newline}`)
-    return `${canonicalizeJson(contract)}${newline}`;
-  return `${JSON.stringify(contract, null, 2)}${newline}`;
+  const mark = text.startsWith(BYTE_ORDER_MARK) ? BYTE_ORDER_MARK : '';
+  const body = withoutByteOrderMark(text);
+  const lineEnding = lineEndingOf(body);
+  const finalNewline = body.endsWith('\n') ? lineEnding : '';
+  if (body === `${canonicalizeJson(original)}${finalNewline}`)
+    return `${mark}${canonicalizeJson(contract)}${finalNewline}`;
+  const indented = JSON.stringify(contract, null, 2).replaceAll('\n', lineEnding);
+  return `${mark}${indented}${finalNewline}`;
 }
 
 interface Block {
@@ -621,7 +634,7 @@ function lineStart(text: string, position: number): number {
 
 /** The end of the member a block closes: past its `;` and the line break after it. */
 function memberEnd(text: string, block: Block): number {
-  const rest = /^\s*;?[ \t]*\n?/.exec(text.slice(block.end + 1));
+  const rest = /^\s*;?[ \t]*(?:\r?\n)?/.exec(text.slice(block.end + 1));
   return block.end + 1 + (rest?.[0].length ?? 0);
 }
 
@@ -657,7 +670,7 @@ function topLevelMembers(literal: string): string[] {
 }
 
 /** The `readonly typeParams` member, laid out as the emitter's formatter lays it out at `indent`. */
-function typeParamsMember(literal: string, indent: string): string {
+function typeParamsMember(literal: string, indent: string, lineEnding: string): string {
   const lines = literal.split('\n');
   const head = `${indent}readonly typeParams: `;
   if (lines.length > 1) {
@@ -670,7 +683,7 @@ function typeParamsMember(literal: string, indent: string): string {
   const single = `${head}${literal};`;
   if (single.length <= DTS_LINE_WIDTH) return single;
   const members = topLevelMembers(literal).map((member) => `${indent}  ${member};`);
-  return `${head}{\n${members.join('\n')}\n${indent}};`;
+  return `${head}{${lineEnding}${members.join(lineEnding)}${lineEnding}${indent}};`;
 }
 
 /** The text of `typeParams` in an entry block of `readonly types`, as the emitter wrote it. */
@@ -703,6 +716,7 @@ function rewriteDts(
   removedEntries: ReadonlySet<string>,
   hashes: ReadonlyMap<string, string>,
 ): string {
+  const lineEnding = lineEndingOf(text);
   const blocks = scanBlocks(text);
   const typesBlock = storageTypesBlock(blocks);
   const entryBlocks = typesBlock === undefined ? [] : childBlocks(blocks, typesBlock);
@@ -726,12 +740,13 @@ function rewriteDts(
     const literal = literals.get(alias);
     if (literal === undefined) {
       const end = match.index + match[0].length;
-      edits.push({ start, end: text[end] === '\n' ? end + 1 : end, text: '' });
+      const lineBreak = /^\r?\n/.exec(text.slice(end))?.[0] ?? '';
+      edits.push({ start, end: end + lineBreak.length, text: '' });
     } else {
       edits.push({
         start,
         end: match.index + match[0].length,
-        text: typeParamsMember(literal, indentOf(text, match.index)),
+        text: typeParamsMember(literal, indentOf(text, match.index), lineEnding),
       });
     }
   }
@@ -966,7 +981,27 @@ function mergedSnapshots(
 
 const JSON_FILES_THAT_MUST_PARSE = new Set(['contract.json', 'migration.json']);
 
-function main(root: string): number {
+function parseRoot(args: readonly string[]): { readonly root: string; readonly errors: string[] } {
+  const errors = args.filter((arg) => arg.startsWith('-')).map((arg) => `${arg}: unknown option`);
+  const positional = args.filter((arg) => !arg.startsWith('-'));
+  if (positional.length > 1) errors.push(`expected one project root, got ${positional.length}`);
+  const root = resolve(positional[0] ?? process.cwd());
+  if (errors.length === 0 && !isDirectory(root)) errors.push(`${root}: not a directory`);
+  if (errors.length > 0) errors.push('Usage: node expand-type-aliases.ts [project-root]');
+  return { root, errors };
+}
+
+function main({
+  root,
+  errors,
+}: {
+  readonly root: string;
+  readonly errors: readonly string[];
+}): number {
+  if (errors.length > 0) {
+    process.stderr.write(`${errors.join('\n')}\n`);
+    return 1;
+  }
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
   const references = hashReferences(files);
@@ -1168,4 +1203,4 @@ function main(root: string): number {
   return 0;
 }
 
-process.exitCode = main(resolve(process.argv[2] ?? '.'));
+process.exitCode = main(parseRoot(process.argv.slice(2)));

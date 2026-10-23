@@ -53,6 +53,17 @@ describe('mongoFamilyDescriptor', () => {
 });
 
 describe('createMongoFamilyInstance', () => {
+  it('names the marker location its control adapter names', () => {
+    const instance = createMongoFamilyInstance(
+      createControlStack({
+        family: mongoFamilyDescriptor,
+        target: stubMongoTargetDescriptor,
+        adapter: stubAdapterDescriptor({ markerLocation: 'stub_markers' }),
+      }),
+    );
+    expect(instance.markerLocation).toBe('stub_markers');
+  });
+
   it('verify() requires a valid contract', async () => {
     const instance = createMongoFamilyInstance(createMinimalControlStack());
     const fakeDriver = {} as Parameters<typeof instance.verify>[0]['driver'];

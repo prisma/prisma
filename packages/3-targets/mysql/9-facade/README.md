@@ -16,7 +16,8 @@ Wires the MySQL target, adapter and driver together for a project's `prisma.conf
 
 - **`defineConfig`** (`./config`): a MySQL project's configuration. A `.prisma` contract types a text `enum` block as a native MySQL enum (`mysql/enum@1`) and an integer one as `int`.
 - **`defineContract`** (`./contract-builder`): the TypeScript contract builder bound to the MySQL packs.
-- **`createMysqlControlClient`** (`./control`): a control client for introspection and the marker and ledger reads.
+- **`createMysqlControlClient`** (`./control`): a control client for `migration plan`, `db migrate`, `db verify`, `db sign` and introspection.
+- **`./migration`**: what a MySQL `migration.ts` imports: `Migration`, `MigrationCLI` and the column and constraint helpers.
 - **Not yet built**: the runtime client and the static entry point. This package has no public shell yet.
 
 ## Testing

@@ -104,7 +104,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'user' },
+            details: { objectType: 'table', name: 'user' },
           },
           precheck: [],
           execute: [],
@@ -185,7 +185,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'user' },
+            details: { objectType: 'table', name: 'user' },
           },
           precheck: [],
           execute: [],
@@ -253,7 +253,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'a' },
+            details: { objectType: 'table', name: 'a' },
           },
           precheck: [],
           execute: [],
@@ -265,7 +265,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'b1' },
+            details: { objectType: 'table', name: 'b1' },
           },
           precheck: [],
           execute: [],
@@ -277,7 +277,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'b2' },
+            details: { objectType: 'table', name: 'b2' },
           },
           precheck: [],
           execute: [],
@@ -289,7 +289,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'c' },
+            details: { objectType: 'table', name: 'c' },
           },
           precheck: [],
           execute: [],
@@ -468,7 +468,7 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
           operationClass: 'additive',
           target: {
             id: 'sqlite',
-            details: { schema: 'main', objectType: 'table', name: 'user' },
+            details: { objectType: 'table', name: 'user' },
           },
           precheck: [],
           execute: [],

@@ -8,7 +8,9 @@ export {
   DropTableCall,
   RawSqlCall,
   RecreateTableCall,
+  RemoveStoredValueCall,
   RenameColumnCall,
   RenameTableCall,
+  ReplaceStoredValueCall,
   type SqliteOpFactoryCall,
 } from '../core/migrations/op-factory-call';

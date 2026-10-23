@@ -24,6 +24,8 @@ model Clock {
   timestamptz3       TimestamptzTemporal(3)       @onCreate(now()) @onUpdate(now())
   timestamptz6       TimestamptzTemporal(6)       @onCreate(now()) @onUpdate(now())
   timestamptzString0 TimestamptzString(0) @onCreate(now()) @onUpdate(now())
+  timestamptzString1 TimestamptzString(1) @onCreate(now()) @onUpdate(now())
+  timestamptzString2 TimestamptzString(2) @onCreate(now()) @onUpdate(now())
   timestamptzString3 TimestamptzString(3) @onCreate(now()) @onUpdate(now())
   timestamptzString6 TimestamptzString(6) @onCreate(now()) @onUpdate(now())
   timestamptzJsDate0 TimestamptzJsDate(0) @onCreate(now()) @onUpdate(now())

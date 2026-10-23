@@ -680,10 +680,7 @@ function postgresFullTextIndexSpec(ctx: AttributeSpecContext) {
         key: 'fields',
         type: oneOf(
           fullTextField,
-          list(oneOf(fullTextField, list(fullTextField)), {
-            allowEmpty: false,
-            label: '(field name | field name[])[]',
-          }),
+          list(oneOf(fullTextField, list(fullTextField)), { allowEmpty: false }),
         ),
         documentation:
           'The fields to index: one field, or a list of fields and lists of fields. Each top-level item is a weight group, from A down to D.',
@@ -956,11 +953,13 @@ export const postgresAuthoringFieldPresets = {
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMP_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMP_STRING_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMP_STRING_CODEC_ID],
     }),
     timestamptzString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_STRING_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMPTZ_STRING_CODEC_ID],
     }),
     date: /* @__PURE__ */ temporalCodecPreset({
       codecId: PG_DATE_TEMPORAL_CODEC_ID,

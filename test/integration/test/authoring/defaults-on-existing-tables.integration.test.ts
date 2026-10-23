@@ -5,7 +5,12 @@ import sqliteAdapter from '@internal/adapter-sqlite/control';
 import type { Contract } from '@internal/contract/types';
 import postgresControlDriver from '@internal/driver-postgres/control';
 import sqliteDriver from '@internal/driver-sqlite/control';
-import sql, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import sql, {
+  INIT_ADDITIVE_POLICY,
+  type SqlMigrationPlanner,
+  type SqlMigrationRunner,
+  type SqlPlanTargetDetails,
+} from '@internal/family-sql/control';
 import {
   APP_SPACE_ID,
   createControlStack,
@@ -32,8 +37,8 @@ const EVERY_CLASS = { allowedOperationClasses: ['additive', 'widening', 'destruc
 
 interface Stack {
   readonly family: ReturnType<typeof sql.create>;
-  readonly planner: ReturnType<typeof postgres.createPlanner>;
-  readonly runner: ReturnType<typeof postgres.createRunner>;
+  readonly planner: SqlMigrationPlanner<SqlPlanTargetDetails>;
+  readonly runner: SqlMigrationRunner<SqlPlanTargetDetails>;
   readonly frameworkComponents:
     | typeof postgresFrameworkComponents
     | typeof sqliteFrameworkComponents;

@@ -31,13 +31,13 @@ Record of the design discussion between the operator and the orchestrator on 202
 
 **Plain strings, not a Prisma value class or a branded string.** A class owned by Prisma was rejected: users would learn another date API, it would not survive JSON across a server-client boundary, and Temporal will make it redundant. A branded string (`string & { __brand }`) was rejected: almost every written value starts as a plain string from a form or a request, so every write would need a helper or a cast, to catch a mistake the codec already reports at runtime.
 
-**`Duration` defaults to an ISO duration string.** Today's `{ months, days, micros: bigint }` breaks `JSON.stringify`, and the contract already stores interval defaults as ISO durations. The object stays available as `value: parts`.
+**`Duration` defaults to an ISO duration string.** Today's `{ months, days, micros: bigint }` breaks `JSON.stringify`, and the contract already stores interval defaults as ISO durations. The object stays available as `as: parts`.
 
 **`@db.*` does not come back.** Storage options are arguments in the type position, which agrees with ADR 241.
 
 **`contract infer` and `contract print` write convenience types,** with arguments only where they differ from the defaults, so a schema the tools write reads like one a user would write. Only `Temporal.PlainDateTime`, which no convenience type covers, prints as its explicit type.
 
-**The Prisma 7 reader gives back `Date`.** Prisma 7's `DateTime` is a `timestamp(3)` column read as a `Date`. Mapping it to `DateTime(column: timestamp)` keeps an upgraded app's code compiling. This reverses the choice made when inferred and Prisma 7 columns moved to string types, which rejected `Date` only because no `timestamp` `Date` codec existed.
+**The Prisma 7 reader gives back `Date`.** Prisma 7's `DateTime` is a `timestamp(3)` column read as a `Date`. Mapping it to `DateTime(storage: timestamp)` keeps an upgraded app's code compiling. This reverses the choice made when inferred and Prisma 7 columns moved to string types, which rejected `Date` only because no `timestamp` `Date` codec existed.
 
 **TypeScript follows the `type.*` helpers.** The field-preset removal project gives every PSL type constructor a `type.*` helper. This project makes the builder's compile-time resolver evaluate a codec chosen by arguments, so `type.DateTime(...)` types precisely once the helpers land, instead of building a separate TypeScript surface now.
 

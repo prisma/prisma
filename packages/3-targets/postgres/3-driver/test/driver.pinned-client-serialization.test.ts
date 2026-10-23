@@ -49,7 +49,7 @@ function makeTrackedClient(state: ConcurrencyState) {
 function makeDirectDriver(state: ConcurrencyState) {
   const client = makeTrackedClient(state);
   return createBoundDriverFromBinding(
-    { kind: 'pgClient', client: client as unknown as Client },
+    { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
     { disabled: true },
   );
 }
@@ -249,7 +249,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
       },
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgClient', client: client as unknown as Client },
+      { kind: 'pgClient', client: client as unknown as Client, ownedByDriver: true },
       { disabled: true },
     );
 
@@ -279,7 +279,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
       on: () => undefined,
     };
     const driver = createBoundDriverFromBinding(
-      { kind: 'pgPool', pool: pool as unknown as Pool },
+      { kind: 'pgPool', pool: pool as unknown as Pool, ownedByDriver: true },
       { disabled: true },
     );
 

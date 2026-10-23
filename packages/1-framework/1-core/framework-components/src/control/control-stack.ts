@@ -41,7 +41,7 @@ import {
   mergeAuthoringAttributeSpecs,
   mergeAuthoringNamespaces,
 } from '../shared/framework-authoring';
-import type { ComponentMetadata } from '../shared/framework-components';
+import type { ComponentMetadata, SessionSettings } from '../shared/framework-components';
 import {
   assembleGeneratorFunctions,
   assembleGeneratorRegistrations,
@@ -720,6 +720,19 @@ export function buildExtensionLoadOrder(
   return result;
 }
 
+/** The driver descriptor, connecting each driver with the session settings the target declares. */
+function withSessionSettings<TFamilyId extends string, TTargetId extends string>(
+  driver: ControlDriverDescriptor<TFamilyId, TTargetId> | undefined,
+  sessionSettings: SessionSettings | undefined,
+): ControlDriverDescriptor<TFamilyId, TTargetId> | undefined {
+  if (driver === undefined || sessionSettings === undefined) return driver;
+  const create = driver.create.bind(driver);
+  return {
+    ...driver,
+    create: (connection, options) => create(connection, { ...options, sessionSettings }),
+  };
+}
+
 export function createControlStack<TFamilyId extends string, TTargetId extends string>(
   input: CreateControlStackInput<TFamilyId, TTargetId>,
 ): ControlStack<TFamilyId, TTargetId> {
@@ -762,7 +775,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     family,
     target,
     adapter,
-    driver,
+    driver: withSessionSettings(driver, target.sessionSettings),
     extensions: orderedExtensions,
     extensionContracts: assembleExtensionContracts(orderedExtensions),
 

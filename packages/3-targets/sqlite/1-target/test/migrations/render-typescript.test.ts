@@ -12,8 +12,10 @@ import {
   DropTableCall,
   RawSqlCall,
   RecreateTableCall,
+  RemoveStoredValueCall,
   RenameColumnCall,
   RenameTableCall,
+  ReplaceStoredValueCall,
 } from '../../src/core/migrations/op-factory-call';
 import type { SqliteColumnSpec } from '../../src/core/migrations/operations/shared';
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
@@ -196,6 +198,8 @@ describe('renderCallsToTypeScript (sqlite) — the sql import', () => {
     new DropColumnCall('note', 'nickname'),
     new CreateIndexCall('note', 'note_kind_idx', ['kind']),
     new DropIndexCall('note', 'note_kind_idx'),
+    new ReplaceStoredValueCall('note', 'kind', 'a', 'b'),
+    new RemoveStoredValueCall('note', 'kind', 3),
     new DataTransformCall('data_migration.backfill', 'Backfill', 'note', 'kind', 'Note.kind:run'),
     new RawSqlCall({
       id: 'raw.custom.1',

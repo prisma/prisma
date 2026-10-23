@@ -9,7 +9,7 @@ export interface ColumnExistsCheckBuilder {
 
 /**
  * Typed builder for the migration planner's column-existence checks. Produces
- * `SELECT COUNT(*) {=|>} 0 AS "result" FROM pragma_table_info(?) WHERE "name" = ?`
+ * `SELECT COUNT(*) {=|>} 0 AS "result" FROM pragma_table_info(?1) WHERE "name" = ?2`
  * ASTs with the table and column names bound as text parameters — never
  * inlined into the SQL.
  */
@@ -32,8 +32,8 @@ export interface ColumnNameTakenCheckBuilder {
 
 /**
  * Typed builder for the check that no column of the table has a name SQLite takes for `column`.
- * Produces `SELECT COUNT(*) = 0 AS "result" FROM pragma_table_info(?) WHERE "name" COLLATE NOCASE
- * = ?`: SQLite compares column names without regard to the case of ASCII letters, as `NOCASE`
+ * Produces `SELECT COUNT(*) = 0 AS "result" FROM pragma_table_info(?1) WHERE "name" COLLATE NOCASE
+ * = ?2`: SQLite compares column names without regard to the case of ASCII letters, as `NOCASE`
  * does.
  */
 export function columnNameTakenAst(table: string, column: string): ColumnNameTakenCheckBuilder {
@@ -60,7 +60,7 @@ export interface TableExistsCheckBuilder {
 
 /**
  * Typed builder for table-existence checks over `sqlite_master`.
- * Produces `SELECT COUNT(*) {=|>} 0 AS "result" FROM "sqlite_master" WHERE "type" = ? AND "name" = ?`
+ * Produces `SELECT COUNT(*) {=|>} 0 AS "result" FROM "sqlite_master" WHERE "type" = ?1 AND "name" = ?2`
  * with the table name and the literal `'table'` bound as text parameters.
  */
 export function tableExistsAst(tableName: string): TableExistsCheckBuilder {
@@ -83,7 +83,7 @@ export interface TableNameTakenCheckBuilder {
 
 /**
  * Typed builder for the check that no table, index or view has a name SQLite takes for `name`.
- * Produces `SELECT COUNT(*) = 0 AS "result" FROM "sqlite_master" WHERE "name" COLLATE NOCASE = ?`:
+ * Produces `SELECT COUNT(*) = 0 AS "result" FROM "sqlite_master" WHERE "name" COLLATE NOCASE = ?1`:
  * tables, indexes and views share one set of names, which SQLite compares without regard to the
  * case of ASCII letters.
  */
@@ -112,7 +112,7 @@ export interface IndexExistsCheckBuilder {
 
 /**
  * Typed builder for index-existence checks over `sqlite_master`.
- * Produces `SELECT COUNT(*) {=|>} 0 AS "result" FROM "sqlite_master" WHERE "type" = ? AND "name" = ?`
+ * Produces `SELECT COUNT(*) {=|>} 0 AS "result" FROM "sqlite_master" WHERE "type" = ?1 AND "name" = ?2`
  * with the index name and the literal `'index'` bound as text parameters.
  */
 export function indexExistsAst(indexName: string): IndexExistsCheckBuilder {

@@ -192,3 +192,41 @@ Reproduction: emit a PSL contract with a `namespace public` block and a `namespa
 **Found:** second whole-PR review of the namespace statements, fix round (2026-10-22).
 
 `db update --delete billing` against a database whose marker hash has no local snapshot fails with `CLI.CONSENT_UNUSED`: the planner has no origin contract, so it reports no removed namespace, and the namespace's tables stay. Nothing is lost, which is the right outcome, but the message does not say why. `--rename` in the same situation fails with `MIGRATION.STATEMENT_ORIGIN_UNKNOWN`, which names the hash and the snapshot directory. A namespace `--delete` that matches no question should say the same when the origin contract is unknown.
+
+## Enum value renames are statements the statement planner does not plan
+
+**Found:** slice 3b PR 2 system-design review (2026-10-22), S04.
+
+`StatementPlanner.plan` returns `ok([])` for an enum value rename (`packages/2-sql-family/9-family/src/core/migrations/statement-planning.ts`). The rewrite is planned again in `planEnumValueRewrites` (`enum-value-planning.ts`), ordered with the diff because on Postgres it must run between the old check's drop and the new check's creation, and `withEnumValueOperations` patches its operation indexes onto the applied statements afterwards. Nothing in the types says so. To resolve it, give the statement planner's result an outcome for "planned with the diff", which the target fills, instead of an empty operation list. Settle this before PR 4, whose JSON rewrites have the same ordering need.
+
+## Stored value code is copied in both SQL targets, and the runners read the counted value from the check's parameters
+
+**Found:** slice 3b PR 2 system-design review (2026-10-22), S05.
+
+`stored-value-calls.ts` in `packages/3-targets/postgres/1-target` and `packages/3-targets/sqlite/1-target` are nearly the same (`storedValueSubjects`, `storedValueOperationIndexes`, `keepRowsEdit`), and each runner builds the `rowsHoldingValue` summary and report itself, counting the value it reads from `step.params[0]`, which ties it to the parameter order of the check SQL. To resolve it, add `rowsHoldingValueFailure({ mark, operationIndex, count })` in the SQL family beside `rowsWithoutValueFailure`, let the check's marker carry the encoded value to count, and share the subject and index helpers in the family with the call classes passed in.
+
+## `rowsHoldingValue` reports one column where its sibling reports a list
+
+**Found:** slice 3b PR 2 system-design review (2026-10-22), S06.
+
+`MigrationRunnerFailureMeta.rowsHoldingValue` is one fact for the failing column, while `rowsWithoutValue` lists the failing field first and then every other field of the same migration that lacks values. An enum can type required columns in several tables, so a user who changes the data in one table re-runs and fails on the next. To resolve it, make it a list with a field per entry, counted for each marked removal of the same migration, as `rowsWithoutValueFailure` does.
+
+## `StoredValueRewrite.namespaceId` reads as the enum's namespace
+
+**Found:** slice 3b PR 2 system-design review (2026-10-22), S07.
+
+In `enum-value-planning.ts`, `namespaceId` is the table's namespace while `enumValue.namespaceId` is the enum's. Rename it, for example to `tableNamespaceId`. The other field the review named, `keptName`, became `keepData` in the manual QA fixes.
+
+## Older debt the enum value work follows
+
+**Found:** slice 3b PR 2 system-design review (2026-10-22), S08.
+
+- `keepTableAdvice` (`packages/2-sql-family/9-family/src/core/migrations/operation-subjects.ts`) builds a `keepDataAdvice` string with `prisma migration plan` and `prisma db migrate` written in, so it ignores how the CLI was invoked. Enum values now pass a typed `keepDataEdit` that the CLI words; the table advice could move to the same shape.
+- `RowsWithoutValue` and `RowsHoldingValue` are framework types named after rows, with a `rows` count, and the older `rowsWithoutValue` advice in `packages/1-framework/3-tooling/cli/src/utils/runner-failure-advice.ts` says "rows". Rename both to family-neutral names in one pass, for example `MissingValues` and `HeldValues` with `count`.
+- `ENTITY_WORDS` (`packages/1-framework/3-tooling/cli/src/control-api/statements/statement-text.ts`) is keyed by a hand-written union; key it by `MigrationSubject['kind']` so a new subject kind must add its word. Its doc says it covers what a statement can name, but it has no `namespace`.
+
+## Members that trade stored values while the list of stored values stays the same are not asked about
+
+**Found:** fixing PR 2's manual QA (enum values), 2026-10-23; corrected after the verification review the same day.
+
+An enum `A = "a", B = "b"` becomes `B = "a", A = "b"`: each member keeps its name and takes the other's stored value, and the list of stored values in storage is still `a, b`. The storage hash does not change, so `migration plan` prints "No changes detected" and `db update` plans nothing, on Postgres and SQLite. The rows still hold `a`, which now reads as member `B`. This is a change to the domain part only (which member names which stored value), so it is the same class as TML-3720 (the snapshot and the planner see nothing when only the domain changes). When the same plan also changes something else, the planner does ask, and on Postgres the printed edit, which swaps through a temporary value, can fail against the kept check without changing anything. A single `UPDATE … SET c = CASE c WHEN 'a' THEN 'b' WHEN 'b' THEN 'a' END` would need no temporary value. Resolve together with TML-3720, and consider it in PR 3, which makes more domain facts part of storage.

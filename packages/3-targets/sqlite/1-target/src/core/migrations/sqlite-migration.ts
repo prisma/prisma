@@ -6,6 +6,7 @@ import {
   resolveTableRenameAgainst,
   type SqlMigrationPlanOperation,
   type SqlSlot,
+  type StoredValueCodec,
   sqlTypeLookupsOf,
   type TableRenameRequest,
   unmatchedColumnRename,
@@ -13,8 +14,9 @@ import {
 } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { CodecRef } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type { ControlStack } from '@internal/framework-components/control';
+import type { ControlStack, EnumValueCoordinateJson } from '@internal/framework-components/control';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
@@ -33,8 +35,10 @@ import {
   DropIndexCall,
   DropTableCall,
   RecreateTableCall,
+  RemoveStoredValueCall,
   type RenameColumnCall,
   type RenameTableCall,
+  ReplaceStoredValueCall,
 } from './op-factory-call';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
 import type { RecreatePostcheck } from './operations/tables';
@@ -111,6 +115,16 @@ export abstract class SqliteMigration<
       ...(stack.adapter === undefined ? [] : [stack.adapter]),
       ...stack.extensions,
     ];
+  }
+
+  /** The codec `codecRef` names, built from the stack's codecs; a codec needs a stack. */
+  private storedValueCodec(
+    operation: string,
+    codecRef: CodecRef | undefined,
+  ): StoredValueCodec | undefined {
+    if (codecRef === undefined) return undefined;
+    this.controlAdapterFor(operation);
+    return { codecRef, codecs: sqlTypeLookupsOf(this.frameworkComponents()).codecLookup };
   }
 
   /**
@@ -268,6 +282,47 @@ export abstract class SqliteMigration<
     return new DropColumnCall(options.table, options.column).toOp(
       this.controlAdapterFor('dropColumn'),
     );
+  }
+
+  /**
+   * Emit an `UPDATE` operation that changes the stored value `from` to `to` in `column`, in every row that holds it. Values are stored values, as the column's codec writes them, and are passed as parameters. Without `codecRef`, pass each value in the form the column stores it, or no row matches.
+   */
+  protected replaceStoredValue(options: {
+    readonly table: string;
+    readonly column: string;
+    readonly from: string | number;
+    readonly to: string | number;
+    /** The column's codec: it writes `from` and `to` as the database stores them. */
+    readonly codecRef?: CodecRef;
+  }): Promise<Op> {
+    return new ReplaceStoredValueCall(
+      options.table,
+      options.column,
+      options.from,
+      options.to,
+      this.storedValueCodec('replaceStoredValue', options.codecRef),
+    ).toOp();
+  }
+
+  /**
+   * Emit an `UPDATE` operation that sets `column` to NULL in every row that holds the stored value `value`. On a column that takes no NULL, its check fails while any row holds the value. The operation is destructive.
+   */
+  protected removeStoredValue(options: {
+    readonly table: string;
+    readonly column: string;
+    readonly value: string | number;
+    /** The column's codec, as for `replaceStoredValue`. */
+    readonly codecRef?: CodecRef;
+    /** The enum value the stored value belongs to: the check that fails while rows of a required column hold the value then names it. */
+    readonly enumValue?: EnumValueCoordinateJson;
+  }): Promise<Op> {
+    return new RemoveStoredValueCall(
+      options.table,
+      options.column,
+      options.value,
+      this.storedValueCodec('removeStoredValue', options.codecRef),
+      options.enumValue,
+    ).toOp();
   }
 
   protected createIndex(options: {

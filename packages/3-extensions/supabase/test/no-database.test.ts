@@ -195,6 +195,12 @@ describe('a supabase client given a URL', () => {
     await expect(anon.query(plan).toArray()).rejects.toMatchObject(closedError);
     await expect(anon.execute(plan)).rejects.toMatchObject(closedError);
     await expect(anon.orm.public.Profile.all()).rejects.toMatchObject(closedError);
+    await expect(anon.transaction(async () => undefined)).rejects.toMatchObject(closedError);
+    let prepared: Promise<unknown> | undefined;
+    expect(() => {
+      prepared = anon.prepare({}, () => plan);
+    }).not.toThrow();
+    await expect(prepared).rejects.toMatchObject(closedError);
     expect(created.pools).toBe(0);
   });
 

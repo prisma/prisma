@@ -1,6 +1,6 @@
 # Project spec — Convenience date and time types
 
-**Linear:** [Convenience date and time types](https://linear.app/prisma-company/project/convenience-date-and-time-types-6a969ca1c76e) ([TML-3709](https://linear.app/prisma-company/issue/TML-3709)) · **Branch:** `tml-3709-plan-datetime-convenience-types` · **Design record:** [ADR 279 — Convenience date and time types choose an explicit type from their arguments](../../docs/architecture%20docs/adrs/ADR%20279%20-%20Convenience%20date%20and%20time%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md) (Proposed)
+**Linear:** [Convenience date and time types](https://linear.app/prisma-company/project/convenience-date-and-time-types-6a969ca1c76e) ([TML-3709](https://linear.app/prisma-company/issue/TML-3709)) · **Branch:** `tml-3709-plan-datetime-convenience-types` · **Design record:** [ADR 279 — Convenience types choose an explicit type from their arguments](../../docs/architecture%20docs/adrs/ADR%20279%20-%20Convenience%20types%20choose%20an%20explicit%20type%20from%20their%20arguments.md) (Accepted)
 
 ## Purpose
 
@@ -17,13 +17,13 @@ model Order {
   shipBy    Date                                      // date, read as "2024-02-29"
   opensAt   Time(precision: 0)                        // time(0), read as "09:30:00"
   period    Duration                                  // interval, read as "P1M"
-  settledAt DateTime(value: temporal)                 // timestamptz, read as a Temporal.Instant
-  legacyAt  DateTime(column: timestamp)               // timestamp(3), read as a JavaScript Date, stored as UTC
+  settledAt DateTime(as: temporal)                 // timestamptz, read as a Temporal.Instant
+  legacyAt  DateTime(storage: timestamp)               // timestamp(3), read as a JavaScript Date, stored as UTC
   exactAt   TimestamptzTemporal(6)                    // an explicit type, written directly
 }
 ```
 
-`DateTime`, `Date`, `Time` and `Duration` are convenience types. Each becomes one explicit type, chosen by its optional `value:` and `column:` arguments. The contract stores only the explicit type, so `settledAt` is stored exactly as `settledAt TimestamptzTemporal` would be.
+`DateTime`, `Date`, `Time` and `Duration` are convenience types. Each becomes one explicit type, chosen by its optional `as:` and `storage:` arguments. The contract stores only the explicit type, so `settledAt` is stored exactly as `settledAt TimestamptzTemporal` would be.
 
 ## Decisions settled in discussion (2026-10-21 and 2026-10-22)
 
@@ -33,7 +33,7 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 2. **A convenience type is a type choice: a declaration whose arguments name the explicit type constructor it becomes**, through a table with defaults and refusals. Not a codec parameterized by database type (a codec represents one data type, ADR 254), not a type alias (an alias attaches attributes to one fixed type), and not a select template over option arguments (no defaults or refusals; being removed with the presets). Settled 2026-10-22 when slice 4 was grounded.
 3. **The four PostgreSQL convenience types and their choices:**
 
-   | Type | `value:` | `column:` | Default |
+   | Type | `as:` | `storage:` | Default |
    | --- | --- | --- | --- |
    | `DateTime` | `jsDate`, `temporal` (`Temporal.Instant`), `string` | `timestamptz`, `timestamp` | `jsDate`, `timestamptz`; precision 3 when the value is `jsDate`, PostgreSQL's default otherwise |
    | `Date` | `string`, `temporal` (`Temporal.PlainDate`) | `date` | `string` |
@@ -45,9 +45,9 @@ The reasoning and the alternatives rejected are in [`design-notes.md`](./design-
 5. **Plain strings, no brand and no Prisma value class.** A brand or class adds friction on every write and does not survive JSON. The codec validates the format on write.
 6. **Every explicit type of a column with several codecs carries a suffix.** `Timestamptz`, `Timestamp`, `Date` and `Time` become `TimestamptzTemporal`, `TimestampTemporal`, `DateTemporal` and `TimeTemporal`. `Interval` becomes `IntervalParts`, next to the new `IntervalString`.
 7. **Four codecs are added:** a `timestamp` column read as a `Date` and as a `Temporal.Instant`, both treating the stored value as UTC; and an `interval` column read as an ISO 8601 duration string. (The `parts` codec already exists.)
-8. **String values are ISO 8601, the same on every server.** Every string codec returns the form ADR 254 stores, not PostgreSQL's display text. The codec ids do not change: this is a bug fix, and nothing keeps the old format before RC. Prisma requires `DateStyle=ISO` on its connections; it sets it on the connections it opens, and a connection the user supplies with another `DateStyle` is refused with an error naming the setting. Time zones need no setting: the `timestamptz` codec converts any session offset to UTC, and the `timetz` codec keeps the offset stored with the value.
+8. **String values are ISO 8601, the same on every server.** Every string codec returns the form ADR 254 stores, not PostgreSQL's display text. The codec ids do not change: this is a bug fix, and nothing keeps the old format before RC. The PostgreSQL target requires `DateStyle=ISO`, and the driver ensures it on every connection it hands out: as a startup option on connections it opens, and with a statement on a pool or client the user supplies. A connection that still prints another style is refused with an error naming the setting. Time zones need no setting: the `timestamptz` codec converts any session offset to UTC, and the `timetz` codec keeps the offset stored with the value.
 9. **Temporal fields are never typed `any`.** The Temporal codecs and generators take their types from `temporal-spec`, a types-only package, instead of an undeclared global. No polyfill code is added anywhere. A missing global `Temporal` at runtime is still reported on first use, as today; a startup check was considered and dropped, because Temporal values are now an explicit opt-in.
-10. **`contract infer` and `contract print` write convenience types**, with arguments only where they differ from the defaults; a column no convenience type covers (`Temporal.PlainDateTime`) is written as its explicit type. **The Prisma 7 reader** maps Prisma 7's `DateTime` to `TimestampJsDate(3)`, printed `DateTime(column: timestamp)`, so an upgraded app reads `Date` values again, and maps Prisma 7's `@default(now())` to `@default(now()) @onCreate(now())`, as Prisma 7 behaved ([TML-3719](https://linear.app/prisma-company/issue/TML-3719)).
+10. **`contract infer` and `contract print` write convenience types**, with arguments only where they differ from the defaults; a column no convenience type covers (`Temporal.PlainDateTime`) is written as its explicit type. **The Prisma 7 reader** maps Prisma 7's `DateTime` to `TimestampJsDate(3)`, printed `DateTime(storage: timestamp)`, so an upgraded app reads `Date` values again, and maps Prisma 7's `@default(now())` to `@default(now()) @onCreate(now())`, as Prisma 7 behaved ([TML-3719](https://linear.app/prisma-company/issue/TML-3719)).
 11. **PostgreSQL only.** A convenience name means the same thing on every target; SQLite and MongoDB follow in [TML-3714](https://linear.app/prisma-company/issue/TML-3714).
 12. **TypeScript:** this project ships the PSL types and makes the TypeScript builder's compile-time resolver evaluate a codec chosen by arguments. The `type.DateTime(...)` helper itself arrives with the `type.*` helpers of the field-preset removal project.
 

@@ -1,4 +1,6 @@
+import { ifDefined } from '@internal/utils/defined';
 import type { PromptSurface, StatementSurface } from '@prisma/cli-engine';
+import { CliStructuredError } from '@prisma/cli-engine/protocol';
 import {
   type AnswerPlanQuestions,
   matchConsents,
@@ -6,6 +8,7 @@ import {
   type PlanQuestion,
 } from '../control-api/statements/plan-questions';
 import { errorConsentUnused } from '../utils/cli-errors';
+import { chooseAction } from '../utils/next-actions';
 
 /**
  * The answers the `--delete` values give when one of them names a namespace of the questions: the
@@ -116,6 +119,48 @@ async function askOneAtATime(
   return answered;
 }
 
+function unansweredSubjects(error: CliStructuredError): ReadonlySet<string> | undefined {
+  const unanswered = error.meta?.['unanswered'];
+  if (!Array.isArray(unanswered)) return undefined;
+  return new Set(
+    unanswered.flatMap((entry: unknown) =>
+      typeof entry === 'object' && entry !== null && 'subject' in entry
+        ? [String(entry.subject)]
+        : [],
+    ),
+  );
+}
+
+/**
+ * The engine's refusal to answer, led by the ways to keep the data that the unanswered questions
+ * name: the next actions give them first, so they are not repeated in why.
+ */
+function ledByKeepDataWays(error: unknown, questions: readonly PlanQuestion[]): unknown {
+  if (!isConsentRequired(error) || !CliStructuredError.is(error)) return error;
+  const subjects = unansweredSubjects(error);
+  const ways = [
+    ...new Set(
+      questions
+        .filter(({ subject }) => subjects === undefined || subjects.has(subject))
+        .flatMap(({ keepDataWays }) => keepDataWays ?? []),
+    ),
+  ];
+  if (ways.length === 0) return error;
+  return new CliStructuredError(error.code, error.message, {
+    severity: error.severity,
+    ...ifDefined(
+      'why',
+      ways.reduce((why, way) => why?.replaceAll(` ${way}`, ''), error.why),
+    ),
+    nextActions: [...ways.map(chooseAction), ...error.nextActions],
+    diagnostics: error.diagnostics,
+    ...ifDefined('where', error.where),
+    ...ifDefined('meta', error.meta),
+    ...ifDefined('docsUrl', error.docsUrl),
+    cause: error,
+  });
+}
+
 /**
  * Asks a plan's questions through the engine's statement prompt. Flags answer first; where nobody
  * can answer, the engine refuses and lists every question. A `--delete` that names a namespace
@@ -127,6 +172,14 @@ export function promptPlanQuestions(
   prompt: PromptSurface,
   statements: StatementSurface,
 ): AnswerPlanQuestions {
+  const answer = answering(prompt, statements);
+  return (questions) =>
+    answer(questions).catch((error: unknown) => {
+      throw ledByKeepDataWays(error, questions);
+    });
+}
+
+function answering(prompt: PromptSurface, statements: StatementSurface): AnswerPlanQuestions {
   return async (questions): Promise<readonly (PlanAnswer | undefined)[]> => {
     const answered = namespaceDeletes(questions, statements) ?? new Map<number, PlanAnswer>();
     const asked = questions

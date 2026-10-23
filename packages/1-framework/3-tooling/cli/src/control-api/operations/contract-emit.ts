@@ -22,6 +22,7 @@ import {
   loadContractSourceWithStack,
   requireContractConfig,
   requireSourceProvider,
+  withWarningFindings,
 } from './load-contract-source';
 import { validateLoadedContract } from './validate-loaded-contract';
 
@@ -103,9 +104,9 @@ export async function executeContractEmit(
 
   return queueEmitByOutput(outputJsonPath, async () => {
     startSpan(onProgress, 'resolveSource', 'Resolving contract source...');
-    const sourceWarnings: ContractSourceDiagnostic[] = [];
     let stack: ControlStack;
     let contract: Contract;
+    let sourceWarnings: readonly ContractSourceDiagnostic[];
     try {
       stack = createControlStack(config);
       const loaded = await loadContractSourceWithStack({
@@ -113,12 +114,11 @@ export async function executeContractEmit(
         source: contractConfig.source,
         signal,
         cwd,
-        reportWarning: (diagnostic) => {
-          sourceWarnings.push(diagnostic);
-        },
       });
-      if (!loaded.ok) throw loaded.failure.error;
-      contract = loaded.value;
+      if (!loaded.ok) {
+        throw withWarningFindings(loaded.failure.error, loaded.failure.warnings, cwd);
+      }
+      ({ contract, warnings: sourceWarnings } = loaded.value);
     } catch (error) {
       endSpan(onProgress, 'resolveSource', 'error');
       throw error;
