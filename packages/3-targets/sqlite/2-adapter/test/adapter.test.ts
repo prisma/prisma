@@ -104,7 +104,7 @@ describe('SQLite adapter', () => {
       .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
       .withWhere(new BinaryExpr(op, ColumnRef.of('user', 'id'), ParamRef.of(null)));
     expect(adapter.lower(ast, { contract }).sql).toBe(
-      `SELECT "user"."id" AS "id" FROM "user" WHERE "user"."id" ${sqlOperator} ?`,
+      `SELECT "user"."id" AS "id" FROM "user" WHERE "user"."id" ${sqlOperator} ?1`,
     );
   });
 
@@ -119,13 +119,13 @@ describe('SQLite adapter', () => {
       expect(sql).toBe('SELECT "user"."id" AS "id", "user"."email" AS "email" FROM "user"');
     });
 
-    it('renders select with WHERE and ? params', () => {
+    it('renders select with WHERE and numbered params', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
         .withWhere(BinaryExpr.eq(ColumnRef.of('user', 'email'), ParamRef.of('test@example.com')));
 
       const lowered = adapter.lower(ast, { contract });
-      expect(lowered.sql).toBe('SELECT "user"."id" AS "id" FROM "user" WHERE "user"."email" = ?');
+      expect(lowered.sql).toBe('SELECT "user"."id" AS "id" FROM "user" WHERE "user"."email" = ?1');
       expect(lowered.params).toEqual(litParams('test@example.com'));
     });
 
@@ -238,7 +238,7 @@ describe('SQLite adapter', () => {
       // leakage (`DISTINCT ON`, `LATERAL`, `::` casts) and brittle-substring
       // false positives in one pass.
       expect(sql).toEqual(
-        'SELECT "posts__distinct"."title" AS "title", "posts__distinct"."id" AS "id" FROM (SELECT "post"."title" AS "title", "post"."id" AS "id", ROW_NUMBER() OVER (PARTITION BY "post"."title" ORDER BY "post"."title" ASC) AS "__prisma_distinct_rn" FROM "post" WHERE "post"."userId" = ?) AS "posts__distinct" WHERE "posts__distinct"."__prisma_distinct_rn" = 1',
+        'SELECT "posts__distinct"."title" AS "title", "posts__distinct"."id" AS "id" FROM (SELECT "post"."title" AS "title", "post"."id" AS "id", ROW_NUMBER() OVER (PARTITION BY "post"."title" ORDER BY "post"."title" ASC) AS "__prisma_distinct_rn" FROM "post" WHERE "post"."userId" = ?1) AS "posts__distinct" WHERE "posts__distinct"."__prisma_distinct_rn" = 1',
       );
     });
 
@@ -285,7 +285,7 @@ describe('SQLite adapter', () => {
       {
         name: 'with arguments and alias',
         source: FunctionSource.of('json_each', [ParamRef.of('[1, 2]')], { alias: 'entry' }),
-        sql: 'SELECT 1 AS "value" FROM json_each(?) AS "entry"',
+        sql: 'SELECT 1 AS "value" FROM json_each(?1) AS "entry"',
       },
     ])('preserves legacy function-source SQL $name', ({ source, sql }) => {
       const ast = SelectAst.from(source).withProjection([
@@ -396,7 +396,7 @@ describe('SQLite adapter', () => {
   });
 
   describe('INSERT', () => {
-    it('renders insert with ? params', () => {
+    it('renders insert with numbered params', () => {
       const ast = InsertAst.into(TableSource.named('user')).withRows([
         {
           id: ParamRef.of(1, { name: 'id' }),
@@ -405,7 +405,7 @@ describe('SQLite adapter', () => {
       ]);
 
       const lowered = adapter.lower(ast, { contract });
-      expect(lowered.sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?, ?)');
+      expect(lowered.sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?1, ?2)');
       expect(lowered.params).toEqual(litParams(1, 'a@example.com'));
     });
 
@@ -416,7 +416,7 @@ describe('SQLite adapter', () => {
       ]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?, ?), (?, ?)');
+      expect(sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?1, ?2), (?3, ?4)');
     });
 
     it('renders DEFAULT VALUES', () => {
@@ -441,7 +441,7 @@ describe('SQLite adapter', () => {
         .withOnConflict(InsertOnConflict.doNothing());
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?, ?) ON CONFLICT DO NOTHING');
+      expect(sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?1, ?2) ON CONFLICT DO NOTHING');
     });
 
     it('throws when a targetless conflict clause carries DO UPDATE SET', () => {
@@ -496,13 +496,13 @@ describe('SQLite adapter', () => {
   });
 
   describe('UPDATE', () => {
-    it('renders update with WHERE and ? params', () => {
+    it('renders update with WHERE and numbered params', () => {
       const ast = UpdateAst.table(TableSource.named('user'))
         .withSet({ email: ParamRef.of('b@example.com') })
         .withWhere(BinaryExpr.eq(ColumnRef.of('user', 'id'), ParamRef.of(1)));
 
       const lowered = adapter.lower(ast, { contract });
-      expect(lowered.sql).toBe('UPDATE "user" SET "email" = ? WHERE "user"."id" = ?');
+      expect(lowered.sql).toBe('UPDATE "user" SET "email" = ?1 WHERE "user"."id" = ?2');
       expect(lowered.params).toEqual(litParams('b@example.com', 1));
     });
 
@@ -513,7 +513,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('email', ColumnRef.of('user', 'email'))]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toBe('UPDATE "user" SET "email" = ? WHERE "user"."id" = ? RETURNING "email"');
+      expect(sql).toBe('UPDATE "user" SET "email" = ?1 WHERE "user"."id" = ?2 RETURNING "email"');
     });
   });
 
@@ -524,7 +524,7 @@ describe('SQLite adapter', () => {
       );
 
       const lowered = adapter.lower(ast, { contract });
-      expect(lowered.sql).toBe('DELETE FROM "user" WHERE "user"."id" = ?');
+      expect(lowered.sql).toBe('DELETE FROM "user" WHERE "user"."id" = ?1');
       expect(lowered.params).toEqual(litParams(1));
     });
 
@@ -534,7 +534,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('id', ColumnRef.of('user', 'id'))]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toBe('DELETE FROM "user" WHERE "user"."id" = ? RETURNING "id"');
+      expect(sql).toBe('DELETE FROM "user" WHERE "user"."id" = ?1 RETURNING "id"');
     });
   });
 
@@ -555,7 +555,7 @@ describe('SQLite adapter', () => {
         ]);
 
       expect(adapter.lower(ast, { contract }).sql).toBe(
-        'INSERT INTO "user" AS "u" ("id", "email") VALUES (?, ?) ON CONFLICT ("email") DO UPDATE SET "email" = excluded."email" RETURNING "id", "email" AS "user_email"',
+        'INSERT INTO "user" AS "u" ("id", "email") VALUES (?1, ?2) ON CONFLICT ("email") DO UPDATE SET "email" = excluded."email" RETURNING "id", "email" AS "user_email"',
       );
     });
 
@@ -566,7 +566,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('email', ColumnRef.of('u', 'email'))]);
 
       expect(adapter.lower(ast, { contract }).sql).toBe(
-        'UPDATE "user" AS "u" SET "email" = ? WHERE "u"."id" = ? RETURNING "email"',
+        'UPDATE "user" AS "u" SET "email" = ?1 WHERE "u"."id" = ?2 RETURNING "email"',
       );
     });
 
@@ -576,7 +576,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('id', ColumnRef.of('u', 'id'))]);
 
       expect(adapter.lower(ast, { contract }).sql).toBe(
-        'DELETE FROM "user" AS "u" WHERE "u"."id" = ? RETURNING "id"',
+        'DELETE FROM "user" AS "u" WHERE "u"."id" = ?1 RETURNING "id"',
       );
     });
   });
@@ -674,7 +674,7 @@ describe('SQLite adapter', () => {
       const { sql } = adapter.lower(ast, { contract });
 
       expect(sql).toBe(
-        `SELECT random() AS "zero", CASE WHEN lower("user"."email") = ? THEN CAST(concat("user"."email", ?) AS text) WHEN "user"."metadata" IS NULL THEN coalesce("user"."email", 'missing') ELSE CAST(? AS text) END IS NOT NULL AS "decision" FROM "user"`,
+        `SELECT random() AS "zero", CASE WHEN lower("user"."email") = ?1 THEN CAST(concat("user"."email", ?2) AS text) WHEN "user"."metadata" IS NULL THEN coalesce("user"."email", 'missing') ELSE CAST(?3 AS text) END IS NOT NULL AS "decision" FROM "user"`,
       );
     });
 

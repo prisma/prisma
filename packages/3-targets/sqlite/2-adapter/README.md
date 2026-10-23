@@ -173,14 +173,16 @@ The adapter supports RETURNING clauses for INSERT, UPDATE, and DELETE:
 **Example SQL Output:**
 ```sql
 -- INSERT with RETURNING
-INSERT INTO "user" ("email") VALUES (?) RETURNING "id", "email"
+INSERT INTO "user" ("email") VALUES (?1) RETURNING "id", "email"
 
 -- UPDATE with RETURNING
-UPDATE "user" SET "email" = ? WHERE "user"."id" = ? RETURNING "id", "email"
+UPDATE "user" SET "email" = ?1 WHERE "user"."id" = ?2 RETURNING "id", "email"
 
 -- DELETE with RETURNING
-DELETE FROM "user" WHERE "user"."id" = ? RETURNING "id", "email"
+DELETE FROM "user" WHERE "user"."id" = ?1 RETURNING "id", "email"
 ```
+
+Parameters are written as numbered placeholders (`?1`, `?2`, ...). The number is the parameter's position in the AST's first-encounter parameter order, the order the runtime encodes parameters in, so each value binds to its own placeholder wherever the SQL writes it, and a parameter written twice is bound once.
 
 ## Exports
 

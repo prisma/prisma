@@ -19,7 +19,7 @@ describe('columnExistsAst lowering — pragma_table_info verification checks', (
     const ast = columnExistsAst('users', 'email').columnAbsent();
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      'SELECT COUNT(*) = 0 AS "result" FROM pragma_table_info(?) WHERE "name" = ?',
+      'SELECT COUNT(*) = 0 AS "result" FROM pragma_table_info(?1) WHERE "name" = ?2',
     );
     expect(result.params).toEqual(['users', 'email']);
   });
@@ -28,7 +28,7 @@ describe('columnExistsAst lowering — pragma_table_info verification checks', (
     const ast = columnExistsAst('users', 'email').columnPresent();
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      'SELECT COUNT(*) > 0 AS "result" FROM pragma_table_info(?) WHERE "name" = ?',
+      'SELECT COUNT(*) > 0 AS "result" FROM pragma_table_info(?1) WHERE "name" = ?2',
     );
     expect(result.params).toEqual(['users', 'email']);
   });
@@ -39,7 +39,7 @@ describe('tableExistsAst lowering — sqlite_master table verification checks', 
     const ast = tableExistsAst('users').tableAbsent();
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      `SELECT COUNT(*) = 0 AS "result" FROM "sqlite_master" WHERE ("type" = ? AND "name" = ?)`,
+      `SELECT COUNT(*) = 0 AS "result" FROM "sqlite_master" WHERE ("type" = ?1 AND "name" = ?2)`,
     );
     expect(result.params).toEqual(['table', 'users']);
   });
@@ -48,7 +48,7 @@ describe('tableExistsAst lowering — sqlite_master table verification checks', 
     const ast = tableExistsAst('users').tablePresent();
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      `SELECT COUNT(*) > 0 AS "result" FROM "sqlite_master" WHERE ("type" = ? AND "name" = ?)`,
+      `SELECT COUNT(*) > 0 AS "result" FROM "sqlite_master" WHERE ("type" = ?1 AND "name" = ?2)`,
     );
     expect(result.params).toEqual(['table', 'users']);
   });
@@ -59,7 +59,7 @@ describe('indexExistsAst lowering — sqlite_master index verification checks', 
     const ast = indexExistsAst('idx_users_email').indexAbsent();
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      `SELECT COUNT(*) = 0 AS "result" FROM "sqlite_master" WHERE ("type" = ? AND "name" = ?)`,
+      `SELECT COUNT(*) = 0 AS "result" FROM "sqlite_master" WHERE ("type" = ?1 AND "name" = ?2)`,
     );
     expect(result.params).toEqual(['index', 'idx_users_email']);
   });
@@ -68,7 +68,7 @@ describe('indexExistsAst lowering — sqlite_master index verification checks', 
     const ast = indexExistsAst('idx_users_email').indexPresent();
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      `SELECT COUNT(*) > 0 AS "result" FROM "sqlite_master" WHERE ("type" = ? AND "name" = ?)`,
+      `SELECT COUNT(*) > 0 AS "result" FROM "sqlite_master" WHERE ("type" = ?1 AND "name" = ?2)`,
     );
     expect(result.params).toEqual(['index', 'idx_users_email']);
   });
@@ -81,7 +81,7 @@ describe('verification checks lowering — complete codec registry', () => {
     const ast = columnExistsAst('users', 'email').columnPresent();
     const result = await productionAdapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toBe(
-      'SELECT COUNT(*) > 0 AS "result" FROM pragma_table_info(?) WHERE "name" = ?',
+      'SELECT COUNT(*) > 0 AS "result" FROM pragma_table_info(?1) WHERE "name" = ?2',
     );
     expect(result.params).toEqual(['users', 'email']);
   });

@@ -366,7 +366,7 @@ describe('SQLite adapter codec registry composition', () => {
     await expect(
       adapter.lowerToExecuteRequest(selectWithParam(descriptor.codecId, 'value'), { contract }),
     ).resolves.toEqual({
-      sql: 'SELECT "records"."id" AS "id" FROM "records" WHERE "records"."value" = ?',
+      sql: 'SELECT "records"."id" AS "id" FROM "records" WHERE "records"."value" = ?1',
       params: ['encoded:value'],
     });
   });

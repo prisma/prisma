@@ -2423,12 +2423,9 @@ export interface ToWhereExpr {
  * - `bind` — a `PreparedParamRef` placeholder; the runtime resolves the
  *   value from the per-execute `userParams[name]` before calling the driver.
  *
- * The same `name` may legitimately appear in multiple `bind` slots when a
- * renderer does not dedupe `PreparedParamRef` occurrences (e.g. SQLite's
- * positional `?` walker calls `ast.collectParamRefs()` directly rather than
- * `collectOrderedParamRefs`); resolution-by-name handles that case
- * correctly. See `collectOrderedParamRefs` in `./util` for the dedupe
- * contract used by Postgres' `$N` renderer.
+ * Slots follow `collectOrderedParamRefs` in `./util`, the order the runtime
+ * encodes parameters in; the Postgres `$N` and SQLite `?N` renderers number
+ * their placeholders by it.
  */
 export type LoweredParam =
   | { readonly kind: 'literal'; readonly value: unknown }

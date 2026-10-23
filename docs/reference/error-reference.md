@@ -1333,6 +1333,10 @@ At query-render time a table references a namespace that is not present, or not 
 
 `firstOrThrow()` was called on a query result that returned no rows. Use `first()` if an empty result is acceptable.
 
+### RUNTIME.PARAM_PLACEHOLDER_MISMATCH
+
+The SQLite SQL renderer wrote a statement whose placeholders do not match its parameters: a bare `?` or a numbered placeholder no parameter has, usually a `?` written into raw SQL text, or a parameter no placeholder binds. The renderer refuses the statement rather than bind a value to the wrong place. Pass values into raw SQL by interpolation, not as a `?` in the text. Payload: `placeholders` (the placeholders written, in order), `params` (the number of parameters).
+
 ### RUNTIME.PARAM_REF_CODEC_REQUIRED
 
 While building a query expression, a plain JS value was passed where no codec could be derived: `toExpr` cannot construct a ParamRef for a bare value without an explicit `CodecRef`. Provide a codec at the call site or use a column-bound builder path.
