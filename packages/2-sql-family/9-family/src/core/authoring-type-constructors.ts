@@ -1,4 +1,5 @@
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import { sqlIdentifierTypeAliases } from './identifier-type-aliases';
 
 export const sqlFamilyAuthoringTypes = {
   Raw: {
@@ -14,7 +15,7 @@ export const sqlFamilyAuthoringTypes = {
 } as const satisfies AuthoringTypeNamespace;
 
 /**
- * The type constructors every SQL target contributes itself, because their arguments are sizes, such as a length, and only the target names the data type a size is a value of: `sizeType`, such as `pg/int4`.
+ * The `sql` types every SQL target contributes itself: the type constructors whose arguments are sizes, such as a length, which only the target can name the data type of (`sizeType`, such as `pg/int4`), and the identifier type aliases.
  */
 export function sqlTargetTypeConstructors<const SizeType extends string>(input: {
   readonly sizeType: SizeType;
@@ -43,6 +44,7 @@ export function sqlTargetTypeConstructors<const SizeType extends string>(input: 
           },
         },
       },
+      ...sqlIdentifierTypeAliases,
     },
   } as const satisfies AuthoringTypeNamespace;
 }

@@ -16,6 +16,7 @@ export {
   idGeneratorFunctionBindings,
   sqlIntegerArgumentGeneratorFunctions,
 } from '../core/generator-functions';
+export { sqlIdentifierTypeAliases } from '../core/identifier-type-aliases';
 
 const sqlFamilyPackBase = {
   kind: 'family',

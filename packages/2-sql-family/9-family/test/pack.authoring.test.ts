@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import sqlFamilyPack, { sqlTargetTypeConstructors } from '../src/exports/pack';
+import sqlFamilyPack, {
+  sqlIdentifierTypeAliases,
+  sqlTargetTypeConstructors,
+} from '../src/exports/pack';
 
 describe('sql family pack authoring contributions', () => {
   it('contributes Raw, whose argument is a sql expression', () => {
@@ -21,7 +24,7 @@ describe('sql family pack authoring contributions', () => {
     }).toEqual({ dataTypes: ['sql/expression'], entries: ['sql/expression'] });
   });
 
-  it('builds sql.String and sql.Char for a target, whose length is a value of the target’s size type', () => {
+  it('builds sql.String, sql.Char and the identifier aliases for a target, whose length is a value of the target’s size type', () => {
     expect(sqlTargetTypeConstructors({ sizeType: 'pg/int4' })).toEqual({
       sql: {
         String: {
@@ -36,7 +39,34 @@ describe('sql family pack authoring contributions', () => {
           args: [{ kind: 'value', dataType: 'pg/int4', name: 'length' }],
           output: { codecId: 'sql/char@1', typeParams: { length: { kind: 'arg', index: 0 } } },
         },
+        ...identifierAliases,
       },
     });
   });
+
+  it('contributes one alias per generated identifier format, each a fixed-length character column', () => {
+    expect(sqlIdentifierTypeAliases).toEqual(identifierAliases);
+  });
 });
+
+function charAlias(length: number, documentation: string) {
+  return {
+    kind: 'typeAlias',
+    documentation,
+    output: { type: { codecId: 'sql/char@1', typeParams: { length } } },
+  };
+}
+
+const identifierAliases = {
+  UuidString: charAlias(
+    36,
+    'Fixed-length text of 36 characters, the column a UUID is stored in as text.',
+  ),
+  Ulid: charAlias(26, 'Fixed-length text of 26 characters, the column a ULID is stored in.'),
+  Nanoid: charAlias(
+    21,
+    'Fixed-length text of 21 characters, the column a nanoid of the default size is stored in.',
+  ),
+  Cuid2: charAlias(24, 'Fixed-length text of 24 characters, the column a CUID2 is stored in.'),
+  Ksuid: charAlias(27, 'Fixed-length text of 27 characters, the column a KSUID is stored in.'),
+};
