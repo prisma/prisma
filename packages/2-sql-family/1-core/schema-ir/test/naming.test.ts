@@ -343,7 +343,7 @@ describe('derivedCheckPrefixes', () => {
       new Set([
         'custom_oauth_providers_acceptable_client_ids_check',
         'custom_oauth_providers_acceptable_client_ids_elem_not_',
-        'custom_oauth_providers_acceptable_client_ids_value_obj',
+        'custom_oauth_providers_acceptable_client_ids_shape',
       ]),
     );
   });
