@@ -8,6 +8,7 @@ import { writeProjectManifest } from '../utils/test-project-dir';
 import {
   addExtensionSpace,
   buildProject,
+  buildProjectWithoutMigrations,
   C1,
   C2,
   contractEnvelope,
@@ -68,8 +69,21 @@ function errorOf(json: readonly unknown[]): unknown {
     : undefined;
 }
 
-describe('an extension space whose marker is off its migration graph', () => {
-  it('refuses db migrate before applying, naming the extension space', async () => {
+async function projectWithExtensionShippingNoMigrations(): Promise<string> {
+  const cwd = await buildProject();
+  writeProjectManifest(cwd);
+  const extDir = join(cwd, 'migrations', 'pgvector');
+  await mkdir(extDir, { recursive: true });
+  await writeRef(join(extDir, 'refs'), 'head', { hash: EXT_C1, invariants: [] });
+  await writeContractSnapshot(join(cwd, 'migrations'), EXT_C1, {
+    contractJson: contractEnvelope(EXT_C1),
+    contractDts: 'export type Contract = unknown;\n',
+  });
+  return cwd;
+}
+
+describe('a contract space whose marker is outside its migration graph', () => {
+  it('refuses db migrate before applying, sending the extension space to its package', async () => {
     const cwd = await projectWithExtensionOffItsGraph();
 
     const run = await harness(ormConfig(cwd, { extensions: [pgvectorExtension()] })).run(
@@ -84,6 +98,18 @@ describe('an extension space whose marker is off its migration graph', () => {
       ok: false,
       error: {
         code: 'MIGRATION.MARKER_MISMATCH',
+        nextActions: [
+          {
+            kind: 'user-choice',
+            label: `Install a version of the extension whose migrations include the contract the database is at (${UNKNOWN}), or ask the extension's maintainers for one.`,
+          },
+          {
+            kind: 'run-command',
+            label: 'List the migrations of extension space "pgvector"',
+            command: 'prisma-test migration list --space pgvector',
+          },
+          { kind: 'user-choice', label: 'Then deploy again.' },
+        ],
         meta: {
           spaceId: 'pgvector',
           markerHash: UNKNOWN,
@@ -142,27 +168,55 @@ describe('an extension space whose marker is off its migration graph', () => {
     expect(mocks.migrate).toHaveBeenCalledOnce();
   });
 
-  it('lets db migrate run for an extension with no migrations whose marker is at its head', async () => {
-    const cwd = await buildProject();
+  it.each([
+    { case: 'at its head', marker: EXT_C1 },
+    { case: 'at the head of an older version', marker: UNKNOWN },
+  ])(
+    'lets db migrate run for an extension with no migrations whose marker is $case',
+    async ({ marker }) => {
+      const cwd = await projectWithExtensionShippingNoMigrations();
+      mocks.readAllMarkers.mockResolvedValue(
+        new Map([
+          ['app', { storageHash: C1, invariants: [] }],
+          ['pgvector', { storageHash: marker, invariants: [] }],
+        ]),
+      );
+
+      await harness(ormConfig(cwd, { extensions: [pgvectorExtension()] })).run(
+        ['db', 'migrate', '--json'],
+        { cwd },
+      );
+
+      expect(mocks.migrate).toHaveBeenCalledOnce();
+    },
+  );
+
+  it('refuses db migrate when every application migration was deleted and the database has a marker', async () => {
+    const cwd = await buildProjectWithoutMigrations();
     writeProjectManifest(cwd);
-    const extDir = join(cwd, 'migrations', 'pgvector');
-    await mkdir(extDir, { recursive: true });
-    await writeRef(join(extDir, 'refs'), 'head', { hash: EXT_C1, invariants: [] });
-    await writeContractSnapshot(join(cwd, 'migrations'), EXT_C1, {
-      contractJson: contractEnvelope(EXT_C1),
-      contractDts: 'export type Contract = unknown;\n',
-    });
     mocks.readAllMarkers.mockResolvedValue(
-      new Map([
-        ['app', { storageHash: C1, invariants: [] }],
-        ['pgvector', { storageHash: EXT_C1, invariants: [] }],
-      ]),
+      new Map([['app', { storageHash: UNKNOWN, invariants: [] }]]),
     );
 
-    await harness(ormConfig(cwd, { extensions: [pgvectorExtension()] })).run(
-      ['db', 'migrate', '--json'],
-      { cwd },
+    const run = await harness(ormConfig(cwd)).run(['db', 'migrate', '--json'], { cwd });
+
+    expect(mocks.migrate).not.toHaveBeenCalled();
+    expect(errorOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.MARKER_MISMATCH',
+        meta: { spaceId: 'app', markerHash: UNKNOWN, targetHash: C2, missingMigrations: [] },
+      },
+    });
+  });
+
+  it('lets db migrate --to @db run when the marker is outside the graph, since the database is at the target', async () => {
+    const cwd = await buildProject();
+    writeProjectManifest(cwd);
+    mocks.readAllMarkers.mockResolvedValue(
+      new Map([['app', { storageHash: UNKNOWN, invariants: [] }]]),
     );
+
+    await harness(ormConfig(cwd)).run(['db', 'migrate', '--to', '@db', '--json'], { cwd });
 
     expect(mocks.migrate).toHaveBeenCalledOnce();
   });

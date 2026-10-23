@@ -20,8 +20,8 @@ import {
   loadContractSpaceAggregateForCli,
   refuseContractSpaceIntegrity,
 } from '../control-api/operations/contract-space-aggregate-loader';
-import { refuseMarkersOutsideGraphs } from '../control-api/operations/graph-queries';
 import { refuseUnknownInvariants } from '../control-api/operations/invariants';
+import { planEverySpace } from '../control-api/operations/migrate';
 import {
   executeMigrateShowPlan,
   type MigrateShowMigration,
@@ -413,18 +413,23 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         const target: RequestedTarget =
           offlineTarget === undefined ? liveMarkerTarget(appMarker) : offlineTarget.value;
 
-        const markerRefusal = await refuseMarkersOutsideGraphs({
+        const refEntry = target.entry;
+        const planned = await planEverySpace({
           aggregate,
           markers,
-          appTargetHash: target.entry?.hash ?? appContract.storage.storageHash,
+          appTarget: {
+            hash: refEntry?.hash ?? appContract.storage.storageHash,
+            invariants: refEntry?.invariants,
+            refName: target.refName,
+          },
+          storageNameOf: (operation) => familyInstance.storageNameOf(operation),
           migrationsDir,
           invocation: cliInvocation(ctx, args.flags.db),
           readLedger: (spaceId) => client.readLedger(spaceId),
         });
-        if (markerRefusal) {
-          return notOk(normalizeError(markerRefusal));
+        if (!planned.ok) {
+          return notOk(normalizeError(planned.failure));
         }
-        const refEntry = target.entry;
         if (refEntry !== undefined && refEntry.invariants.length > 0) {
           const invariantRefusal = refuseUnknownInvariants({
             graph: appGraph,

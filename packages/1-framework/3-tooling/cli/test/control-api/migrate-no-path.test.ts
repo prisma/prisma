@@ -1,4 +1,4 @@
-import { rm } from 'node:fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
 import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import type {
   ControlDriverInstance,
@@ -179,6 +179,52 @@ describe('executeMigrate with no path to the target', () => {
         lastGraphHash: APP_HEAD,
         missingMigrations: ['20261013T0910_request_description'],
       },
+    });
+  });
+
+  it('reports MARKER_MISMATCH when every migration was deleted and the database has a marker', async () => {
+    const projectDir = createTestProjectDir('migrate-no-path');
+    projectDirs.push(projectDir);
+    await mkdir(join(projectDir, 'migrations', 'app'), { recursive: true });
+    const choice =
+      "If this database's migration history does not need to be kept (a local, development, staging or preview database), reconcile it to the target:";
+    const migrationsOnly = `If this database changes only through migrations, as production should: author a migration from the nearest contract in the migration graph to the database's current contract, then one from there to ${APP_HEAD}, commit them, and deploy again.`;
+
+    const result = await migrate({
+      projectDir,
+      markers: new Map([['app', markerAt(DELETED)]]),
+      ledger: [applied('20260101T0000_initial', null, DELETED)],
+    });
+
+    expect(result.ok ? undefined : result.failure.toEnvelope()).toEqual({
+      ok: false,
+      code: 'MIGRATION.MARKER_MISMATCH',
+      severity: 'error',
+      summary: 'The database is at a contract that is not in the migration graph',
+      why: `The database's marker names contract ${DELETED}, and no migration in migrations/app starts or ends there. This usually means a migration this database applied was later planned again or deleted, or \`db update\` moved the database to a contract no migration ends at. The database does not need to be reset or dropped.`,
+      fix: [
+        choice,
+        '  {bin} db update --dry-run --db <url>',
+        '  {bin} db update --db <url>',
+        '  Then deploy again.',
+        migrationsOnly,
+      ].join('\n'),
+      nextActions: [
+        { kind: 'user-choice', label: choice },
+        {
+          kind: 'run-command',
+          label: 'Preview the changes',
+          command: '{bin} db update --dry-run --db <url>',
+        },
+        {
+          kind: 'run-command',
+          label: 'Reconcile the database',
+          command: '{bin} db update --db <url>',
+        },
+        { kind: 'user-choice', label: 'Then deploy again.' },
+        { kind: 'user-choice', label: migrationsOnly },
+      ],
+      meta: { spaceId: 'app', markerHash: DELETED, targetHash: APP_HEAD, missingMigrations: [] },
     });
   });
 
