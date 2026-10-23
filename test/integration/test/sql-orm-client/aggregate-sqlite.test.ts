@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
-import { integerColumn, textColumn } from '@internal/adapter-sqlite/column-types';
+import { bigintColumn, integerColumn, textColumn } from '@internal/adapter-sqlite/column-types';
 import sqliteAdapter from '@internal/adapter-sqlite/runtime';
 import sqliteDriver from '@internal/driver-sqlite/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
@@ -22,6 +22,7 @@ const Post = model('Post', {
     title: field.column(textColumn),
     userId: field.column(integerColumn).column('user_id'),
     views: field.column(integerColumn),
+    lifetime: field.column(bigintColumn),
   },
 }).sql({ table: 'agg_posts' });
 
@@ -67,12 +68,13 @@ async function withPostsRuntime(
       id integer primary key,
       title text not null,
       user_id integer not null,
-      views integer not null
+      views integer not null,
+      lifetime integer not null default 0
     );
   `);
   for (const row of seedRows) {
     database.exec(
-      `insert into agg_posts (id, title, user_id, views) values (${row.id}, '${row.title}', ${row.userId}, ${row.views});`,
+      `insert into agg_posts (id, title, user_id, views, lifetime) values (${row.id}, '${row.title}', ${row.userId}, ${row.views}, ${row.views});`,
     );
   }
   database.close();
@@ -256,6 +258,72 @@ describe('integration/aggregate (sqlite)', { timeout: timeouts.databaseOperation
           { userId: 1, count: 1, total: 20 },
           { userId: 2, count: 2, total: 70 },
         ]);
+      });
+    });
+  });
+});
+
+describe('grouped having on SQLite', { timeout: timeouts.databaseOperation }, () => {
+  it('binds a having comparand as a param through the aggregate output codec', async () => {
+    await withPostsRuntime(async (_runtime, posts) => {
+      const grouped = await posts
+        .groupBy('userId')
+        .having((having) => having.count().gte(2))
+        .aggregate((aggregate) => ({ count: aggregate.count() }));
+      const sorted = [...grouped].sort((left, right) => Number(left.userId) - Number(right.userId));
+      expect(sorted).toEqual([
+        { userId: 1, count: 2 },
+        { userId: 2, count: 2 },
+      ]);
+      await expect(
+        posts
+          .groupBy('userId')
+          .having((having) => having.count().gte("1 OR '1'='1" as never))
+          .aggregate((aggregate) => ({ count: aggregate.count() })),
+      ).rejects.toMatchObject({ code: 'RUNTIME.ENCODE_FAILED' });
+    });
+  });
+});
+
+describe('grouped having over an integer aggregate on SQLite', {
+  timeout: timeouts.databaseOperation,
+}, () => {
+  it('refuses a fractional comparand before running the statement', async () => {
+    await withPostsRuntime(async (_runtime, posts) => {
+      expect(() =>
+        posts.groupBy('userId').having((having) => having.max('views').gt(15.5)),
+      ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
+      expect(() => posts.groupBy('userId').having((having) => having.count().gt(1.5))).toThrow(
+        expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }),
+      );
+      expect(() =>
+        posts.groupBy('userId').having((having) => having.max('lifetime').gt(15.5)),
+      ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
+    });
+  });
+});
+
+describe('grouped having over a bigint column on SQLite', {
+  timeout: timeouts.databaseOperation,
+}, () => {
+  it('compares a max over a BigInt column, a bigint, and its sum, a number, with a number', async () => {
+    await withPostsRuntime(async (_runtime, posts) => {
+      const byMax = await posts
+        .groupBy('userId')
+        .having((having) => having.max('lifetime').gt(30))
+        .aggregate((aggregate) => ({ top: aggregate.max('lifetime') }));
+      const bySum = await posts
+        .groupBy('userId')
+        .having((having) => having.sum('lifetime').gte(70))
+        .aggregate((aggregate) => ({ total: aggregate.sum('lifetime') }));
+      const byUser = (rows: readonly { userId: number }[]) =>
+        [...rows].sort((left, right) => left.userId - right.userId);
+      expect({ byMax: byUser(byMax), bySum: byUser(bySum) }).toEqual({
+        byMax: [
+          { userId: 2, top: 40n },
+          { userId: 3, top: 50n },
+        ],
+        bySum: [{ userId: 2, total: 70 }],
       });
     });
   });

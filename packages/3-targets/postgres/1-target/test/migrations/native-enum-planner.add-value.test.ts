@@ -251,7 +251,7 @@ describe('AddNativeEnumValueCall op', () => {
         },
         renderColumnDefault: async () => '',
         async lowerToExecuteRequest(_ast, _ctx) {
-          return { sql: 'stub-check-sql', params: [] };
+          return { containsRawSql: false, sql: 'stub-check-sql', params: [] };
         },
       },
     };

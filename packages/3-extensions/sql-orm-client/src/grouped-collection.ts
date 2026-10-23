@@ -11,8 +11,8 @@ import {
   type AnyExpression,
   type BinaryOp,
   isAggregateFn,
-  LiteralExpr,
   type OrderByItem,
+  ParamRef,
 } from '@internal/sql-relational-core/ast';
 import { type TraitExpression, toExpr } from '@internal/sql-relational-core/expression';
 import type { Preparable } from '@internal/sql-relational-core/plan';
@@ -145,6 +145,8 @@ export class GroupedCollection<
     const havingExpr = predicate(
       createHavingBuilder<TContract, ModelName, NsId>(
         this.contract,
+        (codecId) =>
+          this.ctx.context.codecDescriptors.descriptorFor(codecId)?.integerRepresentation,
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
@@ -359,6 +361,7 @@ function createHavingBuilder<
   NsId extends string = never,
 >(
   contract: TContract,
+  integerOf: IntegerOf,
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
@@ -390,6 +393,7 @@ function createHavingBuilder<
       );
       return createHavingComparisonMethods(
         metric,
+        integerOf,
         () =>
           resolveAggregate({
             aggregates,
@@ -408,8 +412,28 @@ function createHavingBuilder<
   >(builder);
 }
 
-function createHavingComparisonMethods<T extends number | null>(
+/** The JavaScript type of a codec's integer application value, as its descriptor declares it, or `undefined` for a codec whose values are not integers. */
+type IntegerOf = (codecId: string) => 'number' | 'bigint' | undefined;
+
+/**
+ * A literal comparand as the aggregate's output codec takes it, read from the codec's declared `integerRepresentation`. A codec whose values are integers takes only a safe integer number: a number with a fraction, or past the safe range, is refused. A codec that declares `'bigint'` gets a number as a bigint.
+ */
+function havingComparand(value: unknown, codecId: string, integer: IntegerOf): unknown {
+  const kind = integer(codecId);
+  if (typeof value !== 'number' || kind === undefined) return value;
+  if (!Number.isSafeInteger(value)) {
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      `A having comparand for the integer codec ${codecId} must be ${kind === 'bigint' ? 'a bigint or a safe integer' : 'a safe integer'}, got ${value}`,
+      { meta: { codecId, received: String(value) } },
+    );
+  }
+  return kind === 'bigint' ? BigInt(value) : value;
+}
+
+function createHavingComparisonMethods<T extends number | bigint | null>(
   metric: AggregateExpr,
+  integerOf: IntegerOf,
   outputCodecId: () => string,
 ): HavingComparisonMethods<T> {
   const buildBinaryExpr = (op: BinaryOp, value: unknown): AnyExpression => {
@@ -424,7 +448,14 @@ function createHavingComparisonMethods<T extends number | null>(
         { meta: { kind: expression.kind } },
       );
     }
-    return predicateComparison(op, metric, expression ?? LiteralExpr.of(value));
+    return predicateComparison(
+      op,
+      metric,
+      expression ??
+        ParamRef.of(havingComparand(value, outputCodecId(), integerOf), {
+          codec: { codecId: outputCodecId() },
+        }),
+    );
   };
 
   return {

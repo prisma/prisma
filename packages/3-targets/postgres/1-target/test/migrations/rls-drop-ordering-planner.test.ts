@@ -46,7 +46,7 @@ import {
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
 };
 
 interface WireIndex {

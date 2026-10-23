@@ -36,6 +36,7 @@ function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);
       return Object.freeze({
+        containsRawSql: false,
         sql: `LOWERED ${received.length}`,
         params: Object.freeze([`p${received.length}`]),
       });

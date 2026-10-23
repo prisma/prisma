@@ -24,7 +24,7 @@ const stubLowerer: ExecuteRequestLowerer = {
     throw new Error('lower() called while scaffolding an empty migration');
   },
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: '', params: [] }),
 };
 
 function render(root: ImportRoot): string {

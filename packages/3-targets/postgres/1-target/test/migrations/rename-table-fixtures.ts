@@ -17,7 +17,7 @@ import { postgresCreateNamespace } from '../../src/core/postgres-schema';
 
 export const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: 'stub', params: [] }),
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
 };
 

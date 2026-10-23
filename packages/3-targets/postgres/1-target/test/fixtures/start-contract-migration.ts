@@ -32,7 +32,7 @@ export function codecControlStack(): ControlStack<'sql', 'postgres'> {
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async () => {
       counter += 1;
-      return { sql: `LOWERED ${counter}`, params: [`p${counter}`] };
+      return { containsRawSql: false, sql: `LOWERED ${counter}`, params: [`p${counter}`] };
     },
   };
   return {

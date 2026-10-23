@@ -23,7 +23,8 @@ function stubLowerer(sql: string): ExecuteRequestLowerer {
   return {
     lower: () => Object.freeze({ sql, params: Object.freeze([]) }),
     renderColumnDefault: async () => '',
-    lowerToExecuteRequest: async () => Object.freeze({ sql, params: Object.freeze([]) }),
+    lowerToExecuteRequest: async () =>
+      Object.freeze({ containsRawSql: false, sql, params: Object.freeze([]) }),
   };
 }
 
@@ -155,6 +156,7 @@ function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: un
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);
       return Object.freeze({
+        containsRawSql: false,
         sql: `LOWERED CHECK ${received.length}`,
         params: Object.freeze([`p${received.length}`]),
       });

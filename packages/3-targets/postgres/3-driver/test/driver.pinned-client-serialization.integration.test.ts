@@ -226,6 +226,7 @@ describe('pinned-client serialization on a real wire', () => {
       const streamed: string[] = [];
       const consumeStream = async (): Promise<void> => {
         for await (const row of h.driver.query<{ id: string }>({
+          containsRawSql: false,
           sql: 'select id from items order by id',
         })) {
           streamed.push(row.id);

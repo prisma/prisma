@@ -64,7 +64,7 @@ describe('renderOps with a call that produces several ops', () => {
       lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
       lowerToExecuteRequest: async (ast) => {
         received.push(ast);
-        return Object.freeze({ sql: 'LOWERED', params: Object.freeze([]) });
+        return Object.freeze({ containsRawSql: false, sql: 'LOWERED', params: Object.freeze([]) });
       },
       renderColumnDefault: async () => '',
     };

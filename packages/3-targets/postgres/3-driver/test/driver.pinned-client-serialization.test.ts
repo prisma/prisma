@@ -97,11 +97,16 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     }
 
     await Promise.all([
-      consume(driver.query({ sql: 'select a' })),
+      consume(driver.query({ containsRawSql: false, sql: 'select a' })),
       consume(
-        driver.query({ sql: 'select b', params: [], preparedStatementHandle: makeHandleSlot() }),
+        driver.query({
+          containsRawSql: false,
+          sql: 'select b',
+          params: [],
+          preparedStatementHandle: makeHandleSlot(),
+        }),
       ),
-      explain.call(driver, { sql: 'select c' }),
+      explain.call(driver, { containsRawSql: false, sql: 'select c' }),
       queryRows(driver, 'select d'),
     ]);
 
@@ -130,7 +135,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     await Promise.all([
       queryRows(transaction, 'select 1'),
       queryRows(transaction, 'select 2'),
-      consume(transaction.query({ sql: 'select 3' })),
+      consume(transaction.query({ containsRawSql: false, sql: 'select 3' })),
     ]);
     await transaction.commit();
     await connection.release();
@@ -157,7 +162,10 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const connection = await driver.acquireConnection();
 
     const nested: unknown[] = [];
-    for await (const row of connection.query<{ echo: string }>({ sql: 'select outer' })) {
+    for await (const row of connection.query<{ echo: string }>({
+      containsRawSql: false,
+      sql: 'select outer',
+    })) {
       expect(row).toEqual({ echo: 'select outer' });
       const inner = await queryRows<{ echo: string }>(connection, 'select inner');
       nested.push(inner[0]);
@@ -175,7 +183,10 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const transaction = await connection.beginTransaction();
 
     const nested: unknown[] = [];
-    for await (const row of transaction.query<{ echo: string }>({ sql: 'select outer' })) {
+    for await (const row of transaction.query<{ echo: string }>({
+      containsRawSql: false,
+      sql: 'select outer',
+    })) {
       expect(row).toEqual({ echo: 'select outer' });
       const inner = await queryRows<{ echo: string }>(transaction, 'select inner');
       nested.push(inner[0]);
@@ -192,7 +203,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const driver = makeDirectDriver(state);
 
     const iterator = driver
-      .query<{ echo: string }>({ sql: 'select abandoned' })
+      .query<{ echo: string }>({ containsRawSql: false, sql: 'select abandoned' })
       [Symbol.asyncIterator]();
     const first = await iterator.next();
     expect(first.done).toBe(false);
@@ -208,7 +219,7 @@ describe('pinned-client serialization', { timeout: timeouts.databaseOperation },
     const transaction = await connection.beginTransaction();
 
     const iterator = transaction
-      .query<{ echo: string }>({ sql: 'select open-stream' })
+      .query<{ echo: string }>({ containsRawSql: false, sql: 'select open-stream' })
       [Symbol.asyncIterator]();
     const first = await iterator.next();
     expect(first.done).toBe(false);

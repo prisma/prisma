@@ -214,7 +214,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
       'framework CodecRegistry: its descriptors materialise SQL codecs; the framework Codec type erases to BaseCodec at this boundary'
     >(this.codecRegistry);
     const params = await encodeControlQueryParams(lowered, ast, codecRegistry);
-    return { sql: lowered.sql, params };
+    return { containsRawSql: ast.containsRawSql(), sql: lowered.sql, params };
   }
 
   /**
@@ -961,6 +961,7 @@ async function sqliteRenderDdlExecuteRequest(
     node.constraints !== undefined ? node.constraints.map(sqliteRenderDdlConstraint) : [];
   const allDefs = [...columnDefs, ...constraintDefs].join(',\n  ');
   return {
+    containsRawSql: false,
     sql: `CREATE TABLE ${ifNotExists}${tableRef} (\n  ${allDefs}\n)`,
     params: [],
   };

@@ -355,6 +355,7 @@ describe('PostgreSQL adapter codec registry composition', () => {
     const ast = selectWithParam('document', descriptor.codecId, 'Ada');
 
     await expect(adapter.lowerToExecuteRequest(ast, { contract })).resolves.toEqual({
+      containsRawSql: false,
       sql: 'SELECT "records"."id" AS "id" FROM "records" WHERE "records"."document" = $1::citext',
       params: ['encoded:Ada'],
     });

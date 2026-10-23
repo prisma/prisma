@@ -165,6 +165,7 @@ describe('temporal string codecs round-trip PostgreSQL text', () => {
     runtime = createTestRuntime({ stackInstance, context, driver, verifyMarker: false });
 
     await driver.execute({
+      containsRawSql: false,
       sql: `CREATE TABLE "Moments" (
         id   int4 PRIMARY KEY,
         d    date,
@@ -277,18 +278,18 @@ describe('temporal string codecs round-trip PostgreSQL text', () => {
   it('surfaces the session TimeZone in the rendering instead of pinning the read to UTC', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
-    await session!.execute({ sql: "SET TimeZone TO 'Asia/Tokyo'" });
+    await session!.execute({ containsRawSql: true, sql: "SET TimeZone TO 'Asia/Tokyo'" });
     try {
       expect((await read(1)).tstz).toBe('2026-01-02 12:04:05.123456+09');
     } finally {
-      await session!.execute({ sql: "SET TimeZone TO 'UTC'" });
+      await session!.execute({ containsRawSql: true, sql: "SET TimeZone TO 'UTC'" });
     }
   });
 
   it('surfaces a non-default DateStyle in the rendering instead of normalising it away', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
-    await session!.execute({ sql: "SET DateStyle TO 'German, DMY'" });
+    await session!.execute({ containsRawSql: true, sql: "SET DateStyle TO 'German, DMY'" });
     try {
       expect(await read(1)).toEqual({
         d: '02.01.2026',
@@ -297,7 +298,7 @@ describe('temporal string codecs round-trip PostgreSQL text', () => {
         t: '03:04:05.123456',
       });
     } finally {
-      await session!.execute({ sql: "SET DateStyle TO 'ISO, MDY'" });
+      await session!.execute({ containsRawSql: true, sql: "SET DateStyle TO 'ISO, MDY'" });
     }
   });
 });

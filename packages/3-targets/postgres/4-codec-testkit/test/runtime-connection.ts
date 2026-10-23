@@ -12,6 +12,7 @@ export async function connectRuntimeDriver(
       async query(sql, params) {
         const rows: Record<string, unknown>[] = [];
         for await (const row of driver.query<Record<string, unknown>>({
+          containsRawSql: true,
           sql,
           params: [...(params ?? [])],
         })) {

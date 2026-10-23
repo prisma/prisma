@@ -55,6 +55,8 @@ export interface CodecDescriptorTemplate<P = void> {
   readonly enumRefusal?: string;
   /** `true` for a codec whose application value keeps the form a value was written in, so two values its data type's `equalityKey` holds equal can read back as different application values, as a decimal codec reads `0.50` and `0.5` as two strings. Such a codec renders no literal, its codec type map entry carries the same flag, and an enum on it is typed by the codec's output type on every type path. Only a codec whose data type declares an `equalityKey` sets it; each target's tests check this. */
   readonly keepsWrittenForm?: true;
+  /** The JavaScript type of the application value, for a codec whose values are integers: `'number'` or `'bigint'`. The codec's type map entry carries it. Each target's tests check that the codec returns that type. */
+  readonly integerRepresentation?: 'number' | 'bigint';
   /** The curried higher-order codec. For non-parameterized codecs, the factory is constant — every call returns the same shared codec instance. For parameterized codecs, the factory is called once per `storage.types` instance (or once per inline-`typeParams` column), with `ctx` carrying the column set the resulting codec serves. */
   readonly factory: (params: P) => (ctx: CodecInstanceContext) => Codec;
 }
@@ -130,6 +132,9 @@ export abstract class CodecDescriptorTemplateImpl<TParams = void>
 
   /** See {@link CodecDescriptorTemplate.keepsWrittenForm}. */
   declare readonly keepsWrittenForm?: true;
+
+  /** See {@link CodecDescriptorTemplate.integerRepresentation}. */
+  declare readonly integerRepresentation?: 'number' | 'bigint';
 
   /**
    * Materialize a curried codec factory for the given params. Concrete subclasses override with a typed return type (e.g. `factory<N>(params: { length: N }): (ctx) => VectorCodec<N>`); per-codec helpers read the typed return at the *direct* call site, which is what preserves method-level generics. Type extraction (e.g. `ReturnType<D['factory']>`) widens method generics to their constraint — that's why the column-helper surface is per-codec, not polymorphic.

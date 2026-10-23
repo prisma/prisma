@@ -19,6 +19,7 @@ export interface PreparedStatementInternals {
   readonly sql: string;
   readonly ast: AnyQueryAst;
   readonly meta: PlanMeta;
+  readonly containsRawSql: boolean;
   readonly slots: readonly LoweredParam[];
   readonly decodeContext: DecodeContext;
   readonly paramMetadata: readonly ParamMetadata[];
@@ -30,6 +31,7 @@ export class PreparedStatementImpl<Params, Row>
   readonly sql: string;
   readonly ast: AnyQueryAst;
   readonly meta: PlanMeta;
+  readonly containsRawSql: boolean;
   readonly slots: readonly LoweredParam[];
   readonly decodeContext: DecodeContext;
   readonly paramMetadata: readonly ParamMetadata[];
@@ -38,6 +40,7 @@ export class PreparedStatementImpl<Params, Row>
     this.sql = internals.sql;
     this.ast = internals.ast;
     this.meta = internals.meta;
+    this.containsRawSql = internals.containsRawSql;
     this.slots = internals.slots;
     this.decodeContext = internals.decodeContext;
     this.paramMetadata = internals.paramMetadata;
@@ -67,6 +70,7 @@ export class PreparedExecutionImpl<Params>
   readonly sql: string;
   readonly ast: AnyQueryAst;
   readonly meta: PlanMeta;
+  readonly containsRawSql: boolean;
   readonly slots: readonly LoweredParam[];
   readonly decodeContext: DecodeContext;
   readonly paramMetadata: readonly ParamMetadata[];
@@ -75,6 +79,7 @@ export class PreparedExecutionImpl<Params>
     this.sql = internals.sql;
     this.ast = internals.ast;
     this.meta = internals.meta;
+    this.containsRawSql = internals.containsRawSql;
     this.slots = internals.slots;
     this.decodeContext = internals.decodeContext;
     this.paramMetadata = internals.paramMetadata;

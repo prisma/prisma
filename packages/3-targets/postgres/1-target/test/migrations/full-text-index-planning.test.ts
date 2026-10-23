@@ -171,7 +171,7 @@ async function plannedCreateIndexNodes(schema: string): Promise<readonly Postgre
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async (ast) => {
       lowered.push(ast);
-      return { sql: 'stub', params: [] };
+      return { containsRawSql: false, sql: 'stub', params: [] };
     },
   };
   const result = createPostgresMigrationPlanner(lowerer).plan({
@@ -200,7 +200,7 @@ describe('a single-field index authored before full-text indexes were stored as 
     const result = createPostgresMigrationPlanner({
       lower: () => ({ sql: 'stub', params: [] }),
       renderColumnDefault: async () => '',
-      lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+      lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
     }).plan({
       contract: authoredContract(TYPED_ATTRIBUTE_SCHEMA),
       schema: contractToPostgresDatabaseSchemaNode(previous, {
@@ -237,7 +237,7 @@ describe('a weighted full-text index over a column whose nullability changes', (
     const result = createPostgresMigrationPlanner({
       lower: () => ({ sql: 'stub', params: [] }),
       renderColumnDefault: async () => '',
-      lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+      lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
     }).plan({
       contract: after,
       schema: contractToPostgresDatabaseSchemaNode(before, {
@@ -279,7 +279,7 @@ async function plannedLabels(beforeSchema: string, afterSchema: string): Promise
   const result = createPostgresMigrationPlanner({
     lower: () => ({ sql: 'stub', params: [] }),
     renderColumnDefault: async () => '',
-    lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+    lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
   }).plan({
     contract: authoredContract(afterSchema),
     schema: contractToPostgresDatabaseSchemaNode(before, {

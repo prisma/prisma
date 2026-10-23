@@ -543,6 +543,7 @@ export class PgInt4Descriptor extends PostgresCodecDescriptor<void> {
   }
   override readonly dataType = pgInt4.id;
   override readonly codecId = PG_INT4_CODEC_ID;
+  override readonly integerRepresentation = 'number' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
@@ -587,6 +588,7 @@ export class PgInt2Descriptor extends PostgresCodecDescriptor<void> {
   }
   override readonly dataType = pgInt2.id;
   override readonly codecId = PG_INT2_CODEC_ID;
+  override readonly integerRepresentation = 'number' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
@@ -637,6 +639,7 @@ export class PgInt8Descriptor extends PostgresCodecDescriptor<void> {
   }
   override readonly dataType = pgInt8.id;
   override readonly codecId = PG_INT8_CODEC_ID;
+  override readonly integerRepresentation = 'bigint' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
@@ -689,6 +692,7 @@ export class PgInt8NumberDescriptor extends PostgresCodecDescriptor<void> {
   }
   override readonly dataType = pgInt8.id;
   override readonly codecId = PG_INT8_NUMBER_CODEC_ID;
+  override readonly integerRepresentation = 'number' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = undefined;
   override renderValueLiteral(value: JsonValue): string | undefined {
@@ -914,6 +918,7 @@ export class PgUnboundedIntDescriptor extends PostgresCodecDescriptor<NumericPar
   }
   override readonly dataType = pgNumeric.id;
   override readonly codecId = PG_UNBOUNDED_INT_CODEC_ID;
+  override readonly integerRepresentation = 'bigint' as const;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = pgNumericParams satisfies StandardSchemaV1<NumericParams>;
   override renderValueLiteral(value: JsonValue): string | undefined {
@@ -1467,6 +1472,7 @@ export class PgIntDescriptor extends PostgresCodecDescriptor<void> {
   }
   override readonly dataType = pgInt4.id;
   override readonly codecId = PG_INT_CODEC_ID;
+  override readonly integerRepresentation = 'number' as const;
   override readonly traits = sqlIntDescriptor.traits;
   override readonly paramsSchema = sqlIntDescriptor.paramsSchema;
   override renderValueLiteral(value: JsonValue): string | undefined {

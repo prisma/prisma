@@ -123,3 +123,19 @@ describe('aggregate result types resolve per the emitted rows', () => {
     expectTypeOf<Row['samples']>().toEqualTypeOf<number | null>();
   });
 });
+
+describe('having comparands follow the aggregate output codec', () => {
+  test('PostgreSQL: max and sum over an UnboundedInt column take a number or a bigint', () => {
+    meters.groupBy('id').having((h) => h.max('lifetime').gt(15));
+    meters.groupBy('id').having((h) => h.max('lifetime').gt(15n));
+    meters.groupBy('id').having((h) => h.sum('lifetime').lte(9007199254740993n));
+  });
+
+  test('PostgreSQL: count and a number-valued max take only a number', () => {
+    meters.groupBy('id').having((h) => h.count().gt(1));
+    // @ts-expect-error count compares with a number
+    meters.groupBy('id').having((h) => h.count().gt(1n));
+    // @ts-expect-error a BigIntNumber max compares with a number
+    meters.groupBy('id').having((h) => h.max('peak').gt(1n));
+  });
+});

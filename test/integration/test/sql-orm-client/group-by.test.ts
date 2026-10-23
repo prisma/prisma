@@ -1,4 +1,4 @@
-import { AggregateExpr, BinaryExpr, LiteralExpr } from '@internal/sql-relational-core/ast';
+import { AggregateExpr, BinaryExpr, ParamRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { isSelectAst } from './helpers';
 import { createPostsCollection, timeouts, withCollectionRuntime } from './integration-helpers';
@@ -136,6 +136,8 @@ describe('integration/groupBy', () => {
         expect(runtime.executions).toHaveLength(1);
 
         const sql = runtime.executions[0]?.sql.toLowerCase() ?? '';
+        expect(sql).toMatch(/having count\(\*\) >= \$\d+/);
+        expect(runtime.executions[0]?.params).toContainEqual({ kind: 'literal', value: 2 });
         const groupByIdx = sql.indexOf('group by');
         const havingIdx = sql.indexOf('having');
         const orderByIdx = sql.indexOf('order by');
@@ -209,7 +211,56 @@ describe('integration/groupBy', () => {
         if (!isSelectAst(ast)) {
           throw new Error('Expected grouped query to emit a select AST plan');
         }
-        expect(ast.having).toEqual(BinaryExpr.gt(AggregateExpr.count(), LiteralExpr.of(1)));
+        expect(ast.having).toEqual(
+          BinaryExpr.gt(
+            AggregateExpr.count(),
+            ParamRef.of(1, { codec: { codecId: 'pg/int8number@1' } }),
+          ),
+        );
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'having() takes only an integer comparand for an integer aggregate, and a fraction for avg()',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const posts = createPostsCollection(runtime);
+
+        await seedPosts(runtime, [
+          { id: 10, title: 'A', userId: 1, views: 10 },
+          { id: 11, title: 'B', userId: 1, views: 15 },
+          { id: 12, title: 'C', userId: 2, views: 30 },
+        ]);
+
+        const byMax = await posts
+          .groupBy('userId')
+          .having((having) => having.max('views').gt(15))
+          .aggregate((aggregate) => ({ top: aggregate.max('views') }));
+        const byAvg = await posts
+          .groupBy('userId')
+          .having((having) => having.avg('views').gt(12.4))
+          .aggregate((aggregate) => ({ mean: aggregate.avg('views') }));
+        const byUser = (rows: readonly { userId: number }[]) =>
+          [...rows].sort((left, right) => left.userId - right.userId);
+
+        expect({ byMax, byAvg: byUser(byAvg) }).toEqual({
+          byMax: [{ userId: 2, top: 30 }],
+          byAvg: [
+            { userId: 1, mean: 12.5 },
+            { userId: 2, mean: 30 },
+          ],
+        });
+        expect(() =>
+          posts.groupBy('userId').having((having) => having.max('views').gt(15.5)),
+        ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
+        expect(() => posts.groupBy('userId').having((having) => having.count().gt(1.5))).toThrow(
+          expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }),
+        );
+        expect(() =>
+          posts.groupBy('userId').having((having) => having.count().gt(2 ** 60)),
+        ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
       });
     },
     timeouts.spinUpPpgDev,

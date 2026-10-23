@@ -152,6 +152,28 @@ describe('GroupedCollection', () => {
     );
   });
 
+  it('groupBy().having() binds a comparand as a param with the aggregate output codec, never as a literal', async () => {
+    const { collection, runtime } = createCollectionFor('Post');
+    runtime.setNextResults([[]]);
+
+    await collection
+      .groupBy('userId')
+      .having((having) => having.count().gt("1 OR '1'='1" as never))
+      .aggregate((aggregate) => ({ count: aggregate.count() }));
+
+    const ast = runtime.executions[0]?.plan.ast;
+    const having = ast !== undefined && isSelectAst(ast) ? ast.having : undefined;
+    expect(
+      having?.kind === 'binary'
+        ? {
+            kind: having.right.kind,
+            value: 'value' in having.right ? having.right.value : undefined,
+            codec: 'codec' in having.right ? having.right.codec?.codecId : undefined,
+          }
+        : having,
+    ).toEqual({ kind: 'param-ref', value: "1 OR '1'='1", codec: expect.any(String) });
+  });
+
   // Aggregate values reach the row already decoded — the projection carries
   // each aggregate's resolved output codec, so the runtime's decode pass has
   // turned the wire value into the application one. Nothing re-reads them here,

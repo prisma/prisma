@@ -367,7 +367,11 @@ describe('acquireRawConnection', () => {
     const { runtime, connection } = createTestSetup({ middleware: [observer] });
     const raw = await runtime.acquireRawConn();
 
-    for await (const row of raw.query({ sql: 'SET LOCAL role = $1', params: ['viewer'] })) {
+    for await (const row of raw.query({
+      containsRawSql: true,
+      sql: 'SET LOCAL role = $1',
+      params: ['viewer'],
+    })) {
       void row;
     }
 
@@ -393,7 +397,7 @@ describe('a statement sent directly on a raw connection', () => {
       return { affectedRows: 0 };
     });
     const raw = await runtime.acquireRawConn();
-    const pending = raw.execute({ sql: 'SELECT 1' });
+    const pending = raw.execute({ containsRawSql: false, sql: 'SELECT 1' });
 
     const closing = runtime.close();
     await afterIdleTurns();
@@ -416,7 +420,7 @@ describe('a statement sent directly on a raw connection', () => {
       yield { id: 1 };
     });
     const raw = await runtime.acquireRawConn();
-    const rows = raw.query({ sql: 'SELECT id' })[Symbol.asyncIterator]();
+    const rows = raw.query({ containsRawSql: false, sql: 'SELECT id' })[Symbol.asyncIterator]();
     const reading = rows.next();
 
     const closing = runtime.close();
@@ -435,7 +439,7 @@ describe('a statement sent directly on a raw connection', () => {
   it('does not keep close() waiting for a query stream read in part and dropped', async () => {
     const { runtime, driver } = createTestSetup();
     const raw = await runtime.acquireRawConn();
-    await raw.query({ sql: 'SELECT id' })[Symbol.asyncIterator]().next();
+    await raw.query({ containsRawSql: false, sql: 'SELECT id' })[Symbol.asyncIterator]().next();
 
     await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
     expect(driver.close).toHaveBeenCalledOnce();
@@ -444,7 +448,7 @@ describe('a statement sent directly on a raw connection', () => {
   it('does not keep close() waiting for a query stream never read', async () => {
     const { runtime, driver } = createTestSetup();
     const raw = await runtime.acquireRawConn();
-    raw.query({ sql: 'SELECT id' });
+    raw.query({ containsRawSql: false, sql: 'SELECT id' });
 
     await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
     expect(driver.close).toHaveBeenCalledOnce();
@@ -454,7 +458,9 @@ describe('a statement sent directly on a raw connection', () => {
     const { runtime, driver, connection } = createTestSetup();
     connection.execute.mockRejectedValueOnce(new Error('statement failed'));
     const raw = await runtime.acquireRawConn();
-    await expect(raw.execute({ sql: 'SELECT 1' })).rejects.toThrow('statement failed');
+    await expect(raw.execute({ containsRawSql: false, sql: 'SELECT 1' })).rejects.toThrow(
+      'statement failed',
+    );
 
     await expect(settlesWithin(runtime.close())).resolves.toBe('settled');
     expect(driver.close).toHaveBeenCalledOnce();

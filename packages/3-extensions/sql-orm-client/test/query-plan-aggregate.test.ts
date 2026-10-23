@@ -94,7 +94,7 @@ describe('query plan aggregate', () => {
     ).toThrow('groupBy().aggregate() requires at least one aggregation selector');
   });
 
-  it('validates grouped having expressions before lowering them', () => {
+  it('accepts params in grouped having expressions and refuses other comparables before lowering them', () => {
     const scalarSubquery = SelectAst.from(TableSource.named('posts')).withProjection([
       ProjectionItem.of('id', ColumnRef.of('posts', 'id')),
     ]);
@@ -111,7 +111,7 @@ describe('query plan aggregate', () => {
           ParamRef.of(1, { name: 'views', codec: { codecId: 'pg/int4@1' } }),
         ),
       ),
-    ).toThrow('ParamRef is not supported in grouped having expressions');
+    ).not.toThrow();
 
     expect(() =>
       compileGroupedAggregate(
@@ -125,7 +125,7 @@ describe('query plan aggregate', () => {
           ListExpression.of([ParamRef.of(1, { name: 'views', codec: { codecId: 'pg/int4@1' } })]),
         ),
       ),
-    ).toThrow('ParamRef is not supported in grouped having expressions');
+    ).not.toThrow();
 
     expect(() =>
       compileGroupedAggregate(

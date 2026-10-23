@@ -36,7 +36,7 @@ const CANONICAL = 'owner_id = 1\n  AND id > 0';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: 'stub', params: [] }),
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
 };
 

@@ -45,7 +45,9 @@ describe('SqliteRuntimeDriverDescriptor', () => {
 
   it('execute() throws on an unbound driver', async () => {
     const driver = sqliteRuntimeDriverDescriptor.create();
-    await expect(driver.execute({ sql: 'SELECT 1' })).rejects.toThrow('not connected');
+    await expect(driver.execute({ containsRawSql: false, sql: 'SELECT 1' })).rejects.toThrow(
+      'not connected',
+    );
   });
 
   it('works end-to-end after connect', async () => {
