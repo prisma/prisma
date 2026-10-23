@@ -500,7 +500,7 @@ export function createStubAdapter(): StubAdapter {
           ? ({ kind: 'bind' as const, name: ref.name } as const)
           : ({ kind: 'literal' as const, value: ref.value } as const),
       );
-      return Object.freeze({ containsCallerSql: ast instanceof RawQueryAst, sql: sqlText, params });
+      return Object.freeze({ containsRawSql: ast instanceof RawQueryAst, sql: sqlText, params });
     },
   };
 }

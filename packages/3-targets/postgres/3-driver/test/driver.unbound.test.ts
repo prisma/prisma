@@ -48,7 +48,9 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
     it('throws when explain is called', async () => {
       const driver = createDriver();
       expect(driver.explain).toBeDefined();
-      await expect(driver.explain!({ sql: 'select 1' })).rejects.toMatchObject({
+      await expect(
+        driver.explain!({ containsRawSql: false, sql: 'select 1' }),
+      ).rejects.toMatchObject({
         code: 'DRIVER.NOT_CONNECTED',
         category: 'DRIVER',
         message: useBeforeConnectMessage,
@@ -93,7 +95,9 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
 
       it('explain rejects with the closed message', async () => {
         const driver = await closedDriver();
-        await expect(driver.explain!({ sql: 'select 1' })).rejects.toMatchObject(closedError);
+        await expect(
+          driver.explain!({ containsRawSql: false, sql: 'select 1' }),
+        ).rejects.toMatchObject(closedError);
       });
     });
 

@@ -292,7 +292,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       'framework CodecRegistry: its descriptors materialise SQL codecs; the framework Codec type erases to BaseCodec at this boundary'
     >(this.codecRegistry);
     const params = await encodeControlQueryParams(lowered, ast, codecRegistry);
-    return { sql: lowered.sql, params };
+    return { containsRawSql: ast.containsRawSql(), sql: lowered.sql, params };
   }
 
   /**
@@ -2009,6 +2009,7 @@ async function pgRenderCreateTable(
     node.constraints !== undefined ? node.constraints.map(pgRenderDdlConstraint) : [];
   const allDefs = [...columnDefs, ...constraintDefs].join(',\n  ');
   return {
+    containsRawSql: false,
     sql: `CREATE TABLE ${ifNotExists}${tableRef} (\n  ${allDefs}\n)`,
     params: [],
   };
@@ -2017,6 +2018,7 @@ async function pgRenderCreateTable(
 function pgRenderCreateSchema(node: PostgresCreateSchema): SqlExecuteRequest {
   const ifNotExists = node.ifNotExists ? 'IF NOT EXISTS ' : '';
   return {
+    containsRawSql: false,
     sql: `CREATE SCHEMA ${ifNotExists}${quoteIdentifier(node.schema)}`,
     params: [],
   };
@@ -2026,6 +2028,7 @@ function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
   const qualifiedName = pgQualify(node.schema, node.name);
   const values = node.values.map((value: string) => `'${escapeLiteral(value)}'`).join(', ');
   return {
+    containsRawSql: false,
     sql: `CREATE TYPE ${qualifiedName} AS ENUM (${values})`,
     params: [],
   };
@@ -2034,6 +2037,7 @@ function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
 function pgRenderDropType(node: PostgresDropType): SqlExecuteRequest {
   const qualifiedName = pgQualify(node.schema, node.name);
   return {
+    containsRawSql: false,
     sql: `DROP TYPE ${qualifiedName}`,
     params: [],
   };
@@ -2066,6 +2070,7 @@ async function pgRenderAlterTable(
     node.actions.map((action: AnyAlterTableAction) => action.accept(actionVisitor)),
   );
   return {
+    containsRawSql: false,
     sql: `ALTER TABLE ${tableRef} ${actionSqls.join(', ')}`,
     params: [],
   };
@@ -2095,12 +2100,13 @@ function pgRenderCreatePolicy(node: PostgresCreatePolicy): SqlExecuteRequest {
   if (node.withCheck !== undefined) {
     sql += ` WITH CHECK (${renderOpaqueSql(node.withCheck)})`;
   }
-  return { sql, params: [] };
+  return { containsRawSql: false, sql, params: [] };
 }
 
 function pgRenderDropPolicy(node: PostgresDropPolicy): SqlExecuteRequest {
   const tableRef = `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`;
   return {
+    containsRawSql: false,
     sql: `DROP POLICY ${quoteIdentifier(node.name)} ON ${tableRef}`,
     params: [],
   };
@@ -2109,6 +2115,7 @@ function pgRenderDropPolicy(node: PostgresDropPolicy): SqlExecuteRequest {
 function pgRenderAlterPolicyRename(node: PostgresAlterPolicyRename): SqlExecuteRequest {
   const tableRef = `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`;
   return {
+    containsRawSql: false,
     sql: `ALTER POLICY ${quoteIdentifier(node.name)} ON ${tableRef} RENAME TO ${quoteIdentifier(node.newName)}`,
     params: [],
   };
@@ -2154,6 +2161,7 @@ function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
       : '';
   const whereClause = node.where !== undefined ? ` WHERE (${renderOpaqueSql(node.where)})` : '';
   return {
+    containsRawSql: false,
     sql: `CREATE ${unique}INDEX ${quoteIdentifier(node.name)} ON ${pgQualify(node.schema, node.table)}${using} (${elementList})${withClause}${whereClause}`,
     params: [],
   };
@@ -2161,6 +2169,7 @@ function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
 
 function pgRenderDropIndex(node: PostgresDropIndex): SqlExecuteRequest {
   return {
+    containsRawSql: false,
     sql: `DROP INDEX ${pgQualify(node.schema, node.name)}`,
     params: [],
   };
@@ -2168,6 +2177,7 @@ function pgRenderDropIndex(node: PostgresDropIndex): SqlExecuteRequest {
 
 function pgRenderAlterIndexRename(node: PostgresAlterIndexRename): SqlExecuteRequest {
   return {
+    containsRawSql: false,
     sql: `ALTER INDEX ${pgQualify(node.schema, node.from)} RENAME TO ${quoteIdentifier(node.to)}`,
     params: [],
   };
@@ -2176,6 +2186,7 @@ function pgRenderAlterIndexRename(node: PostgresAlterIndexRename): SqlExecuteReq
 function pgRenderDisableRowLevelSecurity(node: PostgresDisableRowLevelSecurity): SqlExecuteRequest {
   const tableRef = `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`;
   return {
+    containsRawSql: false,
     sql: `ALTER TABLE ${tableRef} DISABLE ROW LEVEL SECURITY`,
     params: [],
   };
@@ -2183,6 +2194,7 @@ function pgRenderDisableRowLevelSecurity(node: PostgresDisableRowLevelSecurity):
 
 function pgRenderAlterTableSetSchema(node: PostgresAlterTableSetSchema): SqlExecuteRequest {
   return {
+    containsRawSql: false,
     sql: `ALTER TABLE ${pgQualify(node.schema, node.table)} SET SCHEMA ${quoteIdentifier(node.to)}`,
     params: [],
   };
@@ -2190,13 +2202,14 @@ function pgRenderAlterTableSetSchema(node: PostgresAlterTableSetSchema): SqlExec
 
 function pgRenderAlterSchemaRename(node: PostgresAlterSchemaRename): SqlExecuteRequest {
   return {
+    containsRawSql: false,
     sql: `ALTER SCHEMA ${quoteIdentifier(node.schema)} RENAME TO ${quoteIdentifier(node.to)}`,
     params: [],
   };
 }
 
 function pgRenderDropSchema(node: PostgresDropSchema): SqlExecuteRequest {
-  return { sql: `DROP SCHEMA ${quoteIdentifier(node.schema)}`, params: [] };
+  return { containsRawSql: false, sql: `DROP SCHEMA ${quoteIdentifier(node.schema)}`, params: [] };
 }
 
 async function pgRenderDdlExecuteRequest(

@@ -51,7 +51,7 @@ interface RenderContext {
   /** Each param's placeholder number: its position in `collectOrderedParamRefs`, the order the runtime encodes params in. */
   readonly placeholderNumbers: ReadonlyMap<AnyParamRef, number>;
   /** Set when the statement builds an array with `GROUP_CONCAT`, whose length limit the statement then raises itself. */
-  readonly uses: { groupConcat: boolean; callerSql: boolean };
+  readonly uses: { groupConcat: boolean };
 }
 
 /**
@@ -91,12 +91,12 @@ export function renderMysqlSql(
     contract,
     codecs,
     placeholderNumbers,
-    uses: { groupConcat: false, callerSql: false },
+    uses: { groupConcat: false },
   };
   const rendered = renderStatement(ast, ctx);
   const sql = ctx.uses.groupConcat ? withGroupConcatHint(ast, rendered) : rendered;
   assertPlaceholdersMatchParams(sql, params.length);
-  return Object.freeze({ sql, params, containsCallerSql: ctx.uses.callerSql });
+  return Object.freeze({ sql, params });
 }
 
 /** Puts `GROUP_CONCAT_HINT` on the outermost `SELECT`; a statement without one would leave `GROUP_CONCAT` at the session's limit, which can cut an array after an element and still read as JSON, so it is refused. */
@@ -346,7 +346,6 @@ function limitOperandParts(parts: RawExpr['parts'] | RawQueryAst['parts']): Read
 }
 
 function renderParts(parts: RawExpr['parts'] | RawQueryAst['parts'], ctx: RenderContext): string {
-  ctx.uses.callerSql = true;
   assertNoDigitAfterParam(parts);
   const limitOperands = limitOperandParts(parts);
   return parts

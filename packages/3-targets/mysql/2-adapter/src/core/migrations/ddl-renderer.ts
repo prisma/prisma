@@ -167,6 +167,7 @@ export async function renderMysqlCreateTable(
   const definitions = [...columns, ...(node.constraints ?? []).map(renderConstraint)];
   const ifNotExists = node.ifNotExists === true ? 'IF NOT EXISTS ' : '';
   return {
+    containsRawSql: false,
     sql: `CREATE TABLE ${ifNotExists}${quoteIdentifier(node.table)} (\n  ${definitions.join(',\n  ')}\n)`,
     params: [],
   };

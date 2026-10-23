@@ -339,7 +339,6 @@ describe('PostgreSQL adapter codec registry composition', () => {
 
     expect(materializations).toBe(1);
     expect(adapter.lower(ast, { contract })).toEqual({
-      containsCallerSql: false,
       sql: 'SELECT "records"."id" AS "id" FROM "records" WHERE "records"."document" = $1::citext',
       params: [{ kind: 'literal', value: 'Ada' }],
     });

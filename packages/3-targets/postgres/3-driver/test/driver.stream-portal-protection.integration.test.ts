@@ -141,6 +141,7 @@ describe('streamed execute on a shared single-session backend', () => {
 
       const rows: Array<{ id: string }> = [];
       for await (const row of h.driver.query<{ id: string }>({
+        containsRawSql: false,
         sql: 'select id from items order by id',
       })) {
         rows.push(row);
@@ -172,7 +173,10 @@ describe('streamed execute on a shared single-session backend', () => {
       h.recordedQueryTexts.length = 0;
 
       const rows: unknown[] = [];
-      for await (const row of h.driver.query({ sql: 'select id from items order by id' })) {
+      for await (const row of h.driver.query({
+        containsRawSql: false,
+        sql: 'select id from items order by id',
+      })) {
         rows.push(row);
       }
 
@@ -191,6 +195,7 @@ describe('streamed execute on a shared single-session backend', () => {
       h.recordedQueryTexts.length = 0;
 
       for await (const row of h.driver.query<{ id: string }>({
+        containsRawSql: false,
         sql: 'select id from items order by id',
       })) {
         if (Number(row.id) >= 6) {
@@ -220,7 +225,10 @@ describe('streamed execute on a shared single-session backend', () => {
       const rows: unknown[] = [];
       let caught: unknown;
       try {
-        for await (const row of h.driver.query({ sql: 'select id from items order by id' })) {
+        for await (const row of h.driver.query({
+          containsRawSql: false,
+          sql: 'select id from items order by id',
+        })) {
           rows.push(row);
         }
       } catch (error) {
@@ -247,6 +255,7 @@ describe('streamed execute on a shared single-session backend', () => {
         // Division by zero at id = 3 fails the stream mid-read; the terminating
         // COMMIT then also fails (injected), and must not mask the stream error.
         for await (const _row of h.driver.query({
+          containsRawSql: false,
           sql: 'select 1 / (id - 3) as x from items order by id',
         })) {
           // drain until the backend raises division_by_zero
@@ -271,7 +280,10 @@ describe('streamed execute on a shared single-session backend', () => {
       const connection = await h.driver.acquireConnection();
       const transaction = await connection.beginTransaction();
       const rows: unknown[] = [];
-      for await (const row of transaction.query({ sql: 'select id from items order by id' })) {
+      for await (const row of transaction.query({
+        containsRawSql: false,
+        sql: 'select id from items order by id',
+      })) {
         rows.push(row);
       }
       await transaction.commit();
@@ -293,7 +305,10 @@ describe('streamed execute on a shared single-session backend', () => {
       const connection = await h.driver.acquireConnection();
       try {
         const transaction = await connection.beginTransaction();
-        await transaction.execute({ sql: 'insert into items (id, n) values (100, 200)' });
+        await transaction.execute({
+          containsRawSql: false,
+          sql: 'insert into items (id, n) values (100, 200)',
+        });
 
         const rows = await queryRows<{ id: string }>(h.driver, 'select id from items order by id');
         expect(rows.at(-1)).toEqual({ id: '100' });
@@ -325,7 +340,10 @@ describe('streamed execute on a shared single-session backend', () => {
       h.recordedQueryTexts.length = 0;
 
       const rows: unknown[] = [];
-      for await (const row of connection.query({ sql: 'select id from items order by id' })) {
+      for await (const row of connection.query({
+        containsRawSql: false,
+        sql: 'select id from items order by id',
+      })) {
         rows.push(row);
       }
       await connection.release();
@@ -344,7 +362,10 @@ describe('streamed execute on a shared single-session backend', () => {
 
       const consume = async (): Promise<number> => {
         let count = 0;
-        for await (const _row of h.driver.query({ sql: 'select id from items order by id' })) {
+        for await (const _row of h.driver.query({
+          containsRawSql: false,
+          sql: 'select id from items order by id',
+        })) {
           count++;
         }
         return count;

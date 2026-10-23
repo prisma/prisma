@@ -242,7 +242,7 @@ describe('postgres driver client ownership', () => {
     );
     const connection = await driver.acquireConnection();
     const transaction = await connection.beginTransaction();
-    await transaction.execute({ sql: 'insert into item values (1)' });
+    await transaction.execute({ containsRawSql: false, sql: 'insert into item values (1)' });
 
     await connection.destroy(new Error('rollback failed'));
 

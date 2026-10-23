@@ -27,7 +27,7 @@ const stubLowerer: ExecuteRequestLowerer = {
     throw new Error('lower() called on stubLowerer — planner must use lowerToExecuteRequest()');
   },
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: '', params: [] }),
 };
 
 const DESTRUCTIVE_POLICY = {

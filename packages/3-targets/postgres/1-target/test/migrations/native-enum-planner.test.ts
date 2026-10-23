@@ -46,11 +46,11 @@ const MEMBERS = ['draft', 'review', 'done'] as const;
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
-    return { containsCallerSql: false, sql: 'stub', params: [] };
+    return { sql: 'stub', params: [] };
   },
   renderColumnDefault: async () => '',
   async lowerToExecuteRequest(_ast, _ctx) {
-    return { sql: 'stub', params: [] };
+    return { containsRawSql: false, sql: 'stub', params: [] };
   },
 };
 
@@ -63,12 +63,12 @@ function recordingLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown
     lowerer: {
       lower(ast, _ctx) {
         received.push(ast);
-        return { containsCallerSql: false, sql: 'stub', params: [] };
+        return { sql: 'stub', params: [] };
       },
       renderColumnDefault: async () => '',
       async lowerToExecuteRequest(ast, _ctx) {
         received.push(ast);
-        return { sql: 'stub', params: [] };
+        return { containsRawSql: false, sql: 'stub', params: [] };
       },
     },
   };

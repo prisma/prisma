@@ -41,9 +41,13 @@ describe('arktype-json decoding of values read through the Postgres runtime driv
 
   async function storeAndDecode(schema: Type<unknown>, values: readonly unknown[]) {
     const driver = await connect();
-    await driver.execute({ sql: 'create table payloads (id int primary key, v jsonb)' });
+    await driver.execute({
+      containsRawSql: false,
+      sql: 'create table payloads (id int primary key, v jsonb)',
+    });
     for (const [id, value] of values.entries()) {
       await driver.execute({
+        containsRawSql: false,
         sql: 'insert into payloads values ($1, $2::jsonb)',
         params: [id, JSON.stringify(value)],
       });
@@ -52,6 +56,7 @@ describe('arktype-json decoding of values read through the Postgres runtime driv
     const codec = arktypeJsonColumn(schema).codecFactory(SYNTH_CTX);
     const decoded: unknown[] = [];
     for await (const row of driver.query<{ v: string }>({
+      containsRawSql: false,
       sql: 'select v from payloads order by id',
       params: [],
     })) {
@@ -84,15 +89,21 @@ describe('arktype-json decoding of values read through the Postgres runtime driv
     'reports wire text that is not JSON with the column it was read from',
     async () => {
       const driver = await connect();
-      await driver.execute({ sql: 'create table documents (body text)' });
-      await driver.execute({ sql: "insert into documents values ('not json')" });
+      await driver.execute({ containsRawSql: false, sql: 'create table documents (body text)' });
+      await driver.execute({
+        containsRawSql: false,
+        sql: "insert into documents values ('not json')",
+      });
       const codec = arktypeJsonColumn(type('string')).codecFactory(SYNTH_CTX);
       const ast = SelectAst.from(TableSource.named('documents')).withProjection([
         ProjectionItem.of('body', ColumnRef.of('documents', 'body'), { codecId: codec.id }),
       ]);
       const decodeCtx = buildDecodeContext(ast, buildTestContractCodecs([codec]));
       const rows: Array<Record<string, unknown>> = [];
-      for await (const row of driver.query({ sql: 'select body from documents' })) {
+      for await (const row of driver.query({
+        containsRawSql: false,
+        sql: 'select body from documents',
+      })) {
         rows.push(row);
       }
 

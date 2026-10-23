@@ -14,7 +14,7 @@ const ast = {} as AnyQueryAst;
 
 test('SqlExecutionPlan extends framework ExecutionPlan and QueryPlan', () => {
   const plan: SqlExecutionPlan<{ id: number }> = {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'SELECT 1',
     params: [],
     ast,
@@ -26,7 +26,7 @@ test('SqlExecutionPlan extends framework ExecutionPlan and QueryPlan', () => {
 
 test('Row type is recoverable via ResultType', () => {
   const plan: SqlExecutionPlan<{ id: number; email: string }> = {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'SELECT id, email FROM users',
     params: [],
     ast,

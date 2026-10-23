@@ -51,7 +51,7 @@ function prepareChecked(
 /** Runs a statement as a server-side prepared statement, its values sent apart from the SQL. */
 async function run(connection: PoolConnection, request: SqlExecuteRequest): Promise<unknown> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
-  noteCallerSql(connection, request);
+  noteRawSql(connection, request);
   await prepareChecked(connection, sql, values);
   return new Promise((resolve, reject) => {
     connection.execute({ sql, values }, (error, result) => {
@@ -72,12 +72,12 @@ function isResultSetHeader(result: unknown): result is ResultSetHeader {
   return typeof result === 'object' && result !== null && 'affectedRows' in result;
 }
 
-/** Connections that ran caller-written SQL, which may have changed the session, and run the session setup again before their next statement. */
+/** Connections that ran raw SQL, which may have changed the session, and run the session setup again before their next statement. */
 const changedSessions = new WeakSet<PoolConnection>();
 
-/** Notes that `connection` ran caller-written SQL, which the request states. The driver's own statements and the ORM's and SQL builder's other statements cannot change session variables. */
-function noteCallerSql(connection: PoolConnection, request: SqlExecuteRequest): void {
-  if (request.containsCallerSql === true) changedSessions.add(connection);
+/** Notes that `connection` ran raw SQL, which the request states. The driver's own statements and the ORM's and SQL builder's other statements cannot change session variables. */
+function noteRawSql(connection: PoolConnection, request: SqlExecuteRequest): void {
+  if (request.containsRawSql) changedSessions.add(connection);
 }
 
 /** Runs the session setup on `connection`, and forgets that its session changed. */
@@ -136,7 +136,7 @@ async function* streamRows<Row>(
   { onEarlyExit, outcome }: StreamOptions,
 ): AsyncGenerator<Row> {
   const { sql, values } = positionalParams(request.sql, request.params ?? []);
-  noteCallerSql(connection, request);
+  noteRawSql(connection, request);
   await prepareChecked(connection, sql, values);
   const command = connection.execute({ sql, values });
   let settle: () => void = () => {};
@@ -257,11 +257,11 @@ class MysqlTransactionImpl extends MysqlQueryable implements SqlTransaction {
   }
 
   async commit(): Promise<void> {
-    await this.execute({ sql: 'COMMIT' });
+    await this.execute({ containsRawSql: false, sql: 'COMMIT' });
   }
 
   async rollback(): Promise<void> {
-    await this.execute({ sql: 'ROLLBACK' });
+    await this.execute({ containsRawSql: false, sql: 'ROLLBACK' });
   }
 }
 
@@ -301,7 +301,7 @@ type DriverState =
   | { readonly kind: 'closed' };
 
 /**
- * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement, and again before its next statement after one that held caller-written SQL. `close()` waits for every connection and stream it has handed out before it ends the pool.
+ * The MySQL runtime driver: a mysql2 pool that runs every statement as a server-side prepared statement, so a value never travels inside the SQL. Each connection keeps a bounded cache of prepared statements (`statementCacheSize`) and closes the ones it drops. Each physical connection runs the session setup before its first statement, and again before its next statement after one that held raw SQL. `close()` waits for every connection and stream it has handed out before it ends the pool.
  */
 export class MysqlDriver extends MysqlQueryable implements MysqlRuntimeDriver {
   readonly familyId = 'sql' as const;

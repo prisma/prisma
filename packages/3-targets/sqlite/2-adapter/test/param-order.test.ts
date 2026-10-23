@@ -193,7 +193,7 @@ describe('SQLite parameter numbering', () => {
       params: [1, 1, 'p'],
     },
   ])('lowers $name', ({ ast, sql, params }) => {
-    expect(lower(ast)).toEqual({ sql, params: litParams(...params), containsCallerSql: false });
+    expect(lower(ast)).toEqual({ sql, params: litParams(...params) });
   });
 });
 

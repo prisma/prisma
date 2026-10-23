@@ -19,12 +19,12 @@ import { PostgresCreatePolicy, PostgresDropPolicy } from '../../src/exports/ddl'
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () =>
-      Object.freeze({ containsCallerSql: false, sql: 'UNUSED', params: Object.freeze([]) }),
+    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);
       return Object.freeze({
+        containsRawSql: false,
         sql: `LOWERED ${received.length}`,
         params: Object.freeze([`p${received.length}`]),
       });

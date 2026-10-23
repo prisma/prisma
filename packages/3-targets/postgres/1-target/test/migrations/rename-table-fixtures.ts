@@ -16,8 +16,8 @@ import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import { postgresCreateNamespace } from '../../src/core/postgres-schema';
 
 export const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lower: () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
 };
 

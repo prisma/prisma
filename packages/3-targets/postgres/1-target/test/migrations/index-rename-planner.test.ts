@@ -28,9 +28,9 @@ import { introspectedColumn, postgresTypeComponents } from '../postgres-type-loo
 
 const TABLE_NAME = 'items';
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+  lower: () => ({ sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
 };
 
 const ALL_CLASSES_POLICY = {

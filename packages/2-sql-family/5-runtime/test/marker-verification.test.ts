@@ -99,7 +99,7 @@ function createStubAdapter(
       readMarker: readMarkerSpy ?? readMarkerImpl,
     },
     lower(ast: SelectAst) {
-      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params: [] });
+      return Object.freeze({ sql: JSON.stringify(ast), params: [] });
     },
   };
 }
@@ -201,7 +201,7 @@ function buildRuntime({
 function createPlan(): SqlExecutionPlan {
   const ast = SelectAst.from(TableSource.named('users'));
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select * from users',
     params: [],
     ast,

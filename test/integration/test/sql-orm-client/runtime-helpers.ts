@@ -189,7 +189,7 @@ export async function createPgIntegrationRuntime(
     });
 
     return {
-      containsCallerSql: false,
+      containsRawSql: false,
       sql: lowered.sql,
       params: lowered.params ?? plan.params,
       ast: plan.ast,
@@ -358,7 +358,7 @@ function preparedExecution(
 ): SqlExecutionPlan {
   const values = typeof params === 'object' && params !== null ? params : {};
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: statement.sql,
     ast: statement.ast,
     meta: statement.meta,

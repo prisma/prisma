@@ -40,6 +40,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         expect(
           await collect(
             driver.query({
+              containsRawSql: false,
               sql: "SELECT 42 AS i, CAST('2024-01-02 03:04:05.678' AS DATETIME(3)) AS d, JSON_ARRAY(1, 'a') AS j, ? AS p",
               params: ["it's"],
             }),
@@ -56,14 +57,19 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         expect({
           rows: await collect(
             driver.query({
+              containsRawSql: false,
               sql: "SELECT 'why?' AS q, `a?` AS v FROM (SELECT ? AS `a?`) AS t /* ? */ WHERE \"?\" = '?'",
               params: [value],
             }),
           ),
-          stats: await driver.execute({ sql: "SELECT 'why?', ?", params: [value] }),
+          stats: await driver.execute({
+            containsRawSql: false,
+            sql: "SELECT 'why?', ?",
+            params: [value],
+          }),
         }).toEqual({ rows: [{ q: 'why?', v: value }], stats: { affectedRows: 0 } });
         await expect(
-          collect(driver.query({ sql: "SELECT '?' AS q", params: [value] })),
+          collect(driver.query({ containsRawSql: false, sql: "SELECT '?' AS q", params: [value] })),
         ).rejects.toMatchObject({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' });
       }),
     );
@@ -83,6 +89,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
           leaks.push(
             ...(await collect(
               driver.query({
+                containsRawSql: false,
                 sql: "SELECT 'leaked' AS r FROM DUAL WHERE 'secret' = ?1",
                 params: [value],
               }),
@@ -101,15 +108,21 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         const connection = await driver.acquireConnection();
         try {
           const probe = {
+            containsRawSql: false,
             sql: "SELECT 'leaked' AS r FROM DUAL WHERE 'secret' = ?1",
             params: [value],
           };
           const before = await collect(connection.query(probe));
           const awkward = "it's \\ a\nb\u0000c";
           const roundTrip = await collect(
-            connection.query({ sql: 'SELECT ?1 AS v, ?2 AS w', params: [value, awkward] }),
+            connection.query({
+              containsRawSql: false,
+              sql: 'SELECT ?1 AS v, ?2 AS w',
+              params: [value, awkward],
+            }),
           );
           await connection.execute({
+            containsRawSql: false,
             sql: "SET SESSION sql_mode = CONCAT(@@SESSION.sql_mode, ',NO_BACKSLASH_ESCAPES')",
           });
           const after = await collect(connection.query(probe));
@@ -131,6 +144,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         expect(
           await collect(
             driver.query({
+              containsRawSql: false,
               sql: "SELECT 'why?' AS q, ?2 AS b, ?1 AS a, ?2 AS c FROM DUAL LIMIT ?3",
               params: ['x', 'y', 1],
             }),
@@ -155,6 +169,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
                 const list = Array.from({ length: size }, (_, i) => `?${i + 1}`).join(', ');
                 return collect(
                   driver.query({
+                    containsRawSql: false,
                     sql: `SELECT 1 AS n FROM DUAL WHERE 1 IN (${list})`,
                     params: Array.from({ length: size }, (_, i) => i + 1),
                   }),
@@ -177,8 +192,10 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
   it('refuses a statement MySQL cannot prepare with DRIVER.PREPARE_FAILED', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
-        await driver.execute({ sql: 'CREATE TABLE t (id int)' });
-        await expect(driver.execute({ sql: 'LOCK TABLES t READ' })).rejects.toMatchObject({
+        await driver.execute({ containsRawSql: false, sql: 'CREATE TABLE t (id int)' });
+        await expect(
+          driver.execute({ containsRawSql: false, sql: 'LOCK TABLES t READ' }),
+        ).rejects.toMatchObject({
           code: 'DRIVER.PREPARE_FAILED',
         });
       }),
@@ -189,9 +206,11 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         await driver.execute({
+          containsRawSql: false,
           sql: "CREATE TABLE t (i INT, b BIGINT, ub BIGINT UNSIGNED, d DECIMAL(65,30), dt DATETIME(3), dd DATE, tm TIME(3), j JSON, vc VARCHAR(10), c CHAR(3), tx TEXT, e ENUM('A','B'), vb VARBINARY(4), f FLOAT, y YEAR)",
         });
         await driver.execute({
+          containsRawSql: false,
           sql: "INSERT INTO t VALUES (?1, ?2, ?3, ?4, ?5, '2026-10-23', '01:02:03.450', '{\"a\": 1}', ?6, 'ab', 'tx', 'B', X'00ff', 0.1, 2026)",
           params: [
             -7,
@@ -202,7 +221,9 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
             "ħ\\'",
           ],
         });
-        expect(await collect(driver.query({ sql: 'SELECT * FROM t' }))).toEqual([
+        expect(
+          await collect(driver.query({ containsRawSql: false, sql: 'SELECT * FROM t' })),
+        ).toEqual([
           {
             i: -7,
             b: '9223372036854775807',
@@ -230,15 +251,18 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       withDriver(url, async (driver) => {
         const connection = await driver.acquireConnection();
         try {
-          await connection.execute({ sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'" });
+          await connection.execute({
+            containsRawSql: false,
+            sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'",
+          });
           await expect(
-            collect(connection.query({ sql: "SELECT 'x\\' AS a, ? AS b" })),
+            collect(connection.query({ containsRawSql: false, sql: "SELECT 'x\\' AS a, ? AS b" })),
           ).rejects.toMatchObject({
             code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH',
             meta: expect.objectContaining({ prepared: 1, params: 0 }),
           });
           await expect(
-            connection.execute({ sql: "SELECT 'x\\' AS a, ? AS b" }),
+            connection.execute({ containsRawSql: false, sql: "SELECT 'x\\' AS a, ? AS b" }),
           ).rejects.toMatchObject({ code: 'RUNTIME.PARAM_PLACEHOLDER_MISMATCH' });
         } finally {
           await connection.destroy();
@@ -256,6 +280,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
           (
             await collect(
               driver.query<Record<string, string>>({
+                containsRawSql: false,
                 sql: "SELECT FIND_IN_SET('NO_BACKSLASH_ESCAPES', @@SESSION.sql_mode) AS nbe, @@SESSION.time_zone AS tz, @@SESSION.character_set_client AS cs",
               }),
             )
@@ -263,16 +288,16 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
         const held = await driver.acquireConnection();
         await held.execute({
           sql: "SET SESSION sql_mode = 'NO_BACKSLASH_ESCAPES'",
-          containsCallerSql: true,
+          containsRawSql: true,
         });
-        await held.execute({ sql: "SET time_zone = '+05:00'", containsCallerSql: true });
+        await held.execute({ sql: "SET time_zone = '+05:00'", containsRawSql: true });
         await held.release();
         const afterHeld = await session();
-        await driver.execute({ sql: 'SET NAMES latin1', containsCallerSql: true });
+        await driver.execute({ sql: 'SET NAMES latin1', containsRawSql: true });
         const afterPooled = await session();
         for await (const _row of driver.query({
           sql: "SET time_zone = '+03:00'",
-          containsCallerSql: true,
+          containsRawSql: true,
         })) {
         }
         const afterStream = await session();
@@ -290,7 +315,13 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         await expect(
-          collect(driver.query({ sql: 'SELECT 1 AS n FROM DUAL LIMIT ?1', params: [1.5] })),
+          collect(
+            driver.query({
+              containsRawSql: false,
+              sql: 'SELECT 1 AS n FROM DUAL LIMIT ?1',
+              params: [1.5],
+            }),
+          ),
         ).rejects.toMatchObject({ code: 'RUNTIME.ARGUMENT_INVALID' });
       }),
     );
@@ -301,6 +332,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       withDriver(url, async (driver) => {
         const [row] = await collect(
           driver.query<Record<string, string>>({
+            containsRawSql: false,
             sql: "SELECT @@SESSION.time_zone AS tz, FIND_IN_SET('NO_BACKSLASH_ESCAPES', @@SESSION.sql_mode) AS nbe",
           }),
         );
@@ -314,11 +346,13 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       withDriver(url, async (driver) => {
         const connection = await driver.acquireConnection();
         try {
-          for await (const row of connection.query({ sql: numbers })) {
+          for await (const row of connection.query({ containsRawSql: false, sql: numbers })) {
             expect(row).toEqual({ n: '1' });
             break;
           }
-          expect(await collect(connection.query({ sql: 'SELECT 7 AS n' }))).toEqual([{ n: '7' }]);
+          expect(
+            await collect(connection.query({ containsRawSql: false, sql: 'SELECT 7 AS n' })),
+          ).toEqual([{ n: '7' }]);
         } finally {
           await connection.release();
         }
@@ -330,11 +364,11 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
         const started = Date.now();
-        for await (const _row of driver.query({ sql: slowRows })) break;
+        for await (const _row of driver.query({ containsRawSql: false, sql: slowRows })) break;
         const elapsedMs = Date.now() - started;
         expect({
           quick: elapsedMs < 3000,
-          next: await collect(driver.query({ sql: 'SELECT 1 AS n' })),
+          next: await collect(driver.query({ containsRawSql: false, sql: 'SELECT 1 AS n' })),
         }).toEqual({ quick: true, next: [{ n: '1' }] });
       }),
     );
@@ -347,10 +381,12 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       limited.searchParams.set('poolTimeout', '200');
       await withDriver(limited.toString(), async (driver) => {
         const held = await driver.acquireConnection();
-        const waiting = collect(driver.query({ sql: 'SELECT 1 AS n' }));
+        const waiting = collect(driver.query({ containsRawSql: false, sql: 'SELECT 1 AS n' }));
         await expect(waiting).rejects.toMatchObject({ code: 'DRIVER.CONNECTION_FAILED' });
         await held.release();
-        expect(await collect(driver.query({ sql: 'SELECT 2 AS n' }))).toEqual([{ n: '2' }]);
+        expect(
+          await collect(driver.query({ containsRawSql: false, sql: 'SELECT 2 AS n' })),
+        ).toEqual([{ n: '2' }]);
       });
     });
   });
@@ -358,21 +394,28 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
   it('commits and rolls back a transaction on one connection, and reports affected rows', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
-        await driver.execute({ sql: 'CREATE TABLE t (id int PRIMARY KEY)' });
+        await driver.execute({ containsRawSql: false, sql: 'CREATE TABLE t (id int PRIMARY KEY)' });
         const connection = await driver.acquireConnection();
         try {
           const rolledBack = await connection.beginTransaction();
-          await rolledBack.execute({ sql: 'INSERT INTO t VALUES (?), (?)', params: [1, 2] });
+          await rolledBack.execute({
+            containsRawSql: false,
+            sql: 'INSERT INTO t VALUES (?), (?)',
+            params: [1, 2],
+          });
           await rolledBack.rollback();
           const committed = await connection.beginTransaction();
           const stats = await committed.execute({
+            containsRawSql: false,
             sql: 'INSERT INTO t VALUES (?), (?)',
             params: [3, 4],
           });
           await committed.commit();
           expect({
             stats,
-            rows: await collect(driver.query({ sql: 'SELECT id FROM t ORDER BY id' })),
+            rows: await collect(
+              driver.query({ containsRawSql: false, sql: 'SELECT id FROM t ORDER BY id' }),
+            ),
           }).toEqual({ stats: { affectedRows: 2 }, rows: [{ id: 3 }, { id: 4 }] });
         } finally {
           await connection.release();
@@ -385,7 +428,9 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     await withMysqlDatabase(test, async ({ url }) => {
       const driver = mysqlRuntimeDriver.create();
       await driver.connect({ kind: 'url', url });
-      const iterator = driver.query({ sql: numbers })[Symbol.asyncIterator]();
+      const iterator = driver
+        .query({ containsRawSql: false, sql: numbers })
+        [Symbol.asyncIterator]();
       const first = await iterator.next();
       let closed = false;
       const closing = driver.close().then(() => {
@@ -415,7 +460,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       const closing = driver.close().then(() => {
         closed = true;
       });
-      const rows = await collect(connection.query({ sql: 'SELECT 1 AS n' }));
+      const rows = await collect(connection.query({ containsRawSql: false, sql: 'SELECT 1 AS n' }));
       const closedBeforeRelease = closed;
       await connection.release();
       await closing;
@@ -433,7 +478,9 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       const driver = mysqlRuntimeDriver.create();
       await driver.connect({ kind: 'url', url });
       try {
-        const rows = driver.query<{ cid: string }>({ sql: slowRows })[Symbol.asyncIterator]();
+        const rows = driver
+          .query<{ cid: string }>({ containsRawSql: false, sql: slowRows })
+          [Symbol.asyncIterator]();
         const first = await rows.next();
         await admin.query(`KILL ${first.done ? '' : first.value.cid}`);
         await expect(drain(rows)).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
@@ -452,7 +499,10 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
       await driver.connect({ kind: 'url', url });
       try {
         const connection = await driver.acquireConnection();
-        for await (const row of connection.query<{ cid: string }>({ sql: slowRows })) {
+        for await (const row of connection.query<{ cid: string }>({
+          containsRawSql: false,
+          sql: slowRows,
+        })) {
           await admin.query(`KILL ${row.cid}`);
           break;
         }
@@ -468,10 +518,12 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
   it('reports a query error with its SQLSTATE', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {
-        await expect(collect(driver.query({ sql: 'SELECT * FROM missing' }))).rejects.toMatchObject(
-          { sqlState: '42S02' },
-        );
-        expect(await collect(driver.query({ sql: 'SELECT 1 AS n' }))).toEqual([{ n: '1' }]);
+        await expect(
+          collect(driver.query({ containsRawSql: false, sql: 'SELECT * FROM missing' })),
+        ).rejects.toMatchObject({ sqlState: '42S02' });
+        expect(
+          await collect(driver.query({ containsRawSql: false, sql: 'SELECT 1 AS n' })),
+        ).toEqual([{ n: '1' }]);
       }),
     );
   });
@@ -480,10 +532,12 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
 describe('MySQL runtime driver before connect', () => {
   it('refuses to run anything', async () => {
     const driver = mysqlRuntimeDriver.create();
-    await expect(collect(driver.query({ sql: 'SELECT 1' }))).rejects.toMatchObject({
+    await expect(
+      collect(driver.query({ containsRawSql: false, sql: 'SELECT 1' })),
+    ).rejects.toMatchObject({
       code: 'DRIVER.NOT_CONNECTED',
     });
-    await expect(driver.execute({ sql: 'SELECT 1' })).rejects.toMatchObject({
+    await expect(driver.execute({ containsRawSql: false, sql: 'SELECT 1' })).rejects.toMatchObject({
       code: 'DRIVER.NOT_CONNECTED',
     });
     await expect(driver.acquireConnection()).rejects.toMatchObject({

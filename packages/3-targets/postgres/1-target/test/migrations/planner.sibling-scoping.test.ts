@@ -28,11 +28,11 @@ import { introspectedColumn, postgresTypeComponents } from '../postgres-type-loo
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower(_ast, _ctx) {
-    return { containsCallerSql: false, sql: 'stub', params: [] };
+    return { sql: 'stub', params: [] };
   },
   renderColumnDefault: async () => '',
   async lowerToExecuteRequest(_ast, _ctx) {
-    return { sql: 'stub', params: [] };
+    return { containsRawSql: false, sql: 'stub', params: [] };
   },
 };
 

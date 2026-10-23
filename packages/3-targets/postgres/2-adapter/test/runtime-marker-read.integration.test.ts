@@ -39,6 +39,7 @@ describe('runtime readMarker through the Postgres runtime driver', () => {
       );
     }
     await driver.execute({
+      containsRawSql: false,
       sql: `insert into prisma_contract.marker
          (space, core_hash, profile_hash, contract_json, canonical_version, invariants, updated_at)
        values ('app', 'core', 'profile', null, $1, '{inv-1}'::text[], now())`,

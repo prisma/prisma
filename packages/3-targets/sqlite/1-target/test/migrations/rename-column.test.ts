@@ -35,11 +35,14 @@ const ALL_CLASSES = { allowedOperationClasses: ['additive', 'widening', 'destruc
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () =>
-      Object.freeze({ containsCallerSql: false, sql: 'UNUSED', params: Object.freeze([]) }),
+    lower: () => Object.freeze({ sql: 'UNUSED', params: Object.freeze([]) }),
     lowerToExecuteRequest: async (ast) => {
       received.push(ast);
-      return Object.freeze({ sql: `LOWERED ${received.length}`, params: Object.freeze([]) });
+      return Object.freeze({
+        containsRawSql: false,
+        sql: `LOWERED ${received.length}`,
+        params: Object.freeze([]),
+      });
     },
     renderColumnDefault: async () => '',
   };

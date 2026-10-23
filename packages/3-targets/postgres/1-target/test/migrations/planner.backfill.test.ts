@@ -16,9 +16,9 @@ import { PostgresSchema } from '../../src/core/postgres-schema';
 import { postgresTypeComponents } from '../postgres-type-lookups';
 
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+  lower: () => ({ sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
 };
 
 const MIGRATION_PLAN: MigrationOperationPolicy = {

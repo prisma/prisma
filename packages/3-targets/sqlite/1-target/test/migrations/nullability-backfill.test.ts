@@ -12,9 +12,9 @@ import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
 import { introspectedColumn, sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ containsCallerSql: false, sql: '', params: [] }),
+  lower: () => ({ sql: '', params: [] }),
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: '', params: [] }),
 };
 
 function makeColumn(overrides: Partial<StorageColumn> = {}): StorageColumn {

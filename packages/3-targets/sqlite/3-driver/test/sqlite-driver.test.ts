@@ -54,6 +54,7 @@ describe('SqliteBoundDriver', () => {
 
     const rows: Array<{ id: number; val: string }> = [];
     for await (const row of driver.query<{ id: number; val: string }>({
+      containsRawSql: false,
       sql: 'SELECT * FROM t ORDER BY id',
     })) {
       rows.push(row);
@@ -74,7 +75,9 @@ describe('SqliteBoundDriver', () => {
     } as unknown as DatabaseSync;
     const connection = new SqliteConnectionImpl(db);
 
-    await expect(connection.execute({ sql: 'UPDATE t SET value = ?' })).resolves.toEqual({
+    await expect(
+      connection.execute({ containsRawSql: false, sql: 'UPDATE t SET value = ?' }),
+    ).resolves.toEqual({
       affectedRows: 3,
     });
     expect(run).toHaveBeenCalledOnce();
@@ -85,7 +88,10 @@ describe('SqliteBoundDriver', () => {
     await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, value TEXT)');
 
     await expect(
-      driver.execute({ sql: "INSERT INTO t(value) VALUES ('lost') RETURNING id" }),
+      driver.execute({
+        containsRawSql: false,
+        sql: "INSERT INTO t(value) VALUES ('lost') RETURNING id",
+      }),
     ).rejects.toThrow('cannot execute statements that return rows');
 
     await expect(
@@ -98,7 +104,10 @@ describe('SqliteBoundDriver', () => {
     const driver = createDriver();
     await executeSql(driver, 'CREATE TABLE t(id INTEGER PRIMARY KEY, val TEXT)');
 
-    const explain = await driver.explain!({ sql: 'SELECT * FROM t WHERE id = 1' });
+    const explain = await driver.explain!({
+      containsRawSql: false,
+      sql: 'SELECT * FROM t WHERE id = 1',
+    });
     expect(explain.rows.length).toBeGreaterThan(0);
     await driver.close();
   });
@@ -164,6 +173,7 @@ describe('a NaN parameter', () => {
     ).rejects.toThrow(refusal);
     await expect(
       driver.explain({
+        containsRawSql: false,
         sql: 'SELECT * FROM t WHERE id = ? AND value = ?',
         params: [1, Number.NaN],
       }),
@@ -264,6 +274,7 @@ describe('SqliteTransaction', () => {
 
     const rows: Array<{ id: number; val: string }> = [];
     for await (const row of tx.query<{ id: number; val: string }>({
+      containsRawSql: false,
       sql: 'SELECT * FROM t',
     })) {
       rows.push(row);

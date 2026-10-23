@@ -21,9 +21,9 @@ import { postgresTypeComponents } from '../postgres-type-lookups';
 import { emailIndex } from './rename-column-fixtures';
 
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+  lower: () => ({ sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
 };
 
 const ALL_CLASSES = {

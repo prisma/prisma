@@ -72,6 +72,7 @@ describe('arktype-json codec JSON-projection conformance', { concurrent: false }
       async query(sql, params) {
         const rows: Record<string, unknown>[] = [];
         for await (const row of driver.query<Record<string, unknown>>({
+          containsRawSql: false,
           sql,
           params: [...(params ?? [])],
         })) {

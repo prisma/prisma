@@ -28,7 +28,7 @@ const stubLowerer: ExecuteRequestLowerer = {
     throw new Error('lower() called on stubLowerer — planner must use lowerToExecuteRequest()');
   },
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: '', params: [] }),
 };
 
 function buildContract(): Contract<SqlStorage> {

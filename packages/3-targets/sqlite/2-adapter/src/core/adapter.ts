@@ -117,6 +117,7 @@ class SqliteAdapterImpl implements Adapter<AnyQueryAst, SqliteContract, SqliteLo
             ) => {
               const rows: Row[] = [];
               for await (const row of queryable.query<Row>({
+                containsRawSql: false,
                 sql,
                 ...(params === undefined ? {} : { params }),
               })) {
@@ -181,8 +182,6 @@ interface SqliteRenderContext {
   readonly contract: SqliteContract | undefined;
   readonly codecs: SqliteCodecDescriptorRegistry;
   readonly placeholderNumbers: ReadonlyMap<AnyParamRef, number>;
-  /** Set when the statement renders SQL text a caller wrote. */
-  readonly uses: { callerSql: boolean };
 }
 
 /**
@@ -203,12 +202,7 @@ export function renderLoweredSql(
       ? { kind: 'bind', name: ref.name }
       : { kind: 'literal', value: ref.value };
   });
-  const ctx: SqliteRenderContext = {
-    contract,
-    codecs,
-    placeholderNumbers,
-    uses: { callerSql: false },
-  };
+  const ctx: SqliteRenderContext = { contract, codecs, placeholderNumbers };
 
   let sql: string;
 
@@ -234,7 +228,7 @@ export function renderLoweredSql(
   }
 
   assertPlaceholdersMatchParams(sql, params.length);
-  return Object.freeze({ sql, params, containsCallerSql: ctx.uses.callerSql });
+  return Object.freeze({ sql, params });
 }
 
 function renderPlaceholder(ref: AnyParamRef, ctx: SqliteRenderContext): string {
@@ -454,7 +448,6 @@ function renderParts(
   parts: RawExpr['parts'] | RawQueryAst['parts'],
   ctx: SqliteRenderContext,
 ): string {
-  ctx.uses.callerSql = true;
   return parts.map((part) => (typeof part === 'string' ? part : renderExpr(part, ctx))).join('');
 }
 

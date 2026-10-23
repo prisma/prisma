@@ -48,6 +48,7 @@ describe('buffered pool release', () => {
       let handle: unknown;
       const iterator = driver
         .query({
+          containsRawSql: false,
           sql: 'select generate_series(1, 2) as id',
           ...(prepared
             ? {
@@ -81,7 +82,7 @@ describe('buffered pool release', () => {
     async (exit) => {
       const { driver, release } = await createHarness();
       const iterator = driver
-        .query({ sql: 'select generate_series(1, 2) as id' })
+        .query({ containsRawSql: false, sql: 'select generate_series(1, 2) as id' })
         [Symbol.asyncIterator]();
       try {
         await iterator.next();
@@ -139,7 +140,7 @@ describe('buffered pool release', () => {
     async () => {
       const { driver, pool, release } = await createHarness(false);
       const iterator = driver
-        .query({ sql: 'select generate_series(1, 2) as id' })
+        .query({ containsRawSql: false, sql: 'select generate_series(1, 2) as id' })
         [Symbol.asyncIterator]();
       try {
         expect(await iterator.next()).toEqual({ done: false, value: { id: '1' } });

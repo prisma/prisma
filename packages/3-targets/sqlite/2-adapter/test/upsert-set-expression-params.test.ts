@@ -37,7 +37,6 @@ describe('a parameter inside an ON CONFLICT DO UPDATE SET expression on SQLite',
     ).toEqual({
       sql: 'INSERT INTO "item" ("id", "name") VALUES (?1, ?2) ON CONFLICT ("id") DO UPDATE SET "name" = excluded."name" || ?3',
       params: litParams(1, 'b', '!'),
-      containsCallerSql: false,
     });
   });
 

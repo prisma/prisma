@@ -69,7 +69,7 @@ function createStubAdapter() {
       readMarker: async () => ({ kind: 'absent' as const }),
     },
     lower(ast: SelectAst) {
-      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params: [] });
+      return Object.freeze({ sql: JSON.stringify(ast), params: [] });
     },
   };
 }
@@ -150,7 +150,7 @@ describe('SQL middleware context surface', () => {
 
     const ast = SelectAst.from(TableSource.named('users'));
     const plan: SqlExecutionPlan = {
-      containsCallerSql: false,
+      containsRawSql: false,
       sql: 'select * from users',
       params: [],
       ast,

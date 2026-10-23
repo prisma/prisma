@@ -103,10 +103,12 @@ export class SupabaseRuntimeImpl<
 
     try {
       await conn.execute({
+        containsRawSql: true,
         sql: 'SELECT set_config($1, $2, false)',
         params: ['role', binding.role],
       });
       await conn.execute({
+        containsRawSql: true,
         sql: 'SELECT set_config($1, $2, false)',
         params: ['request.jwt.claims', JSON.stringify(binding.claims ?? {})],
       });
@@ -164,7 +166,7 @@ export class SupabaseRuntimeImpl<
        */
       async release(): Promise<void> {
         try {
-          await conn.execute({ sql: 'RESET ALL' });
+          await conn.execute({ containsRawSql: true, sql: 'RESET ALL' });
           await conn.release();
         } catch (resetError) {
           await conn.destroy(resetError).catch(() => undefined);

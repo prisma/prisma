@@ -167,11 +167,11 @@ function liveSchemaWithoutTheIndex(): PostgresDatabaseSchemaNode {
 async function plannedCreateIndexNodes(schema: string): Promise<readonly PostgresCreateIndex[]> {
   const lowered: unknown[] = [];
   const lowerer: ExecuteRequestLowerer = {
-    lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+    lower: () => ({ sql: 'stub', params: [] }),
     renderColumnDefault: async () => '',
     lowerToExecuteRequest: async (ast) => {
       lowered.push(ast);
-      return { sql: 'stub', params: [] };
+      return { containsRawSql: false, sql: 'stub', params: [] };
     },
   };
   const result = createPostgresMigrationPlanner(lowerer).plan({
@@ -198,9 +198,9 @@ describe('a single-field index authored before full-text indexes were stored as 
       'the authored contract targets Postgres'
     >(authoredContract(HAND_WRITTEN_EXPRESSION_SCHEMA));
     const result = createPostgresMigrationPlanner({
-      lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+      lower: () => ({ sql: 'stub', params: [] }),
       renderColumnDefault: async () => '',
-      lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+      lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
     }).plan({
       contract: authoredContract(TYPED_ATTRIBUTE_SCHEMA),
       schema: contractToPostgresDatabaseSchemaNode(previous, {
@@ -235,9 +235,9 @@ describe('a weighted full-text index over a column whose nullability changes', (
     >(authoredContract(WEIGHTED_SCHEMA));
     const after = authoredContract(WEIGHTED_SCHEMA.replace('note String?', 'note String'));
     const result = createPostgresMigrationPlanner({
-      lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+      lower: () => ({ sql: 'stub', params: [] }),
       renderColumnDefault: async () => '',
-      lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+      lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
     }).plan({
       contract: after,
       schema: contractToPostgresDatabaseSchemaNode(before, {
@@ -277,9 +277,9 @@ async function plannedLabels(beforeSchema: string, afterSchema: string): Promise
     'the authored contract targets Postgres'
   >(authoredContract(beforeSchema));
   const result = createPostgresMigrationPlanner({
-    lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+    lower: () => ({ sql: 'stub', params: [] }),
     renderColumnDefault: async () => '',
-    lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+    lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
   }).plan({
     contract: authoredContract(afterSchema),
     schema: contractToPostgresDatabaseSchemaNode(before, {

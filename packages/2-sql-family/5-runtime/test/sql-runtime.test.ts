@@ -100,7 +100,7 @@ function createStubAdapter(extraCodecs: readonly Codec<string>[] = []) {
           ? { kind: 'bind' as const, name: ref.name }
           : { kind: 'literal' as const, value: ref.value },
       );
-      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params });
+      return Object.freeze({ sql: JSON.stringify(ast), params });
     },
   };
 }
@@ -235,7 +235,7 @@ function createRawExecutionPlan<Row = Record<string, unknown>>(
 ): SqlExecutionPlan<Row> {
   const metaOverrides = overrides?.meta;
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),

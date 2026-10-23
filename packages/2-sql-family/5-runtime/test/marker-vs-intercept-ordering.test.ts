@@ -88,7 +88,7 @@ function createStubAdapter(codecs: ReadonlyArray<Codec<string>>) {
         }) as const,
     },
     lower(ast: SelectAst) {
-      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params: [] });
+      return Object.freeze({ sql: JSON.stringify(ast), params: [] });
     },
   };
 }
@@ -183,7 +183,7 @@ function createTestSetup(middleware: readonly SqlMiddleware[], log?: RuntimeLog)
 function createPlan(): SqlExecutionPlan {
   const ast = SelectAst.from(TableSource.named('users'));
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select * from users',
     params: [],
     ast,

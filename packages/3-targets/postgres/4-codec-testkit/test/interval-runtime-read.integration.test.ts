@@ -17,8 +17,12 @@ describe('pg/interval@1 reads interval values the runtime driver returns', () =>
   beforeAll(async () => {
     database = await createDevDatabase();
     await driver.connect({ kind: 'url', url: database.connectionString });
-    await driver.execute({ sql: 'create table intervals (v interval, vs interval[])' });
     await driver.execute({
+      containsRawSql: false,
+      sql: 'create table intervals (v interval, vs interval[])',
+    });
+    await driver.execute({
+      containsRawSql: false,
       sql: `insert into intervals values (
         interval '1 year 2 months 3 days 04:05:06.5',
         array[interval '1 day 02:03:04', interval '-1 years -2 mons +3 days -04:00:00']
@@ -35,6 +39,7 @@ describe('pg/interval@1 reads interval values the runtime driver returns', () =>
   async function readRow() {
     const rows: Array<{ v: string; vs: string }> = [];
     for await (const row of driver.query<{ v: string; vs: string }>({
+      containsRawSql: false,
       sql: 'select v, vs from intervals',
     })) {
       rows.push(row);

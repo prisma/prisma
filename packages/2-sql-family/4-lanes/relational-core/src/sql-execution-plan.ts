@@ -24,6 +24,6 @@ export interface SqlExecutionPlan<Row = unknown> extends ExecutionPlan<Row> {
   readonly sql: string;
   readonly params: readonly unknown[];
   readonly ast: AnyQueryAst;
-  /** Whether the statement holds SQL text a caller wrote, as the adapter that lowered it reports. */
-  readonly containsCallerSql: boolean;
+  /** Whether the AST holds raw SQL. It describes the AST, not `sql`, so middleware that rewrites `sql` does not change it. */
+  readonly containsRawSql: boolean;
 }

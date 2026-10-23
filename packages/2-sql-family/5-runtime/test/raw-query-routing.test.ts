@@ -127,16 +127,8 @@ describe('raw-query execution routing', () => {
     );
     await runtime.execute(planFromAst(RawQueryAst.affectedCount(boundParts), contract));
 
-    expect(queryCalls[0]).toEqual({
-      sql: compiled[0]?.sql,
-      params: compiled[0]?.params,
-      containsCallerSql: true,
-    });
-    expect(executeCalls[0]).toEqual({
-      sql: compiled[1]?.sql,
-      params: compiled[1]?.params,
-      containsCallerSql: true,
-    });
+    expect(queryCalls[0]).toEqual({ sql: compiled[0]?.sql, params: compiled[0]?.params });
+    expect(executeCalls[0]).toEqual({ sql: compiled[1]?.sql, params: compiled[1]?.params });
   });
 
   it('binds the same params whichever path the statement takes', async () => {

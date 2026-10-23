@@ -40,7 +40,7 @@ function makeContext(warnEvents: unknown[]): SqlMiddlewareContext {
 function makeExecutionPlan() {
   const built = db.sql.public.user.select('id', 'email').limit(1).build();
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'SELECT "id", "email" FROM "user" LIMIT 1',
     params: [],
     ast: built.ast,
@@ -89,6 +89,7 @@ describe('slowQueryWarning middleware', () => {
     expect(warnEvents[0]).toMatchObject({
       code: 'APP.SLOW_QUERY',
       details: {
+        containsRawSql: false,
         sql: 'SELECT "id", "email" FROM "user" LIMIT 1',
         latencyMs: 900,
         rowCount: 1,

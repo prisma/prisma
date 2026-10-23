@@ -77,7 +77,7 @@ export const stubLowerer: ExecuteRequestLowerer = {
   },
   async lowerToExecuteRequest(node) {
     const ddl = node as DdlNode & { readonly table?: string };
-    return { sql: `${ddl.kind} ${ddl.table ?? ''}`, params: [] };
+    return { containsRawSql: false, sql: `${ddl.kind} ${ddl.table ?? ''}`, params: [] };
   },
   async renderColumnDefault(column) {
     return column.default === undefined

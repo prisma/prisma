@@ -59,7 +59,7 @@ describe('MySQL runtime driver with a fatal stream error', () => {
   it('destroys the connection instead of returning it to the pool', async () => {
     const driver = mysqlRuntimeDriver.create();
     await driver.connect({ kind: 'url', url: 'mysql://root@localhost/db' });
-    const rows = driver.query({ sql: 'SELECT 1' })[Symbol.asyncIterator]();
+    const rows = driver.query({ containsRawSql: false, sql: 'SELECT 1' })[Symbol.asyncIterator]();
     await expect(rows.next()).rejects.toMatchObject({ sqlState: '08S01' });
     expect({
       destroyed: connection.destroy.mock.calls.length,
@@ -80,7 +80,9 @@ describe('MySQL runtime driver at the server limit on prepared statements', () =
     try {
       const driver = mysqlRuntimeDriver.create();
       await driver.connect({ kind: 'url', url: 'mysql://root@localhost/db' });
-      await expect(driver.execute({ sql: 'SELECT 1' })).rejects.toMatchObject({
+      await expect(
+        driver.execute({ containsRawSql: false, sql: 'SELECT 1' }),
+      ).rejects.toMatchObject({
         code: 'DRIVER.PREPARE_FAILED',
         fix: expect.stringContaining('statementCacheSize'),
       });
@@ -95,13 +97,13 @@ describe('MySQL runtime driver session restore', () => {
     const driver = mysqlRuntimeDriver.create();
     await driver.connect({ kind: 'url', url: 'mysql://root@localhost/db' });
     const setups = () => connection.constantSql.length / SESSION_SETUP.length;
-    await driver.execute({ sql: 'SELECT 0', containsCallerSql: false });
+    await driver.execute({ sql: 'SELECT 0', containsRawSql: false });
     const start = setups();
-    await driver.execute({ sql: 'SELECT 1', containsCallerSql: false });
-    await driver.execute({ sql: 'SELECT 2' });
+    await driver.execute({ sql: 'SELECT 1', containsRawSql: false });
+    await driver.execute({ containsRawSql: false, sql: 'SELECT 2' });
     const withoutCallerSql = setups() - start;
-    await driver.execute({ sql: "SET time_zone = '+05:00'", containsCallerSql: true });
-    await driver.execute({ sql: 'SELECT 3', containsCallerSql: false });
+    await driver.execute({ sql: "SET time_zone = '+05:00'", containsRawSql: true });
+    await driver.execute({ sql: 'SELECT 3', containsRawSql: false });
     const afterCallerSql = setups() - start;
     expect({ withoutCallerSql, afterCallerSql }).toEqual({
       withoutCallerSql: 0,

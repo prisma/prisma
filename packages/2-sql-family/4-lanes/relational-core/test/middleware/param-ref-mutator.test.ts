@@ -138,7 +138,7 @@ describe('createSqlParamRefMutator entries()', () => {
       .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
       .withWhere(where);
     const plan: SqlExecutionPlan = {
-      containsCallerSql: false,
+      containsRawSql: false,
       sql: 'select "id" from "user" where ...',
       params: [42],
       ast,
@@ -159,7 +159,7 @@ describe('createSqlParamRefMutator entries()', () => {
       .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
       .withWhere(where);
     const plan: SqlExecutionPlan = {
-      containsCallerSql: false,
+      containsRawSql: false,
       sql: 'select "id" from "user" where ...',
       params: [1],
       ast,
@@ -191,7 +191,7 @@ describe('createSqlParamRefMutator entries()', () => {
       .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
       .withWhere(where);
     const plan: SqlExecutionPlan = {
-      containsCallerSql: false,
+      containsRawSql: false,
       sql: 'select "id" from "user" where ...',
       params: [1],
       ast,

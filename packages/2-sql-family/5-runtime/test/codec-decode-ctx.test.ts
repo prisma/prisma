@@ -32,7 +32,7 @@ function decodeRow(
 function buildPlan(projections: ReadonlyArray<ProjectionItem>): SqlExecutionPlan {
   const ast = SelectAst.from(TableSource.named('users')).withProjection(projections);
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast,

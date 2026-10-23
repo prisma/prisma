@@ -84,7 +84,7 @@ function createStubAdapter(codecs: ReadonlyArray<Codec<string>>) {
       readMarker: async () => ({ kind: 'absent' as const }),
     },
     lower(ast: SelectAst) {
-      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params: [] });
+      return Object.freeze({ sql: JSON.stringify(ast), params: [] });
     },
   };
 }
@@ -185,7 +185,7 @@ function createJsonProjectionPlan(alias: string): SqlExecutionPlan {
     ProjectionItem.of(alias, ColumnRef.of('users', alias), { codecId: 'pg/jsonb@1' }),
   ]);
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select profile from users',
     params: [],
     ast,

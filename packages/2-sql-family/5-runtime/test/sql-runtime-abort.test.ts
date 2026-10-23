@@ -117,7 +117,7 @@ function createStubAdapter(extraCodecs: readonly Codec<string>[] = []) {
       readMarker: async () => ({ kind: 'absent' as const }),
     },
     lower(ast: unknown) {
-      return Object.freeze({ containsCallerSql: false, sql: JSON.stringify(ast), params: [] });
+      return Object.freeze({ sql: JSON.stringify(ast), params: [] });
     },
   };
 }
@@ -179,7 +179,7 @@ function createTestSetup(extras: readonly Codec<string>[] = [], driverOptions?: 
 
 function rawExecutionPlan(overrides?: Partial<SqlExecutionPlan>): SqlExecutionPlan {
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast: stubAst(),
@@ -204,7 +204,7 @@ function projectingExecutionPlan(
     ProjectionItem.of(alias, ColumnRef.of(table, column), { codecId }),
   ]);
   return {
-    containsCallerSql: false,
+    containsRawSql: false,
     sql: 'select 1',
     params: [],
     ast,

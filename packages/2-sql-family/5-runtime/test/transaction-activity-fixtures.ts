@@ -200,7 +200,7 @@ export const meta = {
 };
 
 export function rawPlan(sql: string): SqlExecutionPlan {
-  return { containsCallerSql: false, sql, params: [], ast: stubAst(), meta };
+  return { containsRawSql: false, sql, params: [], ast: stubAst(), meta };
 }
 
 export function failingDecodePlan(): SqlQueryPlan<{ id: number }> {

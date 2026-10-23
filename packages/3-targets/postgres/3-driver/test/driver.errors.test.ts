@@ -56,7 +56,7 @@ describe('@internal/driver-postgres', () => {
     });
 
     const consume = async () => {
-      for await (const _row of driver.query({ sql: 'select 1' })) {
+      for await (const _row of driver.query({ containsRawSql: false, sql: 'select 1' })) {
         // consume stream
       }
     };
@@ -98,6 +98,7 @@ describe('@internal/driver-postgres', () => {
 
     const rows: Array<{ id: number; name: string }> = [];
     for await (const row of driver.query<{ id: number; name: string }>({
+      containsRawSql: false,
       sql: 'select id, name from items',
     })) {
       rows.push(row);
@@ -129,7 +130,7 @@ describe('@internal/driver-postgres', () => {
     });
 
     const consume = async () => {
-      for await (const _row of driver.query({ sql: 'select 1' })) {
+      for await (const _row of driver.query({ containsRawSql: false, sql: 'select 1' })) {
         // consume stream
       }
     };

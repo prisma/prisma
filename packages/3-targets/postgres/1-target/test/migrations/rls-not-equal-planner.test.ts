@@ -27,9 +27,9 @@ import { introspectedColumn, postgresTypeComponents } from '../postgres-type-loo
 const TABLE_NAME = 'profiles';
 const EXACT_NAME = 'Tenant members can read';
 const stubLowerer: ExecuteRequestLowerer = {
-  lower: () => ({ containsCallerSql: false, sql: 'stub', params: [] }),
+  lower: () => ({ sql: 'stub', params: [] }),
   renderColumnDefault: async () => '',
-  lowerToExecuteRequest: async () => ({ sql: 'stub', params: [] }),
+  lowerToExecuteRequest: async () => ({ containsRawSql: false, sql: 'stub', params: [] }),
 };
 
 const ALL_CLASSES_POLICY = {
