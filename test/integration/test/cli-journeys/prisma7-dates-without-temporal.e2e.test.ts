@@ -165,9 +165,7 @@ function output(run: EngineCommandResult): string {
 
 /** The instant of a `Date`'s JSON text, or of the ISO 8601 text of a `timestamp`, read as UTC. */
 function utcMillis(timestampText: string): number {
-  return new Date(
-    timestampText.endsWith('Z') ? timestampText : `${timestampText}Z`,
-  ).getTime();
+  return new Date(timestampText.endsWith('Z') ? timestampText : `${timestampText}Z`).getTime();
 }
 
 function expectNow(timestampText: string, before: number, after: number): void {
