@@ -17,6 +17,7 @@ import {
   numeric,
   textArray,
   timestamp,
+  timestamptz,
   vector,
 } from './sql-data-type-fixtures';
 
@@ -147,6 +148,18 @@ describe('renderSqlCatalogText', () => {
       'timestamp(3) without time zone',
     );
     expect(renderSqlCatalogText(timestamp, {})).toBe('timestamp without time zone');
+  });
+
+  it('prints the text for the parameters as written when the catalog has one for them', () => {
+    expect([
+      renderSqlCatalogText(timestamptz, {}),
+      renderSqlCatalogText(timestamptz, { precision: 6 }),
+      renderSqlCatalogText(timestamptz, { precision: 3 }),
+    ]).toEqual([
+      'timestamp with time zone',
+      'timestamp(6) with time zone',
+      'timestamp(3) with time zone',
+    ]);
   });
 
   it('prints the display when the text has one', () => {

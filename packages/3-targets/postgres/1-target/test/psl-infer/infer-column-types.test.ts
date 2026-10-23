@@ -37,7 +37,7 @@ const COLUMN_TYPES = [
   ['timestamp without time zone', 'TimestampString'],
   ['timestamp(3) without time zone', 'TimestampString(3)'],
   ['timestamp with time zone', 'TimestamptzString'],
-  ['timestamp(6) with time zone', 'TimestamptzString(6)'],
+  ['timestamp(6) with time zone', 'TimestamptzString'],
   ['bit(1)', 'Bit'],
   ['bit(8)', 'Bit(8)'],
   ['bit varying', 'VarBit'],

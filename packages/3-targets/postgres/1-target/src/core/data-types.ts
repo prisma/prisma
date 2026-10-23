@@ -337,6 +337,10 @@ export const pgPrecisionParams = arktype({
   'precision?': 'number.integer >= 0 & number.integer <= 6',
 });
 
+/** PostgreSQL stores microseconds whether a precision of 6 is declared or omitted, so an omitted precision is 6. */
+const withDefaultPrecision = <Params extends { readonly precision?: number }>(params: Params) =>
+  params.precision === undefined ? { ...params, precision: 6 } : params;
+
 export const pgEnumParams = arktype({ typeName: 'string > 0' });
 
 /** A type with no parameters that is written and reported by its own name. */
@@ -600,6 +604,7 @@ export const pgTimetz = sqlDataType('pg/timetz', {
   ),
   spell: spellStoredDateTime(pgTimetzStoredText),
   params: pgPrecisionParams,
+  normalize: withDefaultPrecision,
   texts: [
     written('timetz'),
     written('timetz({precision})'),
@@ -618,6 +623,7 @@ export const pgInterval = sqlDataType('pg/interval', {
   spell: spellStoredDateTime(pgIntervalStoredText),
   equalityKey: intervalEqualityKey,
   params: pgPrecisionParams,
+  normalize: withDefaultPrecision,
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });
 
@@ -668,6 +674,7 @@ export const pgTime = sqlDataType('pg/time', {
   ),
   spell: spellStoredDateTime(pgTimeStoredText),
   params: pgPrecisionParams,
+  normalize: withDefaultPrecision,
   texts: [
     written('time'),
     written('time({precision})'),
@@ -685,6 +692,7 @@ export const pgTimestamp = sqlDataType('pg/timestamp', {
   ),
   spell: spellStoredDateTime(pgTimestampStoredText),
   params: pgPrecisionParams,
+  normalize: withDefaultPrecision,
   texts: [
     written('timestamp'),
     written('timestamp({precision})'),
@@ -702,6 +710,7 @@ export const pgTimestamptz = sqlDataType('pg/timestamptz', {
   ),
   spell: spellStoredDateTime(pgTimestamptzStoredText),
   params: pgPrecisionParams,
+  normalize: withDefaultPrecision,
   texts: [
     written('timestamptz'),
     written('timestamptz({precision})'),

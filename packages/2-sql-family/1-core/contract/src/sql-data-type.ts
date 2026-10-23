@@ -86,6 +86,11 @@ export interface ResolvedSqlType {
   readonly typeParams: SqlTypeParams;
 }
 
+/** A type a migration writes, read as {@link ResolvedSqlType}, with its parameters also as the text writes them, before the normal form. */
+export interface ResolvedWrittenSqlType extends ResolvedSqlType {
+  readonly writtenTypeParams: SqlTypeParams;
+}
+
 const PLACEHOLDER = /\{([A-Za-z][A-Za-z0-9]*)\}/g;
 const LITERAL_CHARACTERS = /^[a-z0-9_ (),.]*$/;
 const REGEXP_SPECIAL = /[.*+?^${}()|[\]\\]/g;
@@ -556,7 +561,9 @@ export function renderSqlTypeName<Params extends SqlTypeParams>(
   return substitute(type, pickText(type, 'written', keys), params);
 }
 
-/** The text the database catalog prints for `type` with `params`, in their normal form. */
+/**
+ * The text the database catalog prints for `type` with `params` as written: the catalog text that takes exactly those parameters, so a bare `timestamptz` prints `timestamp with time zone` though its normal form has a precision, or else the one that takes their normal form, as `numeric(10)` prints `numeric(10,0)`.
+ */
 export function renderSqlCatalogText<Params extends SqlTypeParams>(
   type: SqlDataType<Params>,
   params: SqlTypeParams,
@@ -568,6 +575,11 @@ export function renderSqlCatalogText<Params extends SqlTypeParams>(
     );
   }
   if (type.sql.render !== undefined) return type.sql.render(validated);
+  const writtenKeys = [...presentKeys(validated)].sort().join(',');
+  const asWritten = type.sql.texts.find(
+    (text) => text.catalog === true && placeholderSetOf(text.text) === writtenKeys,
+  );
+  if (asWritten !== undefined) return substitute(type, asWritten, validated);
   const normalized = type.sql.normalize(validated);
   return substitute(type, pickText(type, 'catalog', presentKeys(normalized)), normalized);
 }
@@ -695,21 +707,21 @@ function paramsMatching(
 
 /**
  * Every data type in `dataTypes` that reads `text` as a migration may write it, with its parameters
- * in normal form: any of a type's texts counts, whether written, printed by the catalog or only
+ * in normal form and as written: any of a type's texts counts, whether written, printed by the catalog or only
  * claimed. Empty when no type reads it or its parameters fail the type's schema. A type that claims
  * a kind has no texts, so it never reads one.
  */
 export function resolveWrittenSqlTypes(
   text: string,
   dataTypes: readonly DataType[],
-): readonly ResolvedSqlType[] {
+): readonly ResolvedWrittenSqlType[] {
   const prepared = prepareReportedText(text);
   return dataTypes.filter(isSqlDataType).flatMap((type) => {
     for (const candidate of type.sql.texts) {
       const params = paramsMatching(type, candidate, prepared);
       if (params === undefined) continue;
       const resolved = resolvedWith(type, params);
-      if (resolved !== undefined) return [resolved];
+      if (resolved !== undefined) return [{ ...resolved, writtenTypeParams: params }];
     }
     return [];
   });
