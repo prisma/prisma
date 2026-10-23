@@ -27,7 +27,7 @@ changes:
 
 ## `value-objects-in-storage`
 
-Before you upgrade, apply every pending migration to each database (development, staging, production) with the release you are upgrading from, so each database is at the last migration. Then commit your work, so the script's changes can be reviewed and undone with git. Run the script before you re-emit the contract: `prisma db sign` must see the contract the database was created from before a re-emit adds the new checks. Run it from the project root:
+Before you upgrade, apply every pending migration to each database (development, staging, production) with the release you are upgrading from, so each database is at the last migration. Then commit your work, so the script's changes can be reviewed and undone with git. Then upgrade the Prisma packages to this release. Run the script before you re-emit the contract: `prisma db sign` must see the contract the database was created from before a re-emit adds the new checks. Run it from the project root:
 
 ```sh
 node <path-to-this-guide>/scripts/value-objects-in-storage/value-objects-in-storage.ts
@@ -48,9 +48,9 @@ The script rewrites a snapshot's `contract.d.ts` for the moved value objects. In
 
 Then:
 
-1. Sign each database (development, staging, production) with the rewritten contract, before you re-emit: `prisma db sign --db "$DATABASE_URL"`. Its marker still holds the old storage hash, so until it is signed `prisma db migrate` refuses with `MIGRATION.MARKER_MISMATCH` and `prisma db verify` with `CONTRACT.MARKER_MISMATCH`. This works for a database at the last migration.
+1. Sign each database (development, staging, production) with the rewritten contract, before you re-emit: `prisma db sign --db "$DATABASE_URL"`. Its marker still holds the old storage hash, so until it is signed `prisma db migrate` refuses with `MIGRATION.MARKER_MISMATCH` and `prisma db verify` with `CONTRACT.MARKER_MISMATCH`. This works for a database at the last migration. It also points your local `db` ref at the rewritten contract, writing the ref if the project had none; `prisma migration plan` starts from that ref.
 2. Re-emit the contract: `prisma contract emit`.
-3. On PostgreSQL, plan and apply the migration that adds the new checks, as `postgres-value-object-checks` describes. On MongoDB there is nothing to plan: the collection validators do not change.
+3. On PostgreSQL, plan the migration that adds the new checks with `prisma migration plan`, and apply it to each database with `prisma db migrate --advance-ref db --db "$DATABASE_URL"`, as `postgres-value-object-checks` describes. `--advance-ref db` moves the `db` ref to the new contract. Without it the ref stays at the contract of step 1, and the next `prisma migration plan` starts from there and writes a second migration that adds the same checks. On MongoDB there is nothing to plan: the collection validators do not change.
 
 A database you could not migrate before the upgrade is behind the last migration, and `prisma db sign --db "$DATABASE_URL"` fails on it with `CONTRACT.SCHEMA_VERIFICATION_FAILED`, because it signs against the last contract. Do not follow its advice to run `prisma db update`: that skips the pending migrations. Instead, sign the database at the new hash of the hash its marker holds, then migrate it:
 
@@ -78,7 +78,7 @@ type Outputs = ValueObjectTypesFromStorage<Contract['storage']['namespaces'], Co
 
 For each column that holds a value object, the contract derives a check named `<table>_<column>_shape_<hash>`. It accepts a JSON object with every required member, each of its JSON type, no other key, and for a list column an array of such objects; a nullable column also accepts SQL `NULL` and JSON `null`. For each discriminator column it derives `<table>_<column>_check_<hash>`, which accepts only the variants' values. A table whose control policy is not managed gets neither check.
 
-After you re-emit the contract, `prisma migration plan` writes a migration that adds the checks. A project with no `db` ref names the origin, the last migration: `prisma migration plan --from <last migration directory>`; without it the command refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN`, as it does for any plan in such a project. Its DDL preview prints each check's expression. Before you run `prisma db migrate`, find the rows that would fail by selecting the rows where the expression is not true, for example:
+After you re-emit the contract, `prisma migration plan` writes a migration that adds the checks. It starts from the `db` ref that `prisma db sign` wrote. Its DDL preview prints each check's expression. Before you run `prisma db migrate`, find the rows that would fail by selecting the rows where the expression is not true, for example:
 
 ```sql
 SELECT id, address FROM "public"."user"
@@ -89,7 +89,7 @@ SELECT id, type FROM "public"."task" WHERE NOT ("type" IN ('bug', 'feature'));
 
 Adding a check takes a lock on the table while Postgres reads every row to check it. Any later change to a value object renames the check, so the check is dropped and added again, and the rows are read again. Apply the migration when the table can wait for that read.
 
-Copy the expression from the preview between `CHECK (` and the closing `)`. Fix or delete each row the query returns, for example by removing the extra keys with `UPDATE "public"."user" SET address = address - 'extra' WHERE address ? 'extra'`, then apply the migration. A migration that fails on a row changes nothing, and the error names the check; fix the rows and run `prisma db migrate` again.
+Copy the expression from the preview between `CHECK (` and the closing `)`. Fix or delete each row the query returns, for example by removing the extra keys with `UPDATE "public"."user" SET address = address - 'extra' WHERE address ? 'extra'`, then apply the migration with `prisma db migrate --advance-ref db`. A migration that fails on a row changes nothing, and the error names the check, its table and column, and the query that finds the rows; fix the rows and run `prisma db migrate --advance-ref db` again.
 
 ## `discriminator-typed-by-variant-values`
 

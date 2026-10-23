@@ -39,16 +39,16 @@ describe('the advice when existing rows fail a check the apply adds', () => {
     expect(JSON.stringify(error.nextActions)).not.toContain('--to');
   });
 
-  it('on db migrate, says to fix the rows first when the check replaces none', () => {
+  it('on db migrate, says to fix the rows first when the check replaces none, and to re-run with the same flags', () => {
     const error = migrateRunnerFailureError(
       failure,
       { rowsFailingCheck: adding },
       { directory: '/work/app/migrations/app/20260101T0000_country', from: FROM },
-      PROJECT,
+      { ...PROJECT, rerunArgs: ['--advance-ref', 'db'] },
     );
 
     expect(labels(error)).toEqual([
-      'Update or delete those rows so they fit check "user_address_shape_5c02601b", then re-run `{bin} db migrate`',
+      'Update or delete those rows so they fit check "user_address_shape_5c02601b", then re-run `{bin} db migrate --advance-ref db`',
     ]);
   });
 

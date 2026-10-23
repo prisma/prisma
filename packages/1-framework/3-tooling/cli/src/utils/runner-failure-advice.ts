@@ -252,7 +252,7 @@ function migrateRowsFailingCheckAdvice(
 ): RunnerAdvice {
   const { replacedCheck } = report;
   if (replacedCheck === undefined) {
-    return [fixRowsFirst(report, cliCommand(invocation, 'db migrate'))];
+    return [fixRowsFirst(report, cliCommand(invocation, 'db migrate', invocation.rerunArgs ?? []))];
   }
   const { file, run } = failedMigrationFile(failedMigration);
   return [
