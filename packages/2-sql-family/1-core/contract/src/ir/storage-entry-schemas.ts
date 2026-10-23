@@ -35,6 +35,74 @@ const StorageValueSetRefSchema = type({
   'spaceId?': 'string',
 });
 
+const VALUE_OBJECT_REFERENCE_KEYS = new Set([
+  'kind',
+  'plane',
+  'namespaceId',
+  'entityKind',
+  'entityName',
+]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isValueObjectReference(value: Record<string, unknown>): boolean {
+  return (
+    value['plane'] === 'storage' &&
+    value['entityKind'] === 'valueObject' &&
+    typeof value['namespaceId'] === 'string' &&
+    typeof value['entityName'] === 'string' &&
+    Object.keys(value).every((key) => VALUE_OBJECT_REFERENCE_KEYS.has(key))
+  );
+}
+
+/** A field's type: a scalar with its codec, a value object by its storage coordinate, or a union of those. */
+export function isContractFieldType(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  const kind = value['kind'];
+  if (kind === 'scalar') {
+    if (typeof value['codecId'] !== 'string') return false;
+    const typeParams = value['typeParams'];
+    if (typeParams !== undefined && !isRecord(typeParams)) return false;
+    return true;
+  }
+  if (kind === 'valueObject') {
+    return isValueObjectReference(value);
+  }
+  if (kind === 'union') {
+    const members = value['members'];
+    if (!Array.isArray(members)) return false;
+    return members.every((m) => isContractFieldType(m));
+  }
+  return false;
+}
+
+export const ContractFieldTypeSchema = type('unknown').narrow((value, ctx) =>
+  isContractFieldType(value)
+    ? true
+    : ctx.mustBe(
+        'scalar, valueObject (by its storage coordinate: plane, namespaceId, entityKind, entityName), or union field type',
+      ),
+);
+
+const StorageValueObjectFieldSchema = type({
+  '+': 'reject',
+  nullable: 'boolean',
+  type: ContractFieldTypeSchema,
+  'many?': type('false').or({ '+': 'reject', elementNullable: 'boolean' }),
+  'dict?': 'true',
+  'valueSet?': StorageValueSetRefSchema,
+});
+
+/**
+ * Storage value object entry under `storage.namespaces[id].entries.valueObject[name]` (ADR 278). Its fields have the shape a domain field has; a member typed by an enum refers to the storage value set, since storage never refers to the domain plane.
+ */
+export const StorageValueObjectSchema = type({
+  '+': 'reject',
+  fields: type({ '[string]': StorageValueObjectFieldSchema }),
+});
+
 const StorageColumnSchema = type({
   '+': 'reject',
   dataType: DATA_TYPE_ID_PATTERN,

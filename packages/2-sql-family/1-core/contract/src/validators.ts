@@ -5,7 +5,10 @@ import {
   type ContractModel,
   CrossReferenceSchema,
 } from '@internal/contract/types';
-import { validateContractDomain } from '@internal/contract/validate-domain';
+import {
+  removedDomainKeyProblems,
+  validateContractDomain,
+} from '@internal/contract/validate-domain';
 import {
   createDataTypeLookup,
   DATA_TYPE_ID_PATTERN,
@@ -24,6 +27,7 @@ import { type Type, type } from 'arktype';
 import { contractError } from './contract-errors';
 import { composeSqlEntityKinds } from './entity-kinds';
 import { sameColumns, startsWithColumns } from './index-equivalence';
+import { ContractFieldTypeSchema } from './ir/storage-entry-schemas';
 import { resolveSqlToOneRelationStorage } from './relation-storage';
 import { sameSqlColumnType } from './sql-data-type';
 
@@ -419,30 +423,6 @@ function rejectDuplicateWireNamedCheckContent(
   }
 }
 
-function isContractFieldType(value: unknown): boolean {
-  if (!isPlainRecord(value)) return false;
-  const kind = value['kind'];
-  if (kind === 'scalar') {
-    if (typeof value['codecId'] !== 'string') return false;
-    const typeParams = value['typeParams'];
-    if (typeParams !== undefined && !isPlainRecord(typeParams)) return false;
-    return true;
-  }
-  if (kind === 'valueObject') {
-    return typeof value['name'] === 'string';
-  }
-  if (kind === 'union') {
-    const members = value['members'];
-    if (!Array.isArray(members)) return false;
-    return members.every((m) => isContractFieldType(m));
-  }
-  return false;
-}
-
-const ContractFieldTypeSchema = type('unknown').narrow((value, ctx) =>
-  isContractFieldType(value) ? true : ctx.mustBe('scalar, valueObject, or union field type'),
-);
-
 const ModelFieldSchema = type({
   '+': 'reject',
   nullable: 'boolean',
@@ -552,9 +532,6 @@ export function createSqlContractSchema(
       namespaces: type({
         '[string]': type({
           models: type({ '[string]': ModelSchema }),
-          'valueObjects?': type({
-            '[string]': type({ fields: type({ '[string]': ModelFieldSchema }) }),
-          }),
           'enum?': type({ '[string]': ContractEnumSchema }),
         }),
       }),
@@ -632,7 +609,10 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
     throw new ContractValidationError(`Unsupported target family: ${targetFamily}`, 'structural');
   }
 
-  const removedKeys = removedKeyProblems(fieldOf(value, 'storage'));
+  const removedKeys = [
+    ...removedDomainKeyProblems(value),
+    ...removedKeyProblems(fieldOf(value, 'storage')),
+  ];
   if (removedKeys.length > 0) {
     throw new ContractValidationError(
       `Contract structural validation failed: ${removedKeys.join('; ')}`,
@@ -1146,6 +1126,7 @@ export function validateSqlContractFully<T extends Contract<SqlStorage>>(
   validateContractDomain({
     roots: validated.roots,
     domain: validated.domain,
+    storage: validated.storage,
   });
   validateSqlStorageConsistency(validated);
   const semanticErrors = validateStorageSemantics(validated.storage);

@@ -410,71 +410,6 @@
                   "required": ["codecId", "members"],
                   "additionalProperties": false
                 }
-              },
-              "valueObjects": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object",
-                  "properties": {
-                    "fields": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "nullable": {
-                            "type": "boolean"
-                          },
-                          "type": {},
-                          "many": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "elementNullable": {
-                                    "type": "boolean"
-                                  }
-                                },
-                                "required": ["elementNullable"],
-                                "additionalProperties": false
-                              },
-                              {
-                                "const": false
-                              }
-                            ],
-                            "default": false
-                          },
-                          "dict": {
-                            "const": true
-                          },
-                          "valueSet": {
-                            "type": "object",
-                            "properties": {
-                              "entityKind": {
-                                "const": "enum"
-                              },
-                              "entityName": {
-                                "type": "string"
-                              },
-                              "namespaceId": {
-                                "type": "string"
-                              },
-                              "plane": {
-                                "const": "domain"
-                              },
-                              "spaceId": {
-                                "type": "string"
-                              }
-                            },
-                            "required": ["entityKind", "entityName", "namespaceId", "plane"]
-                          }
-                        },
-                        "required": ["nullable", "type"],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": ["fields"]
-                }
               }
             },
             "required": ["models"]
@@ -811,6 +746,71 @@
                         }
                       },
                       "required": ["columns", "foreignKeys", "indexes", "uniques"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "valueObject": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "nullable": {
+                                "type": "boolean"
+                              },
+                              "type": {},
+                              "dict": {
+                                "const": true
+                              },
+                              "many": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "elementNullable": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": ["elementNullable"],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "const": false
+                                  }
+                                ]
+                              },
+                              "valueSet": {
+                                "type": "object",
+                                "properties": {
+                                  "entityKind": {
+                                    "const": "valueSet"
+                                  },
+                                  "entityName": {
+                                    "type": "string"
+                                  },
+                                  "namespaceId": {
+                                    "type": "string"
+                                  },
+                                  "plane": {
+                                    "const": "storage"
+                                  },
+                                  "spaceId": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["entityKind", "entityName", "namespaceId", "plane"]
+                              }
+                            },
+                            "required": ["nullable", "type"],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": ["fields"],
                       "additionalProperties": false
                     }
                   },
