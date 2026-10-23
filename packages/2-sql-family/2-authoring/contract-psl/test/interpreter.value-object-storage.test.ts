@@ -289,3 +289,44 @@ model Child {
     ]);
   });
 });
+
+describe('composite types with the same name in two namespaces', () => {
+  it('are refused, since every value object is stored in the default storage namespace', () => {
+    const result = interpretPostgres(`namespace public {
+  type Address {
+    street String
+  }
+  model User {
+    id   Int     @id
+    home Address
+  }
+}
+
+namespace auth {
+  type Address {
+    zip Int
+  }
+  model Account {
+    id   Int     @id
+    home Address
+  }
+}
+`);
+    expect(
+      result.ok
+        ? []
+        : result.failure.diagnostics.map(({ code, message, span }) => ({
+            code,
+            message,
+            line: span?.start.line,
+          })),
+    ).toEqual([
+      {
+        code: 'PSL_DUPLICATE_DECLARATION',
+        message:
+          'Composite type "Address" is declared in namespace "public" and in namespace "auth". Every composite type is stored in the default storage namespace, so composite type names must differ across namespaces. Rename one of them.',
+        line: 12,
+      },
+    ]);
+  });
+});

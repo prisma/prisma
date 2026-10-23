@@ -2238,13 +2238,26 @@ export function interpretPslDocumentToSqlContract(
   const models: ModelSymbol[] = [];
   const modelEntries: ModelNamespaceEntry[] = [];
   const compositeTypes: CompositeTypeSymbol[] = [];
+  const compositeTypeNamespaces = new Map<string, string>();
 
   for (const namespace of namespaceSymbols) {
     for (const model of Object.values(namespace.models)) {
       models.push(model);
       modelEntries.push({ model, namespaceId: namespace.id });
     }
-    compositeTypes.push(...Object.values(namespace.compositeTypes));
+    for (const compositeType of Object.values(namespace.compositeTypes)) {
+      const firstNamespaceId = compositeTypeNamespaces.get(compositeType.name);
+      if (firstNamespaceId !== undefined) {
+        diagnostics.push({
+          code: 'PSL_DUPLICATE_DECLARATION',
+          message: `Composite type "${compositeType.name}" is declared in namespace "${firstNamespaceId}" and in namespace "${namespace.id}". Every composite type is stored in the default storage namespace, so composite type names must differ across namespaces. Rename one of them.`,
+          ...diagnosticSource(input.sources, compositeType.node.syntax).at(),
+        });
+        continue;
+      }
+      compositeTypeNamespaces.set(compositeType.name, namespace.id);
+      compositeTypes.push(compositeType);
+    }
   }
   const physicalNames = new Map<ModelSymbol | FieldSymbol, string>();
   for (const model of models) {
