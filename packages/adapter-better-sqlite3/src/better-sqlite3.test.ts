@@ -1,7 +1,8 @@
 import type { ArgType, SqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import Database from 'better-sqlite3'
 import { describe, expect, it } from 'vitest'
 
-import { PrismaBetterSqlite3AdapterFactory } from './better-sqlite3'
+import { PrismaBetterSqlite3Adapter, PrismaBetterSqlite3AdapterFactory } from './better-sqlite3'
 
 function selectWithParams(adapter: SqlDriverAdapter, count: number) {
   const argType: ArgType = { scalarType: 'int', arity: 'scalar' }
@@ -29,6 +30,18 @@ describe('getConnectionInfo', () => {
       }
     },
   )
+
+  it('leaves maxBindValues unset when the SQLite build does not report it', async () => {
+    const client = new Database(':memory:')
+    // Builds with SQLITE_OMIT_COMPILEOPTION_DIAGS return no compile options.
+    client.pragma = () => []
+    const adapter = new PrismaBetterSqlite3Adapter(client)
+    try {
+      expect(adapter.getConnectionInfo().maxBindValues).toBeUndefined()
+    } finally {
+      await adapter.dispose()
+    }
+  })
 
   it('does not report relation join support', async () => {
     const adapter = await new PrismaBetterSqlite3AdapterFactory({ url: ':memory:' }).connect()
