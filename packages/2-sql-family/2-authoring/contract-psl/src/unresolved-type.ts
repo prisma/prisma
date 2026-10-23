@@ -12,11 +12,11 @@ import { removedSqlFieldPresets } from './removed-field-presets';
 export function describeUnresolvedSqlType(
   contributions: AssembledAuthoringContributions,
 ): DescribeUnresolvedType {
-  return ({ field, written }) => {
+  return ({ field, written, declared }) => {
     const call = field.typeConstructor;
     if (call === undefined) return undefined;
     if (written !== 'Unsupported')
-      return describeRemovedFieldPreset(removedSqlFieldPresets, call, contributions.type);
+      return describeRemovedFieldPreset(removedSqlFieldPresets, call, contributions.type, declared);
     const [argument, ...rest] = call.args;
     const typeName =
       argument?.kind === 'positional' && rest.length === 0

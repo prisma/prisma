@@ -5,6 +5,10 @@ import {
   removedPresetWithPhases,
   removedPresetWrittenAs,
 } from '@internal/psl-parser/interpret';
+import {
+  GENERATED_ID_ALIAS_NAMESPACES,
+  type GeneratedIdColumnAlias,
+} from '@internal/sql-contract/generated-id-column-aliases';
 
 const CHARACTER_CODEC_ID = 'sql/char@1';
 
@@ -19,16 +23,16 @@ function nanoidSize(call: ResolvedTypeConstructorCall): { readonly size?: string
   return match[1] === undefined ? {} : { size: match[1] };
 }
 
-/** Where an identifier alias is looked up: a target's own top-level name first, then the `sql.` name every SQL target has. ADR 307. */
-const IDENTIFIER_NAMESPACES = [[], ['sql']] as const;
-
 function qualified(namespace: readonly string[], name: string): string {
   return [...namespace, name].join('.');
 }
 
-/** The rows of a preset whose rewrite writes the identifier alias `alias`, then `attributes` when given. */
-function identifier(alias: string, attributes?: string): readonly RemovedFieldPreset[] {
-  return IDENTIFIER_NAMESPACES.map((namespace) =>
+/** The rows of a preset whose rewrite writes the generated id column alias `alias`, then `attributes` when given, in each namespace that may name it. */
+function idAlias(
+  alias: GeneratedIdColumnAlias,
+  attributes?: string,
+): readonly RemovedFieldPreset[] {
+  return GENERATED_ID_ALIAS_NAMESPACES.flatMap((namespace) =>
     removedPresetWrittenAs(
       `${qualified(namespace, alias)}${attributes === undefined ? '' : ` ${attributes}`}`,
       CHARACTER_CODEC_ID,
@@ -37,7 +41,7 @@ function identifier(alias: string, attributes?: string): readonly RemovedFieldPr
 }
 
 function nanoid(id: boolean): readonly RemovedFieldPreset[] {
-  return IDENTIFIER_NAMESPACES.map((namespace) => {
+  return GENERATED_ID_ALIAS_NAMESPACES.map((namespace) => {
     const write = (size: string | undefined) => {
       const column =
         size === undefined ? qualified(namespace, 'Nanoid') : qualified(namespace, `Char(${size})`);
@@ -56,19 +60,19 @@ function nanoid(id: boolean): readonly RemovedFieldPreset[] {
   });
 }
 
-/** The SQL family's removed field presets: each row applies only where its rewrite's type stores the preset's codec, and a row with no codec id writes a type alias only the targets with the preset contribute. An identifier preset is written with the target's top-level alias where it has one, and with the `sql.` alias elsewhere. */
+/** The SQL family's removed field presets: each row applies only where its rewrite's type stores the preset's codec, and a row with no codec id writes a type alias only the targets with the preset contribute. A generated id preset is written with the target's top-level alias where it has one, and with the `sql.` alias elsewhere. */
 export const removedSqlFieldPresets: RemovedFieldPresets = {
-  uuidString: identifier('UuidString'),
-  ulid: identifier('Ulid'),
+  uuidString: idAlias('UuidString'),
+  ulid: idAlias('Ulid'),
   nanoid: nanoid(false),
-  cuid2: identifier('Cuid2'),
-  ksuid: identifier('Ksuid'),
-  'id.uuidv4String': identifier('UuidString', '@id @onCreate(uuid())'),
-  'id.uuidv7String': identifier('UuidString', '@id @onCreate(uuid(7))'),
-  'id.ulid': identifier('Ulid', '@id @onCreate(ulid())'),
+  cuid2: idAlias('Cuid2'),
+  ksuid: idAlias('Ksuid'),
+  'id.uuidv4String': idAlias('UuidString', '@id @onCreate(uuid())'),
+  'id.uuidv7String': idAlias('UuidString', '@id @onCreate(uuid(7))'),
+  'id.ulid': idAlias('Ulid', '@id @onCreate(ulid())'),
   'id.nanoid': nanoid(true),
-  'id.cuid2': identifier('Cuid2', '@id @onCreate(cuid(2))'),
-  'id.ksuid': identifier('Ksuid', '@id @onCreate(ksuid())'),
+  'id.cuid2': idAlias('Cuid2', '@id @onCreate(cuid(2))'),
+  'id.ksuid': idAlias('Ksuid', '@id @onCreate(ksuid())'),
   text: removedPresetWrittenAs('String', 'pg/text@1'),
   int: removedPresetWrittenAs('Int', 'pg/int4@1'),
   bigint: removedPresetWrittenAs('BigInt', 'pg/int8@1'),

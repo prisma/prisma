@@ -160,6 +160,8 @@ export interface UnresolvedTypeReference {
   readonly field: FieldSymbol;
   readonly owner: FieldOwner;
   readonly written: string;
+  /** Whether a declaration of the schema, rather than a contributed type, takes the name `name` where the field is written. */
+  readonly declared: (name: string) => boolean;
 }
 
 export type DescribeUnresolvedType = (unresolved: UnresolvedTypeReference) => string | undefined;
@@ -443,8 +445,14 @@ function bind(options: BindingInputs): BinderResult {
       const node = typeReferenceNode(field);
       if (node === undefined) continue;
       const name = field.node.typeAnnotation()?.name();
-      const outcome = resolveTypeReference(name, stack.current(), references, (written) =>
-        describeUnresolvedType?.({ field, owner: entity, written }),
+      const scope = stack.current();
+      const outcome = resolveTypeReference(name, scope, references, (written) =>
+        describeUnresolvedType?.({
+          field,
+          owner: entity,
+          written,
+          declared: (declaredName) => declaredInSchema(scope, declaredName),
+        }),
       );
       if (outcome === undefined) continue;
       references.set(node, outcome.resolution);
@@ -1086,6 +1094,13 @@ function bindQualifier(
     references.set(qualifier.syntax, resolution);
   }
   return resolution;
+}
+
+function declaredInSchema(scope: Scope, name: string): boolean {
+  const found = scope.lookup(name);
+  return (
+    found !== undefined && found.kind !== 'contributedType' && found.kind !== 'contributedNamespace'
+  );
 }
 
 function resolveTypeReference(

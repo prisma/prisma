@@ -11,28 +11,30 @@ const GUIDE = 'The upgrade guide "Field presets are removed" lists every rewrite
 const typeConstructor = (codecId: string) =>
   ({ kind: 'typeConstructor', output: { codecId } }) as const;
 
-const charAlias = {
-  kind: 'typeAlias',
-  output: { type: { codecId: 'sql/char@1', typeParams: { length: 26 } } },
-} as const;
+function charAlias(length: number) {
+  return {
+    kind: 'typeAlias',
+    output: { type: { codecId: 'sql/char@1', typeParams: { length } } },
+  } as const;
+}
 
-const identifierAliases = {
-  UuidString: charAlias,
-  Ulid: charAlias,
-  Nanoid: charAlias,
-  Cuid2: charAlias,
-  Ksuid: charAlias,
+const generatedIdAliases = {
+  UuidString: charAlias(36),
+  Ulid: charAlias(26),
+  Nanoid: charAlias(21),
+  Cuid2: charAlias(24),
+  Ksuid: charAlias(27),
 } as const;
 
 const postgresLike = {
   String: typeConstructor('pg/text@1'),
   Char: typeConstructor('sql/char@1'),
-  ...identifierAliases,
+  ...generatedIdAliases,
   Jsonb: typeConstructor('pg/jsonb@1'),
   Uuid: typeConstructor('pg/uuid@1'),
   Time: typeConstructor('pg/time-temporal@1'),
   DateTime: typeConstructor('pg/timestamptz-temporal@1'),
-  sql: { Char: typeConstructor('sql/char@1'), ...identifierAliases },
+  sql: { Char: typeConstructor('sql/char@1'), ...generatedIdAliases },
   temporal: {
     UpdatedAt: {
       kind: 'typeAlias',
@@ -45,7 +47,7 @@ const sqliteLike = {
   String: typeConstructor('sqlite/text@1'),
   Json: typeConstructor('sqlite/json@1'),
   DateTime: typeConstructor('sqlite/datetime@1'),
-  sql: { Char: typeConstructor('sql/char@1'), ...identifierAliases },
+  sql: { Char: typeConstructor('sql/char@1'), ...generatedIdAliases },
 } as const;
 
 function readPath(root: object, path: string): unknown {

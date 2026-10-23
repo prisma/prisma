@@ -25,7 +25,7 @@ function charAlias(length: number) {
   } as const;
 }
 
-const identifierAliases = {
+const generatedIdAliases = {
   UuidString: charAlias(36),
   Ulid: charAlias(26),
   Nanoid: charAlias(21),
@@ -33,7 +33,7 @@ const identifierAliases = {
   Ksuid: charAlias(27),
 } as const;
 
-const sqlChar = { Char: char, ...identifierAliases } as const;
+const sqlChar = { Char: char, ...generatedIdAliases } as const;
 
 function precisionType(codecId: string) {
   return {
@@ -53,7 +53,7 @@ function temporalAliases(codecId: string) {
 const postgresTypes: AuthoringTypeNamespace = {
   ...postgresScalarAuthoringTypes,
   Char: char,
-  ...identifierAliases,
+  ...generatedIdAliases,
   DateString: { kind: 'typeConstructor', output: { codecId: 'pg/date-string@1' } },
   TimestampString: precisionType('pg/timestamp-string@1'),
   TimestamptzString: precisionType('pg/timestamptz-string@1'),
@@ -224,6 +224,16 @@ describe('a removed field preset in a SQL schema', () => {
           'Write Nanoid @id @onCreate(nanoid()), or Char(n) @id @onCreate(nanoid(n)) for a size of n.',
         ),
       );
+    });
+
+    it('names the sql. alias where the schema declares a model of the top-level name', () => {
+      const result = interpretSqlContract(
+        'model Ulid {\n  id Int @id\n}\n\nmodel Event {\n  id    Int @id\n  value id.ulid()\n}\n',
+        postgresInput,
+      );
+      expect(
+        result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+      ).toEqual(removed('id.ulid()', 'Write sql.Ulid @id @onCreate(ulid()).'));
     });
 
     it('keeps the binder message for a preset written without a call', () => {

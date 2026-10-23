@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { ContributedTypeNamespace } from '../src/contributed-type-scope';
 import { parse } from '../src/parse';
 import {
   describeRemovedFieldPreset,
@@ -26,39 +27,56 @@ const presets = {
   'ns.stamp': removedPresetWithPhases('Stamp', 'test/stamp@1', true),
   plain: removedPresetWrittenAs('Stamp @id', 'test/stamp@1'),
   either: [
-    removedPresetWrittenAs('Stamp', 'test/stamp@1'),
-    removedPresetWrittenAs('ns.Stamp', 'test/stamp@1'),
+    ...removedPresetWrittenAs('Stamp', 'test/stamp@1'),
+    ...removedPresetWrittenAs('ns.Stamp', 'test/stamp@1'),
   ],
 };
 
+function describeCall(
+  call: ResolvedTypeConstructorCall,
+  types: ContributedTypeNamespace,
+  declared: (name: string) => boolean = () => false,
+) {
+  return describeRemovedFieldPreset(presets, call, types, declared);
+}
+
 describe('describeRemovedFieldPreset', () => {
   it('names the call and its rewrite', () => {
-    expect(
-      describeRemovedFieldPreset(presets, callOf('ns.stamp(3, onUpdate: now)'), { Stamp: stamp }),
-    ).toBe(
+    expect(describeCall(callOf('ns.stamp(3, onUpdate: now)'), { Stamp: stamp })).toBe(
       'ns.stamp(3, onUpdate: now) was a field preset, and Prisma 8 removed field presets. Write Stamp(3) @onUpdate(now()).',
     );
-    expect(describeRemovedFieldPreset(presets, callOf('plain()'), { Stamp: stamp })).toBe(
+    expect(describeCall(callOf('plain()'), { Stamp: stamp })).toBe(
       'plain() was a field preset, and Prisma 8 removed field presets. Write Stamp @id.',
     );
   });
 
   it('names the rewrite of the first row that applies to the stack', () => {
     expect(
-      describeRemovedFieldPreset(presets, callOf('either()'), {
+      describeCall(callOf('either()'), {
         Stamp: stamp,
         ns: { Stamp: stamp },
       }),
     ).toBe('either() was a field preset, and Prisma 8 removed field presets. Write Stamp.');
-    expect(describeRemovedFieldPreset(presets, callOf('either()'), { ns: { Stamp: stamp } })).toBe(
+    expect(describeCall(callOf('either()'), { ns: { Stamp: stamp } })).toBe(
       'either() was a field preset, and Prisma 8 removed field presets. Write ns.Stamp.',
     );
   });
 
-  it('falls back to the phases sentence when the arguments do not bind', () => {
+  it('skips a row whose type the schema declares a name for, which would bind the rewrite to it', () => {
     expect(
-      describeRemovedFieldPreset(presets, callOf('ns.stamp(onUpdate: later)'), { Stamp: stamp }),
-    ).toBe(
+      describeCall(
+        callOf('either()'),
+        { Stamp: stamp, ns: { Stamp: stamp } },
+        (name) => name === 'Stamp',
+      ),
+    ).toBe('either() was a field preset, and Prisma 8 removed field presets. Write ns.Stamp.');
+    expect(
+      describeCall(callOf('either()'), { Stamp: stamp, ns: { Stamp: stamp } }, () => true),
+    ).toBeUndefined();
+  });
+
+  it('falls back to the phases sentence when the arguments do not bind', () => {
+    expect(describeCall(callOf('ns.stamp(onUpdate: later)'), { Stamp: stamp })).toBe(
       'ns.stamp(onUpdate: later) was a field preset, and Prisma 8 removed field presets. Write Stamp(...) with @onCreate(now()) and @onUpdate(now()) for the phases the preset set.',
     );
   });
@@ -74,6 +92,6 @@ describe('describeRemovedFieldPreset', () => {
     ['the call names no removed preset', 'other()', { Stamp: stamp }],
     ['the call names an inherited property', 'constructor()', { Stamp: stamp }],
   ] as const)('names nothing when %s', (_, type, types) => {
-    expect(describeRemovedFieldPreset(presets, callOf(type), types)).toBeUndefined();
+    expect(describeCall(callOf(type), types)).toBeUndefined();
   });
 });
