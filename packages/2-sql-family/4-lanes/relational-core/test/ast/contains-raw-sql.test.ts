@@ -97,4 +97,41 @@ describe('containsRawSql', () => {
       deleteWhere: true,
     });
   });
+
+  it('finds raw SQL, and the params inside it, in every child of an insert, an update and a delete', () => {
+    const marked = param('inside raw');
+    const rawWithParam = () =>
+      new RawExpr({
+        parts: ['lower(', marked, ')'],
+        returns: { codecId: 'pg/text@1', nullable: false },
+      });
+    const returning = [ProjectionItem.of('r', rawWithParam())];
+    const writes: Record<string, AnyQueryAst> = {
+      insertRow: InsertAst.into(table('user')).withRows([{ id: rawWithParam() }]),
+      insertConflictSet: InsertAst.into(table('user'))
+        .withRows([{ id: param(1) }])
+        .withOnConflict(InsertOnConflict.on([id]).doUpdateSet({ id: rawWithParam() })),
+      insertReturning: InsertAst.into(table('user'))
+        .withRows([{ id: param(1) }])
+        .withReturning(returning),
+      updateSet: UpdateAst.table(table('user')).withSet({ id: rawWithParam() }),
+      updateWhere: UpdateAst.table(table('user'))
+        .withSet({ id: param(1) })
+        .withWhere(BinaryExpr.eq(id, rawWithParam())),
+      updateReturning: UpdateAst.table(table('user'))
+        .withSet({ id: param(1) })
+        .withReturning(returning),
+      deleteWhere: DeleteAst.from(table('user')).withWhere(BinaryExpr.eq(id, rawWithParam())),
+      deleteReturning: DeleteAst.from(table('user')).withReturning(returning),
+    };
+    const found = Object.fromEntries(
+      Object.entries(writes).map(([name, ast]) => [
+        name,
+        { raw: ast.containsRawSql(), param: ast.collectParamRefs().includes(marked) },
+      ]),
+    );
+    expect(found).toEqual(
+      Object.fromEntries(Object.keys(writes).map((name) => [name, { raw: true, param: true }])),
+    );
+  });
 });

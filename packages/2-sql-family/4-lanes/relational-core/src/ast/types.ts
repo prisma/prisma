@@ -239,6 +239,10 @@ function collectParamRefsWith<TNode extends Expression>(node: TNode): AnyParamRe
   });
 }
 
+function returningExprs(returning: ReadonlyArray<ProjectionItem> | undefined): AnyExpression[] {
+  return (returning ?? []).map((item) => item.expr);
+}
+
 function rewriteTableSource(table: TableSource, rewriter: AstRewriter): TableSource {
   return rewriter.tableSource ? rewriter.tableSource(table) : table;
 }
@@ -2034,40 +2038,22 @@ export class InsertAst extends QueryAst {
   }
 
   override collectParamRefs(): AnyParamRef[] {
-    const refs: AnyParamRef[] = [];
-    for (const row of this.rows) {
-      for (const value of Object.values(row)) {
-        if (value.kind === 'param-ref' || value.kind === 'prepared-param-ref') {
-          refs.push(value);
-        } else if (value.kind === 'raw-expr') {
-          refs.push(...value.collectParamRefs());
-        }
-      }
-    }
-    if (this.onConflict?.action.kind === 'do-update-set') {
-      for (const value of Object.values(this.onConflict.action.set)) {
-        refs.push(...value.collectParamRefs());
-      }
-    }
-    for (const item of this.returning ?? []) {
-      if (item.expr.kind !== 'literal') {
-        refs.push(...item.expr.collectParamRefs());
-      }
-    }
-    return refs;
+    return this.#children().flatMap((child) => child.collectParamRefs());
   }
 
   override containsRawSql(): boolean {
-    const rowValues = this.rows.flatMap((row) => Object.values(row));
+    return this.#children().some((child) => child.containsRawSql());
+  }
+
+  #children(): AnyExpression[] {
+    const rowValues = this.rows
+      .flatMap((row) => Object.values(row))
+      .filter((value) => value.kind !== 'default-value');
     const conflictSet =
       this.onConflict?.action.kind === 'do-update-set'
         ? Object.values(this.onConflict.action.set)
         : [];
-    return (
-      rowValues.some((value) => value.kind === 'raw-expr') ||
-      conflictSet.some((value) => value.containsRawSql()) ||
-      (this.returning ?? []).some((item) => item.expr.containsRawSql())
-    );
+    return [...rowValues, ...conflictSet, ...returningExprs(this.returning)];
   }
 
   override toQueryAst(): AnyQueryAst {
@@ -2122,27 +2108,19 @@ export class UpdateAst extends QueryAst {
   }
 
   override collectParamRefs(): AnyParamRef[] {
-    const refs: AnyParamRef[] = [];
-    for (const value of Object.values(this.set)) {
-      refs.push(...value.collectParamRefs());
-    }
-    if (this.where) {
-      refs.push(...this.where.collectParamRefs());
-    }
-    for (const item of this.returning ?? []) {
-      if (item.expr.kind !== 'literal') {
-        refs.push(...item.expr.collectParamRefs());
-      }
-    }
-    return refs;
+    return this.#children().flatMap((child) => child.collectParamRefs());
   }
 
   override containsRawSql(): boolean {
-    return (
-      Object.values(this.set).some((value) => value.containsRawSql()) ||
-      this.where?.containsRawSql() === true ||
-      (this.returning ?? []).some((item) => item.expr.containsRawSql())
-    );
+    return this.#children().some((child) => child.containsRawSql());
+  }
+
+  #children(): AnyExpression[] {
+    return [
+      ...Object.values(this.set),
+      ...(this.where ? [this.where] : []),
+      ...returningExprs(this.returning),
+    ];
   }
 
   override toQueryAst(): AnyQueryAst {
@@ -2189,23 +2167,15 @@ export class DeleteAst extends QueryAst {
   }
 
   override collectParamRefs(): AnyParamRef[] {
-    const refs: AnyParamRef[] = [];
-    if (this.where) {
-      refs.push(...this.where.collectParamRefs());
-    }
-    for (const item of this.returning ?? []) {
-      if (item.expr.kind !== 'literal') {
-        refs.push(...item.expr.collectParamRefs());
-      }
-    }
-    return refs;
+    return this.#children().flatMap((child) => child.collectParamRefs());
   }
 
   override containsRawSql(): boolean {
-    return (
-      this.where?.containsRawSql() === true ||
-      (this.returning ?? []).some((item) => item.expr.containsRawSql())
-    );
+    return this.#children().some((child) => child.containsRawSql());
+  }
+
+  #children(): AnyExpression[] {
+    return [...(this.where ? [this.where] : []), ...returningExprs(this.returning)];
   }
 
   override toQueryAst(): AnyQueryAst {
