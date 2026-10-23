@@ -158,9 +158,9 @@ describe('errorRefSetHashNotInGraph', () => {
 });
 
 describe('errorPlanOriginUnknown', () => {
-  it('names any database the db ref may point at, not only a development one', () => {
+  it('offers db update only for a database whose migration history does not need to be kept', () => {
     expect(errorPlanOriginUnknown([]).fix?.split('\n')[0]).toBe(
-      'Set the `db` ref to the contract your database is at (`{bin} migration ref set db <contract>`), or advance it via `{bin} db update`.',
+      'Set the `db` ref to the contract your database is at (`{bin} migration ref set db <contract>`), or, on a database whose migration history does not need to be kept, advance it via `{bin} db update`.',
     );
   });
 });
