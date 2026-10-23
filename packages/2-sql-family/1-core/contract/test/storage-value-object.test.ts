@@ -119,6 +119,21 @@ describe('the storage valueObject slot schema', () => {
     ).not.toBeInstanceOf(type.errors);
   });
 
+  it.each([
+    [
+      'a union',
+      {
+        nullable: false,
+        type: { kind: 'union', members: [text.type, valueObjectType('Address')] },
+      },
+    ],
+    ['a dictionary', { ...text, dict: true }],
+  ])('refuses a member that is %s', (_case, member) => {
+    expect(validate({ Address: address, Shape: { fields: { either: member } } })).toBeInstanceOf(
+      type.errors,
+    );
+  });
+
   it('refuses a member key it does not know', () => {
     expect(validate({ Address: { fields: { city: { ...text, column: 'city' } } } })).toBeInstanceOf(
       type.errors,
@@ -180,6 +195,17 @@ describe('validateSqlContractFully with a value object in storage', () => {
     expect(() => validateSqlContractFully(contract)).not.toThrow();
   });
 
+  it('refuses a domain field whose type is a union inside a union, as the framework field type schema does', () => {
+    expect(() =>
+      validateSqlContractFully(
+        contractWith({
+          kind: 'union',
+          members: [text.type, { kind: 'union', members: [text.type] }],
+        }),
+      ),
+    ).toThrow(/Contract structural validation failed/);
+  });
+
   it('refuses a field type that names its value object the old way', () => {
     expect(() =>
       validateSqlContractFully(contractWith({ kind: 'valueObject', name: 'Address' })),
@@ -202,7 +228,9 @@ describe('validateSqlContractFully with a value object in storage', () => {
       Shape: { fields: { either: member } },
     });
     expect(() => validateSqlContractFully(contract)).toThrow(
-      `value object member "either" is a ${kind}; SQL value objects hold no unions or dictionaries`,
+      expect.objectContaining({
+        message: `Contract structural validation failed: value object "__unbound__:Shape" member "either" is a ${kind}; SQL value objects hold no unions or dictionaries, since their check cannot enforce them`,
+      }),
     );
   });
 

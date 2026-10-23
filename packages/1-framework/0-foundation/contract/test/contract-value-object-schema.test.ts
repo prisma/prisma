@@ -1,6 +1,9 @@
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { StorageValueObjectSchema } from '../src/storage-value-object-schema';
+import {
+  ContractFieldTypeSchema,
+  ContractValueObjectSchema,
+} from '../src/contract-value-object-schema';
 
 const text = { type: { kind: 'scalar', codecId: 'pg/text@1' }, nullable: false };
 const addressReference = {
@@ -11,7 +14,7 @@ const addressReference = {
   entityName: 'Address',
 };
 
-describe('StorageValueObjectSchema', () => {
+describe('ContractValueObjectSchema', () => {
   it('accepts scalar, value object and union members, lists, dictionaries and value sets', () => {
     const valueObject = {
       fields: {
@@ -33,7 +36,7 @@ describe('StorageValueObjectSchema', () => {
         },
       },
     };
-    expect(StorageValueObjectSchema(valueObject)).toEqual(valueObject);
+    expect(ContractValueObjectSchema(valueObject)).toEqual(valueObject);
   });
 
   it.each([
@@ -59,6 +62,24 @@ describe('StorageValueObjectSchema', () => {
       },
     ],
   ])('refuses %s', (_case, fields) => {
-    expect(StorageValueObjectSchema({ fields })).toBeInstanceOf(type.errors);
+    expect(ContractValueObjectSchema({ fields })).toBeInstanceOf(type.errors);
+  });
+});
+
+describe('ContractFieldTypeSchema', () => {
+  it('accepts a scalar, a value object reference and a union of those', () => {
+    const union = { kind: 'union', members: [text.type, addressReference] };
+    expect(
+      [text.type, addressReference, union].map((fieldType) => ContractFieldTypeSchema(fieldType)),
+    ).toEqual([text.type, addressReference, union]);
+  });
+
+  it('refuses a union inside a union', () => {
+    expect(
+      ContractFieldTypeSchema({
+        kind: 'union',
+        members: [text.type, { kind: 'union', members: [text.type] }],
+      }),
+    ).toBeInstanceOf(type.errors);
   });
 });

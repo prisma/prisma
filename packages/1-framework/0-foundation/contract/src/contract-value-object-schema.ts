@@ -22,6 +22,13 @@ const UnionFieldTypeSchema = type({
   members: ScalarFieldTypeSchema.or(ValueObjectReferenceSchema).array(),
 });
 
+/**
+ * The type of a domain field or of a value object's member, `ContractFieldType`: a scalar with its codec, a value object by its storage coordinate, or a union of those. A union holds no union.
+ */
+export const ContractFieldTypeSchema = ScalarFieldTypeSchema.or(ValueObjectReferenceSchema).or(
+  UnionFieldTypeSchema,
+);
+
 const StorageValueSetReferenceSchema = type({
   '+': 'reject',
   plane: "'storage'",
@@ -31,19 +38,20 @@ const StorageValueSetReferenceSchema = type({
   'spaceId?': 'string',
 });
 
-const StorageValueObjectFieldSchema = type({
+/** A value object's member, `ContractValueObjectField`. */
+export const ContractValueObjectFieldSchema = type({
   '+': 'reject',
   nullable: 'boolean',
-  type: ScalarFieldTypeSchema.or(ValueObjectReferenceSchema).or(UnionFieldTypeSchema),
+  type: ContractFieldTypeSchema,
   'many?': type('false').or({ '+': 'reject', elementNullable: 'boolean' }),
   'dict?': 'true',
   'valueSet?': StorageValueSetReferenceSchema,
 });
 
 /**
- * A value object, the storage entity under `storage.namespaces.<ns>.entries.valueObject.<name>` (ADR 309). The framework defines this entity kind, since domain fields refer to it; both families validate their entries against this schema.
+ * A value object, `ContractValueObject`: the storage entity under `storage.namespaces.<ns>.entries.valueObject.<name>` (ADR 309). The framework defines this entity kind, since domain fields refer to it; both families validate their entries against this schema.
  */
-export const StorageValueObjectSchema = type({
+export const ContractValueObjectSchema = type({
   '+': 'reject',
-  fields: type({ '[string]': StorageValueObjectFieldSchema }),
+  fields: type({ '[string]': ContractValueObjectFieldSchema }),
 });

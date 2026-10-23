@@ -2,6 +2,7 @@ import { ContractValidationError } from '@internal/contract/contract-validation-
 import {
   type Contract,
   ContractExecutionSectionSchema,
+  ContractFieldTypeSchema,
   type ContractModel,
   CrossReferenceSchema,
 } from '@internal/contract/types';
@@ -28,7 +29,6 @@ import { type Type, type } from 'arktype';
 import { contractError } from './contract-errors';
 import { composeSqlEntityKinds } from './entity-kinds';
 import { sameColumns, startsWithColumns } from './index-equivalence';
-import { ContractFieldTypeSchema } from './ir/storage-entry-schemas';
 import { resolveSqlToOneRelationStorage } from './relation-storage';
 import { sameSqlColumnType } from './sql-data-type';
 
@@ -288,6 +288,36 @@ function removedKeyProblems(storage: unknown): readonly string[] {
     if (found.length > 0) return found;
   }
   return [];
+}
+
+/**
+ * A SQL value object member that is a union or a dictionary, named by its value object and member. The storage schema refuses it too, but at the path of its namespace, so this names it first.
+ */
+function unenforceableValueObjectMemberProblems(storage: unknown): readonly string[] {
+  return entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
+    entriesOf(fieldOf(fieldOf(namespace, 'entries'), 'valueObject')).flatMap(
+      ([valueObjectName, valueObject]) =>
+        entriesOf(fieldOf(valueObject, 'fields')).flatMap(([memberName, member]) => {
+          const kind =
+            fieldOf(fieldOf(member, 'type'), 'kind') === 'union'
+              ? 'union'
+              : fieldOf(member, 'dict') === true
+                ? 'dictionary'
+                : undefined;
+          return kind === undefined
+            ? []
+            : [
+                `value object "${namespaceId}:${valueObjectName}" member "${memberName}" is a ${kind}; SQL value objects hold no unions or dictionaries, since their check cannot enforce them`,
+              ];
+        }),
+    ),
+  );
+}
+
+/** The problems a stored contract has before its structure is validated: removed keys first, then value object members SQL cannot enforce. */
+function preStructuralStorageProblems(storage: unknown): readonly string[] {
+  const removedKeys = removedKeyProblems(storage);
+  return removedKeys.length > 0 ? removedKeys : unenforceableValueObjectMemberProblems(storage);
 }
 
 type NamespacedStorageWalk = {
@@ -554,11 +584,11 @@ const SqlContractSchema = createSqlContractSchema(DEFAULT_SQL_KINDS);
  * @throws Error if the storage structure is invalid
  */
 export function validateStorage(value: unknown): void {
-  const removedKeys = removedKeyProblems(value);
+  const preStructuralProblems = preStructuralStorageProblems(value);
   const result = StorageSchema(value);
   const errors =
-    removedKeys.length > 0
-      ? [...removedKeys]
+    preStructuralProblems.length > 0
+      ? [...preStructuralProblems]
       : result instanceof type.errors
         ? result.map((p: { message: string }) => p.message)
         : [];
@@ -610,13 +640,13 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
     throw new ContractValidationError(`Unsupported target family: ${targetFamily}`, 'structural');
   }
 
-  const removedKeys = [
+  const preStructuralProblems = [
     ...removedDomainKeyProblems(value),
-    ...removedKeyProblems(fieldOf(value, 'storage')),
+    ...preStructuralStorageProblems(fieldOf(value, 'storage')),
   ];
-  if (removedKeys.length > 0) {
+  if (preStructuralProblems.length > 0) {
     throw new ContractValidationError(
-      `Contract structural validation failed: ${removedKeys.join('; ')}`,
+      `Contract structural validation failed: ${preStructuralProblems.join('; ')}`,
       'structural',
     );
   }

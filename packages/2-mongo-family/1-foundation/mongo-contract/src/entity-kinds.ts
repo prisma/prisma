@@ -1,4 +1,4 @@
-import { StorageValueObjectSchema } from '@internal/contract/types';
+import { ContractValueObjectSchema } from '@internal/contract/types';
 import type {
   AnyEntityKindDescriptor,
   EntityKindDescriptor,
@@ -24,7 +24,7 @@ export const valueSetEntityKind: EntityKindDescriptor<MongoValueSetInput, MongoV
 export const valueObjectEntityKind: EntityKindDescriptor<MongoValueObjectInput, MongoValueObject> =
   {
     kind: 'valueObject',
-    schema: StorageValueObjectSchema,
+    schema: ContractValueObjectSchema,
     construct: (input) => new MongoValueObject(input),
   };
 

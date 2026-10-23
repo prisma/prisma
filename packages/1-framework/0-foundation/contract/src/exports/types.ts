@@ -4,6 +4,11 @@ export type {
   ContractValueObjectAt,
   ContractValueObjectDefinitions,
 } from '../contract-types';
+export {
+  ContractFieldTypeSchema,
+  ContractValueObjectFieldSchema,
+  ContractValueObjectSchema,
+} from '../contract-value-object-schema';
 export type { ControlPolicy } from '../control-policy';
 export { effectiveControlPolicy, governingControlPolicy } from '../control-policy';
 export type { CrossReference } from '../cross-reference';
@@ -58,7 +63,6 @@ export type {
   ParameterizedOutputTypesFunction,
 } from '../parameterized-output-types';
 export { type ResolvedDomainModel, resolveDomainModel } from '../resolve-domain-model';
-export { StorageValueObjectSchema } from '../storage-value-object-schema';
 export { valueObjectAt, valueObjectsWithCoordinates } from '../storage-value-objects';
 export type {
   $,
