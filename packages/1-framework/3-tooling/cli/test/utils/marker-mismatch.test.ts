@@ -311,6 +311,27 @@ describe('errorMarkerMismatch', () => {
     });
   });
 
+  it('asks for one migration ending at the target when the database is already there', () => {
+    const envelope = mismatch([applied('20261001T0000_initial', null, HASH_A)], {
+      targetHash: HASH_DELETED,
+    });
+    const authorOne = `The database is already at the target, but no migration ends there: author a migration from ${HASH_A} to ${HASH_DELETED}, commit it, and deploy again.`;
+
+    expect({ fix: envelope.fix, nextActions: envelope.nextActions }).toEqual({
+      fix: authorOne,
+      nextActions: [{ kind: 'user-choice', label: authorOne }],
+    });
+  });
+
+  it('starts the authored migrations from the empty contract when the space has no migrations', () => {
+    const envelope = mismatch([], { graph: buildGraph([]) });
+
+    expect(envelope.nextActions.at(-1)).toEqual({
+      kind: 'user-choice',
+      label: migrationsOnly('the empty contract'),
+    });
+  });
+
   it('sends an extension space to the extension package, not to db update or authored migrations', () => {
     const ledger = [
       { ...applied('20260101T0000_ext_initial', null, HASH_A), space: 'pgvector' },

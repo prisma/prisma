@@ -154,7 +154,16 @@ function applicationAdvice(
   owner: SpaceOwner & { readonly kind: 'application' },
   history: LedgerAfterGraph | undefined,
 ): Advice {
-  const migrationsOnly = `If this database changes only through migrations, as production should: author a migration from ${history?.lastGraphHash ?? 'the nearest contract in the migration graph'} to the database's current contract, then one from there to ${found.targetHash}, commit them, and deploy again.`;
+  const from =
+    history?.lastGraphHash ??
+    (found.graph.nodes.size === 0
+      ? 'the empty contract'
+      : 'the nearest contract in the migration graph');
+  if (found.markerHash === found.targetHash) {
+    const authorOne = `The database is already at the target, but no migration ends there: author a migration from ${from} to ${found.targetHash}, commit it, and deploy again.`;
+    return { fix: authorOne, nextActions: [chooseAction(authorOne)] };
+  }
+  const migrationsOnly = `If this database changes only through migrations, as production should: author a migration from ${from} to the database's current contract, then one from there to ${found.targetHash}, commit them, and deploy again.`;
   const toTarget = reconcileArgs(found, owner);
   if (toTarget === undefined) {
     return { fix: migrationsOnly, nextActions: [chooseAction(migrationsOnly)] };

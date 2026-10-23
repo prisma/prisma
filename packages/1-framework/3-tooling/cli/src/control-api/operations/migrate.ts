@@ -412,7 +412,6 @@ export function planSpacePath({
 
   if (
     liveMarker !== null &&
-    liveMarker.storageHash !== targetHash &&
     !extensionShipsNoMigrations &&
     !isGraphNode(liveMarker.storageHash, graph)
   ) {
@@ -510,9 +509,9 @@ export function planSpacePath({
 }
 
 /**
- * A space whose marker names a contract that is not a node of its migration graph, while the
- * database has to move. An extension space that ships no migrations is never one: its marker
- * advances to the extension's head without DDL.
+ * A space whose marker names a contract that is not a node of its migration graph, even when that
+ * contract is the target: no migration records how the database got there. An extension space
+ * that ships no migrations is never one: its marker advances to the extension's head without DDL.
  */
 export interface MarkerOutsideGraphOutcome {
   readonly kind: 'marker-outside-graph';

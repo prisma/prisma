@@ -188,7 +188,7 @@ describe('executeMigrate with no path to the target', () => {
     await mkdir(join(projectDir, 'migrations', 'app'), { recursive: true });
     const choice =
       "If this database's migration history does not need to be kept (a local, development, staging or preview database), reconcile it to the target:";
-    const migrationsOnly = `If this database changes only through migrations, as production should: author a migration from the nearest contract in the migration graph to the database's current contract, then one from there to ${APP_HEAD}, commit them, and deploy again.`;
+    const migrationsOnly = `If this database changes only through migrations, as production should: author a migration from the empty contract to the database's current contract, then one from there to ${APP_HEAD}, commit them, and deploy again.`;
 
     const result = await migrate({
       projectDir,

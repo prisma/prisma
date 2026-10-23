@@ -138,10 +138,13 @@ describe('planSpacePath with a marker outside the graph', () => {
     });
   });
 
-  it('plans nothing when the marker is already at the target', () => {
-    const outcome = planApp(APP_DELETED, APP_DELETED);
-
-    expect(outcome.kind === 'ok' ? outcome.plan.migrationEdges : outcome).toEqual([]);
+  it('reports a marker outside the graph even when it is the target', () => {
+    expect(planApp(APP_DELETED, APP_DELETED)).toEqual({
+      kind: 'marker-outside-graph',
+      spaceId: 'app',
+      markerHash: APP_DELETED,
+      targetHash: APP_DELETED,
+    });
   });
 
   it('plans the path when the marker is a graph node', () => {

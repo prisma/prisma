@@ -209,15 +209,29 @@ describe('a contract space whose marker is outside its migration graph', () => {
     });
   });
 
-  it('lets db migrate --to @db run when the marker is outside the graph, since the database is at the target', async () => {
+  it('refuses db migrate --to @db with a marker outside the graph, printing no db update', async () => {
     const cwd = await buildProject();
     writeProjectManifest(cwd);
     mocks.readAllMarkers.mockResolvedValue(
       new Map([['app', { storageHash: UNKNOWN, invariants: [] }]]),
     );
 
-    await harness(ormConfig(cwd)).run(['db', 'migrate', '--to', '@db', '--json'], { cwd });
+    const run = await harness(ormConfig(cwd)).run(['db', 'migrate', '--to', '@db', '--json'], {
+      cwd,
+    });
 
-    expect(mocks.migrate).toHaveBeenCalledOnce();
+    expect(mocks.migrate).not.toHaveBeenCalled();
+    expect(errorOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.MARKER_MISMATCH',
+        nextActions: [
+          {
+            kind: 'user-choice',
+            label: `The database is already at the target, but no migration ends there: author a migration from the nearest contract in the migration graph to ${UNKNOWN}, commit it, and deploy again.`,
+          },
+        ],
+        meta: { spaceId: 'app', markerHash: UNKNOWN, targetHash: UNKNOWN },
+      },
+    });
   });
 });
