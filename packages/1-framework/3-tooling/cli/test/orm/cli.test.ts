@@ -194,7 +194,7 @@ describe('a retired invocation', () => {
     },
     {
       verb: 'reset',
-      why: "Prisma 8 has no reset: `db update` moves the database to the contract and keeps its data, on a database whose migration history does not need to be kept; a database that changes only through migrations is moved with `db migrate`; while Prisma 7 still owns this project's migrations, run `migrate reset` with Prisma 7's CLI instead.",
+      why: "Prisma 8 has no reset: `db update` moves the database to the contract without a reset and asks before losing data, on a database whose migration history does not need to be kept; a database that changes only through migrations is moved with `db migrate`; while Prisma 7 still owns this project's migrations, run `migrate reset` with Prisma 7's CLI instead.",
       command: 'prisma-test db update',
     },
     {

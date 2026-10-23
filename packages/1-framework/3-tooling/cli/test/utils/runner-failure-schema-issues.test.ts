@@ -193,7 +193,7 @@ describe('a failed schema check after apply', () => {
       const error = dbInitError(withoutIssues);
       expect({ why: error.why, fix: error.fix }).toEqual({
         why: RUNNER_WHY,
-        fix: 'Fix the schema mismatch (db init is additive-only), or bring the database to the contract with `{bin} db update`, which keeps its data.',
+        fix: 'Fix the schema mismatch (db init is additive-only), or bring the database to the contract with `{bin} db update`, which moves the database without a reset and asks before losing data.',
       });
     });
   });

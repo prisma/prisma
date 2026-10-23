@@ -121,7 +121,7 @@ const redirects: readonly RedirectSpec[] = [
     from: 'migrate reset',
     replacement: '{bin} db update',
     reason:
-      "Prisma 8 has no reset: `db update` moves the database to the contract and keeps its data, on a database whose migration history does not need to be kept; a database that changes only through migrations is moved with `db migrate`; while Prisma 7 still owns this project's migrations, run `migrate reset` with Prisma 7's CLI instead.",
+      "Prisma 8 has no reset: `db update` moves the database to the contract without a reset and asks before losing data, on a database whose migration history does not need to be kept; a database that changes only through migrations is moved with `db migrate`; while Prisma 7 still owns this project's migrations, run `migrate reset` with Prisma 7's CLI instead.",
   },
   {
     from: 'migrate resolve',
