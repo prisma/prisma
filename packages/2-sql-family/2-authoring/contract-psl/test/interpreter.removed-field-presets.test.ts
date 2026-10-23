@@ -226,6 +226,20 @@ describe('a removed field preset in a SQL schema', () => {
       );
     });
 
+    it('refuses preset keys and foreign keys of related models, with no relation error', () => {
+      const result = interpretSqlContract(
+        'model User {\n  id    id.ulid()\n  posts Post[]\n}\n\nmodel Post {\n  id       id.ulid()\n  authorId ulid()\n  author   User @relation(fields: [authorId], references: [id])\n}\n',
+        postgresInput,
+      );
+      expect(
+        result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+      ).toEqual([
+        ...removed('id.ulid()', 'Write Ulid @id @onCreate(ulid()).'),
+        ...removed('id.ulid()', 'Write Ulid @id @onCreate(ulid()).'),
+        ...removed('ulid()', 'Write Ulid.'),
+      ]);
+    });
+
     it('names the sql. alias where the schema declares a model of the top-level name', () => {
       const result = interpretSqlContract(
         'model Ulid {\n  id Int @id\n}\n\nmodel Event {\n  id    Int @id\n  value id.ulid()\n}\n',
@@ -278,6 +292,17 @@ describe('a removed field preset in a SQL schema', () => {
       ],
     ])('refuses %s with its rewrite', (call, rewrite) => {
       expect(diagnosticsOf(call, sqliteInput)).toEqual(removed(call, rewrite));
+    });
+
+    it.each([
+      ['Ulid', 'Cannot find type "Ulid". Did you mean sql.Ulid?'],
+      ['Ulid?', 'Cannot find type "Ulid". Did you mean sql.Ulid?'],
+      ['Nope', 'Cannot find type "Nope"'],
+      ['sql.Nope', 'Cannot find type "sql.Nope"'],
+    ])('names the namespaced type of the same name for %s', (field, message) => {
+      expect(diagnosticsOf(field, sqliteInput)).toEqual([
+        { code: 'PSL_UNRESOLVED_REFERENCE', message },
+      ]);
     });
 
     it.each([

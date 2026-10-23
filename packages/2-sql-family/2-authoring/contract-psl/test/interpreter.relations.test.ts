@@ -285,6 +285,49 @@ model Profile {
     );
   });
 
+  it('reports an unresolved key type, not the relation that joins on the key', () => {
+    const result = interpretSqlContract(
+      `model User {
+  id    Foo @id
+  posts Post[]
+}
+
+model Post {
+  id       Int  @id
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+}
+`,
+      { ...baseInput },
+    );
+
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
+    ).toEqual([{ code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find type "Foo"' }]);
+  });
+
+  it('still reports a relation error when every field type resolves', () => {
+    const result = interpretSqlContract(
+      `model User {
+  id    Int @id
+  posts Post[]
+}
+
+model Post {
+  id       Int  @id
+  authorId Int
+  author   User @relation(fields: [authorId], references: [missing])
+}
+`,
+      { ...baseInput },
+    );
+
+    expect(result.ok ? [] : result.failure.diagnostics.map(({ code }) => code)).toEqual([
+      'PSL_UNRESOLVED_REFERENCE',
+      'PSL_ORPHANED_BACKRELATION',
+    ]);
+  });
+
   it('still rejects a field whose type is neither a model, enum, composite, nor scalar', () => {
     const result = interpretSqlContract(
       `model User {
