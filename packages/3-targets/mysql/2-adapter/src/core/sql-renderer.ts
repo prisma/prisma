@@ -36,6 +36,7 @@ import type {
 } from '@internal/sql-relational-core/ast';
 import { collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { MysqlCodecDescriptorRegistry } from '@internal/target-mysql/codec-descriptor';
+import { mysqlBigint, mysqlInt } from '@internal/target-mysql/data-types';
 import { mysqlError, mysqlQueryNotYetSupported } from '@internal/target-mysql/errors';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-mysql/sql-utils';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
@@ -125,7 +126,12 @@ function renderLimitOffset(
   ctx: RenderContext,
 ): string {
   if (value === undefined) return '';
-  return `${keyword} ${typeof value === 'number' ? value : renderExpr(value, ctx)}`;
+  if (typeof value === 'number') return `${keyword} ${value}`;
+  const rendered =
+    value.kind === 'param-ref' || value.kind === 'prepared-param-ref'
+      ? placeholder(value, ctx)
+      : renderExpr(value, ctx);
+  return `${keyword} ${rendered}`;
 }
 
 function renderSelect(ast: SelectAst, ctx: RenderContext): string {
@@ -427,12 +433,29 @@ function descriptorOf(codec: CodecRef, ctx: RenderContext, use: string) {
   return descriptor;
 }
 
-function renderParam(ref: AnyParamRef, ctx: RenderContext): string {
+/**
+ * The `CAST` target of a param by its codec's data type. mysql2 sends a bigint as text, so where no column gives the param a type MySQL reads an integer as a string: `?1 < ?2` with 10 and 9 compares text, and `JSON_ARRAY(?1)` holds `"5"`. Casting keeps it an integer everywhere except `LIMIT` and `OFFSET`, which take only a bare placeholder and read it as an integer.
+ */
+const PARAMETER_CASTS: ReadonlyMap<string, string> = new Map([
+  [mysqlInt.id, 'SIGNED'],
+  [mysqlBigint.id, 'SIGNED'],
+]);
+
+function placeholder(ref: AnyParamRef, ctx: RenderContext): string {
   const number = ctx.placeholderNumbers.get(ref);
   if (number === undefined) {
     throw new InternalError('A param was written that the AST does not collect');
   }
   return `?${number}`;
+}
+
+function renderParam(ref: AnyParamRef, ctx: RenderContext): string {
+  const castType =
+    ref.codec === undefined
+      ? undefined
+      : PARAMETER_CASTS.get(descriptorOf(ref.codec, ctx, 'a parameter').dataType);
+  const written = placeholder(ref, ctx);
+  return castType === undefined ? written : `CAST(${written} AS ${castType})`;
 }
 
 function projectThroughCodec(

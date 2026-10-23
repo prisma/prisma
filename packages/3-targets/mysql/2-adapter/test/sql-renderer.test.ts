@@ -73,41 +73,42 @@ describe('MySQL lowering of a select', () => {
     ).toEqual([{ kind: 'bind', name: 'email' }]);
   });
 
-  it('writes a bigint param as a plain placeholder, which the driver binds as an integer', () => {
+  it('casts an integer param to SIGNED, except in LIMIT and OFFSET, so MySQL reads it as an integer where no column gives it a type', () => {
     const big = ColumnRef.of('t', 'big');
+    const bigParam = (value: bigint) =>
+      ParamRef.of(value, { codec: { codecId: 'mysql/bigint@1' } });
+    const intParam = (value: number) => ParamRef.of(value, { codec: { codecId: 'mysql/int@1' } });
     expect([
-      sqlOf(
-        selectId.withWhere(
-          BinaryExpr.eq(
-            big,
-            ParamRef.of(9007199254740993n, { codec: { codecId: 'mysql/bigint@1' } }),
-          ),
-        ),
-      ),
-      sqlOf(
-        selectId.withWhere(
-          BinaryExpr.in(
-            big,
-            ListExpression.of([ParamRef.of(1n, { codec: { codecId: 'mysql/bigint@1' } })]),
-          ),
-        ),
-      ),
+      sqlOf(selectId.withWhere(BinaryExpr.eq(big, bigParam(9007199254740993n)))),
+      sqlOf(selectId.withWhere(BinaryExpr.in(big, ListExpression.of([bigParam(1n)])))),
       sqlOf(
         selectId.withWhere(
           BinaryExpr.eq(big, PreparedParamRef.of('b', { codecId: 'mysql/bigint@1' })),
         ),
       ),
+      sqlOf(selectId.withWhere(BinaryExpr.lt(intParam(10), intParam(9)))),
+      sqlOf(selectId.withLimit(intParam(5)).withOffset(intParam(2))),
       sqlOf(
         selectId.withWhere(
-          BinaryExpr.eq(id, ParamRef.of(1, { codec: { codecId: 'mysql/int@1' } })),
+          BinaryExpr.eq(email, ParamRef.of('x', { codec: { codecId: 'mysql/text@1' } })),
         ),
       ),
     ]).toEqual([
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = ?1',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (?1)',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = ?1',
-      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`id` = ?1',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(?1 AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` IN (CAST(?1 AS SIGNED))',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `t`.`big` = CAST(?1 AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE CAST(?1 AS SIGNED) < CAST(?2 AS SIGNED)',
+      'SELECT `user`.`id` AS `id` FROM `user` LIMIT ?1 OFFSET ?2',
+      'SELECT `user`.`id` AS `id` FROM `user` WHERE `user`.`email` = ?1',
     ]);
+  });
+
+  it('refuses a param whose codec the registry lacks', () => {
+    expect(() =>
+      sqlOf(
+        selectId.withWhere(BinaryExpr.eq(id, ParamRef.of(1, { codec: { codecId: 'pg/x@1' } }))),
+      ),
+    ).toThrow(expect.objectContaining({ code: 'RUNTIME.PARAM_REF_MISSING_CODEC' }));
   });
 
   it('numbers params in the order the runtime encodes them', () => {
