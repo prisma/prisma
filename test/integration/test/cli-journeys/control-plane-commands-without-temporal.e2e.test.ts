@@ -373,7 +373,7 @@ withTempDir(({ createTempDir }) => {
             .split('\n')
             .find((line) => line.trim().startsWith('localAt'));
           expect(field?.trim().replace(/\s+/g, ' ')).toBe(
-            'localAt DateTime(column: timestamp) @default(timestamp`2024-01-01T00:00:00`)',
+            'localAt DateTime(storage: timestamp) @default(timestamp`2024-01-01T00:00:00`)',
           );
         },
         timeouts.spinUpPpgDev,

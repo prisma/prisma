@@ -126,7 +126,7 @@ describe('Postgres PSL inference round trip', () => {
     expect(inferred).toMatch(/jsonValue\s+Json/);
     expect(inferred).toMatch(/jsonbValue\s+Jsonb/);
     expect(inferred).toMatch(/occurredAt\s+DateTime\(precision: 6\)\s/);
-    expect(inferred).toMatch(/loggedAt\s+DateTime\(column: timestamp\)\s/);
+    expect(inferred).toMatch(/loggedAt\s+DateTime\(storage: timestamp\)\s/);
     expect(inferred).toMatch(/dueOn\s+Date\s/);
     expect(inferred).toMatch(/opensAt\s+Time\s/);
     expect(inferred).toMatch(/label\s+VarChar\(191\)/);

@@ -25,23 +25,20 @@ describe('contract print writes a date or time column as the convenience type it
   it.each([
     [column('pg/timestamptz', 'pg/timestamptz-date@1', 3), 'DateTime'],
     [column('pg/timestamptz', 'pg/timestamptz-date@1', 6), 'DateTime(precision: 6)'],
-    [column('pg/timestamp', 'pg/timestamp-date@1', 3), 'DateTime(column: timestamp)'],
-    [column('pg/timestamptz', 'pg/timestamptz-temporal@1'), 'DateTime(value: temporal)'],
-    [
-      column('pg/timestamptz', 'pg/timestamptz-string@1', 3),
-      'DateTime(value: string, precision: 3)',
-    ],
+    [column('pg/timestamp', 'pg/timestamp-date@1', 3), 'DateTime(storage: timestamp)'],
+    [column('pg/timestamptz', 'pg/timestamptz-temporal@1'), 'DateTime(as: temporal)'],
+    [column('pg/timestamptz', 'pg/timestamptz-string@1', 3), 'DateTime(as: string, precision: 3)'],
     [
       column('pg/timestamp', 'pg/timestamp-instant@1'),
-      'DateTime(value: temporal, column: timestamp)',
+      'DateTime(as: temporal, storage: timestamp)',
     ],
     [column('pg/date', 'pg/date-string@1'), 'Date'],
-    [column('pg/date', 'pg/date-temporal@1'), 'Date(value: temporal)'],
+    [column('pg/date', 'pg/date-temporal@1'), 'Date(as: temporal)'],
     [column('pg/time', 'pg/time-string@1', 0), 'Time(precision: 0)'],
-    [column('pg/timetz', 'pg/timetz@1'), 'Time(column: timetz)'],
-    [column('pg/timetz', 'pg/timetz@1', 3), 'Time(column: timetz, precision: 3)'],
+    [column('pg/timetz', 'pg/timetz@1'), 'Time(storage: timetz)'],
+    [column('pg/timetz', 'pg/timetz@1', 3), 'Time(storage: timetz, precision: 3)'],
     [column('pg/interval', 'pg/interval-string@1'), 'Duration'],
-    [column('pg/interval', 'pg/interval@1'), 'Duration(value: parts)'],
+    [column('pg/interval', 'pg/interval@1'), 'Duration(as: parts)'],
   ])('%j prints as %s', (shape, expected) => {
     expect(printedType(shape)).toBe(expected);
   });

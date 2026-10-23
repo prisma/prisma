@@ -99,7 +99,7 @@ function inferredConstructorCall(
  * the first one in the stack that produces them, such as `TimestamptzTemporal` or
  * `pgvector.Vector(3)`. Where a type choice call becomes that call exactly, the type choice is
  * written instead, by name with only the arguments that differ from its defaults: `DateTime` for
- * `TimestamptzJsDate(3)`, `DateTime(value: temporal)` for `TimestamptzTemporal` (ADR 279). An enum-typed column takes the
+ * `TimestamptzJsDate(3)`, `DateTime(as: temporal)` for `TimestamptzTemporal` (ADR 279). An enum-typed column takes the
  * `pg.enum(<Block>)` constructor, named after the value set the column points at; a column typed by
  * a domain enum takes that enum's name. A column no PSL type reads back is refused.
  */

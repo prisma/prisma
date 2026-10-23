@@ -71,10 +71,10 @@ describe('contract infer over date and time columns', { concurrent: false }, () 
         expect(fieldLines(inferred)).toEqual([
           'at DateTime(precision: 6)?',
           'paidAt DateTime? @map("paid_at")',
-          'legacy DateTime(column: timestamp)?',
+          'legacy DateTime(storage: timestamp)?',
           'day Date?',
           'opens Time(precision: 0)?',
-          'localAt Time(column: timetz)? @map("local_at")',
+          'localAt Time(storage: timetz)? @map("local_at")',
           'span Duration?',
           "micro DateTime(precision: 6)? @default(sql`'2024-01-01 01:00:00.123456+00'::timestamp with time zone`)",
           'milli DateTime? @default(timestamptz`2024-01-01T01:00:00.123Z`)',

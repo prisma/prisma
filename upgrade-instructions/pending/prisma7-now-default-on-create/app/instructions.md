@@ -25,7 +25,7 @@ model Post {
 }
 ```
 
-reads as the Prisma 8 PSL field `createdAt DateTime(column: timestamp) @default(now()) @onCreate(now())`: a `timestamp(3)` column read as a JavaScript `Date`. A create that supplies `createdAt` still stores the supplied value. An `INSERT` from outside Prisma still gets the column default.
+reads as the Prisma 8 PSL field `createdAt DateTime(storage: timestamp) @default(now()) @onCreate(now())`: a `timestamp(3)` column read as a JavaScript `Date`. A create that supplies `createdAt` still stores the supplied value. An `INSERT` from outside Prisma still gets the column default.
 
 For each project whose `prisma.config.ts` uses `prisma7Schema(...)`, run `prisma contract emit` again and commit the new `contract.json` and `contract.d.ts`. If the schema has a `@default(now())` field, the generator's id is in the execution section of `contract.json`, so the execution hash changes. The storage hash does not change, and the database marker holds only the storage and profile hashes, so there is no migration to plan and no need to run `prisma db sign`.
 

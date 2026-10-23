@@ -130,8 +130,8 @@ withTempDir(({ createTempDir }) => {
           'clock Time @default(time`12:34:00`)',
           'day Date @default(date`2024-01-01`)',
           'history DateTime(precision: 6)[] @default([timestamptz`2024-01-01T00:00:00Z`, timestamptz`2024-06-30T12:34:56Z`])',
-          'localAt DateTime(column: timestamp) @default(timestamp`2024-01-01T12:34:56.5`)',
-          'zoned Time(column: timetz) @default(timetz`12:34:56+02:00`)',
+          'localAt DateTime(storage: timestamp) @default(timestamp`2024-01-01T12:34:56.5`)',
+          'zoned Time(storage: timetz) @default(timetz`12:34:56+02:00`)',
         ]);
 
         const emitInferred = await runContractEmit(ctx);

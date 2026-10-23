@@ -63,7 +63,7 @@ describe('the detection of the changes the tools writing convenience types make'
         '  at DateTime(precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)\n',
       ),
       local: detects(
-        '  at DateTime(column: timestamp) @default(timestamp`2024-01-01T01:00:00.1234`)\n',
+        '  at DateTime(storage: timestamp) @default(timestamp`2024-01-01T01:00:00.1234`)\n',
       ),
       mysql: detects('  at DateTime(6) @default(datetime`2024-01-01T01:00:00.123456`)\n'),
       milli: detects('  at DateTime @default(timestamptz`2024-01-01T01:00:00.123Z`)\n'),

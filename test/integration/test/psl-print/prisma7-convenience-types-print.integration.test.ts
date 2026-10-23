@@ -62,13 +62,13 @@ describe('a Prisma 7 schema printed after prisma7Schema reads it', () => {
   it('writes each DateTime field as the convenience type its column and value become', async () => {
     const contract = await readPrisma7(PRISMA7_SCHEMA);
     expect(fieldLines(printContract(contract).text)).toMatchObject({
-      at: 'DateTime(column: timestamp)',
+      at: 'DateTime(storage: timestamp)',
       zoned: 'DateTime',
       zoned6: 'DateTime(precision: 6)',
       day: 'Date',
       clock: 'Time(precision: 0)',
-      offset: 'Time(column: timetz, precision: 3)',
-      touched: 'DateTime(column: timestamp) @onCreate(now()) @onUpdate(now())',
+      offset: 'Time(storage: timetz, precision: 3)',
+      touched: 'DateTime(storage: timestamp) @onCreate(now()) @onUpdate(now())',
     });
     const printed = await printAndReadBack(contract);
     expect(serializedWithoutCapabilities(printed)).toEqual(serializedWithoutCapabilities(contract));

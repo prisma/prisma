@@ -16,7 +16,7 @@ changes:
         - '(?<![\w$])temporal\.(?:Created|Updated)At(?:String|JsDate)?(?![\w$])'
   - id: date-default-below-a-millisecond
     summary: |
-      On PostgreSQL and MySQL, a column read as a JavaScript `Date` (`DateTime` at its default, `TimestamptzJsDate`, `TimestampJsDate`, MySQL's `DateTime`) now refuses a `@default` with digits below a millisecond, which a `Date` cannot hold, and `prisma contract emit` reports it. Keep the default by changing the field to `DateTime(value: string)` or `DateTime(value: temporal)`, or by writing the default as a `sql` expression.
+      On PostgreSQL and MySQL, a column read as a JavaScript `Date` (`DateTime` at its default, `TimestamptzJsDate`, `TimestampJsDate`, MySQL's `DateTime`) now refuses a `@default` with digits below a millisecond, which a `Date` cannot hold, and `prisma contract emit` reports it. Keep the default by changing the field to `DateTime(as: string)` or `DateTime(as: temporal)`, or by writing the default as a `sql` expression.
     detection:
       glob: "**/*.prisma"
       matches:
@@ -31,7 +31,7 @@ changes:
 
 | Prisma 7 field | Prisma 8 type | The application reads |
 | --- | --- | --- |
-| `DateTime` | `TimestampJsDate(3)`, printed `DateTime(column: timestamp)` | a JavaScript `Date`, the stored value read as UTC |
+| `DateTime` | `TimestampJsDate(3)`, printed `DateTime(storage: timestamp)` | a JavaScript `Date`, the stored value read as UTC |
 | `@db.Timestamptz(p)` | `TimestamptzJsDate(p)`, printed `DateTime(precision: p)` | a JavaScript `Date` |
 | `@db.Timestamp(p)` | `TimestampJsDate(p)` | a JavaScript `Date`, the stored value read as UTC |
 | `@db.Date` | `DateString` | a string, unchanged |
@@ -53,7 +53,7 @@ For each project whose `prisma.config.ts` uses `prisma7Schema(...)`:
    console.log(user.updatedAt.toISOString());
    ```
 
-A `Date` holds milliseconds. A `@db.Timestamptz(6)` or `@db.Timestamp(6)` column with values that use the extra digits reads with them dropped. To keep them, write the Prisma 8 schema yourself with `DateTime(value: string)` or `DateTime(value: temporal)` for that field.
+A `Date` holds milliseconds. A `@db.Timestamptz(6)` or `@db.Timestamp(6)` column with values that use the extra digits reads with them dropped. To keep them, write the Prisma 8 schema yourself with `DateTime(as: string)` or `DateTime(as: temporal)` for that field.
 
 ## `temporal-type-aliases-on-datetime`
 
@@ -85,7 +85,7 @@ at DateTime(precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)
 write one of:
 
 ```prisma
-at DateTime(value: string, precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)
+at DateTime(as: string, precision: 6) @default(timestamptz`2024-01-01T01:00:00.123456Z`)
 at DateTime(precision: 6) @default(sql`'2024-01-01 01:00:00.123456+00'::timestamptz`)
 ```
 
