@@ -89,7 +89,7 @@ export function scopeCompletionItems(
           item.kind = CompletionItemKind.Class;
           item.detail =
             descriptor.documentation ||
-            (descriptor.kind === 'typeAlias' ? 'Type alias' : 'Configured scalar type');
+            (descriptor.kind === 'typeAlias' ? 'Type alias' : 'Convenience type');
           break;
         }
         const callable =

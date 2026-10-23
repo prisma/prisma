@@ -262,6 +262,11 @@ namespace other { model Hidden { id Int } }`,
                   { when: { as: 'text' }, type: 'Stamp' },
                 ],
               },
+              Undocumented: {
+                kind: 'typeChoice',
+                args: [],
+                choices: [{ when: {}, type: 'Stamp' }],
+              },
               Stamp: { kind: 'typeConstructor', output: { codecId: 'fixture/value' } },
             },
           },
@@ -270,7 +275,7 @@ namespace other { model Hidden { id Int } }`,
     });
     expect(
       items
-        .filter((item) => item.label === 'Moment')
+        .filter((item) => item.label === 'Moment' || item.label === 'Undocumented')
         .map((item) => ({
           kind: item.kind,
           detail: item.detail,
@@ -282,6 +287,12 @@ namespace other { model Hidden { id Int } }`,
         kind: CompletionItemKind.Class,
         detail: 'A moment in time.',
         newText: 'Moment',
+        format: undefined,
+      },
+      {
+        kind: CompletionItemKind.Class,
+        detail: 'Convenience type',
+        newText: 'Undocumented',
         format: undefined,
       },
     ]);
