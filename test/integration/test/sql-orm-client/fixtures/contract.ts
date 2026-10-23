@@ -186,9 +186,37 @@ const baseContract = defineContract({
 
 const defaultNamespace = baseContract.domain.namespaces['public']!;
 const userModel = defaultNamespace.models['User']!;
+const publicStorage = baseContract.storage.namespaces['public']!;
+
+const textMember = <const Nullable extends boolean>(nullable: Nullable) => ({
+  many: false as const,
+  nullable,
+  type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
+});
 
 export const contract = {
   ...baseContract,
+  storage: {
+    ...baseContract.storage,
+    namespaces: {
+      ...baseContract.storage.namespaces,
+      public: {
+        ...publicStorage,
+        entries: {
+          ...publicStorage.entries,
+          valueObject: {
+            Address: {
+              fields: {
+                street: textMember(false),
+                city: textMember(false),
+                zip: textMember(true),
+              },
+            },
+          },
+        },
+      },
+    },
+  },
   domain: {
     namespaces: {
       ...baseContract.domain.namespaces,
@@ -203,28 +231,13 @@ export const contract = {
               address: {
                 many: false as const,
                 nullable: true as const,
-                type: { kind: 'valueObject' as const, name: 'Address' },
-              },
-            },
-          },
-        },
-        valueObjects: {
-          Address: {
-            fields: {
-              street: {
-                many: false as const,
-                nullable: false as const,
-                type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
-              },
-              city: {
-                many: false as const,
-                nullable: false as const,
-                type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
-              },
-              zip: {
-                many: false as const,
-                nullable: true as const,
-                type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
+                type: {
+                  kind: 'valueObject' as const,
+                  plane: 'storage' as const,
+                  namespaceId: 'public' as const,
+                  entityKind: 'valueObject' as const,
+                  entityName: 'Address' as const,
+                },
               },
             },
           },

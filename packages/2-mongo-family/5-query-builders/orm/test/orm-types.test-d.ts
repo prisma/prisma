@@ -10,7 +10,6 @@ import type {
   DotPath,
   FieldAccessor,
   FieldExpression,
-  FieldOperation,
   ResolveDotPathType,
 } from '../src/field-accessor';
 import type { MongoOrmClient } from '../src/mongo-orm';
@@ -507,10 +506,7 @@ test('include() on 1:N reference relation all() returns array type', () => {
 test('FieldAccessor has FieldExpression for scalar fields', () => {
   type Accessor = FieldAccessor<Contract, 'User', CodecTypes>;
   expectTypeOf<Accessor['name']>().toExtend<FieldExpression<string>>();
-  expectTypeOf<Accessor['loginCount']>().toMatchTypeOf<{
-    set: (v: unknown) => FieldOperation;
-    unset: () => FieldOperation;
-  }>();
+  expectTypeOf<Accessor['loginCount']>().toExtend<FieldExpression<number>>();
 });
 
 test('FieldAccessor has FieldExpression for array fields', () => {

@@ -28,6 +28,8 @@ const fixtureRoots = [
   'test/mongo/list-filters',
   'test/mongo/temporal-presets',
   'test/mongo/prisma6-source',
+  'test/mongo/recursive-value-objects',
+  'test/value-objects/fixtures',
 ];
 
 function findConfigs(dir) {

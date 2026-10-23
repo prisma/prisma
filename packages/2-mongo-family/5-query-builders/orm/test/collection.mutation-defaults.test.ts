@@ -203,7 +203,9 @@ describe('ORM update paths apply onUpdate defaults', () => {
   it('update whose only field is undefined adds nothing', async () => {
     const defaults = fakeMutationDefaults();
     const { executor, plans } = recordingExecutor([]);
-    await users(executor, defaults).where(byEmail).update({ name: undefined });
+    await users(executor, defaults)
+      .where(byEmail)
+      .update({ name: undefined } as unknown as { name?: string });
     expect(unwrap(commandOf(plans, 'findOneAndUpdate')['update'])).toEqual({ $set: {} });
     expect(defaults.calls[0]?.values).toEqual({});
   });
