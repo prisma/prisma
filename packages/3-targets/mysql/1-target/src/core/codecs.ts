@@ -44,6 +44,8 @@ import {
 import { mysqlError, mysqlQueryNotYetSupported } from './errors';
 
 const DECIMAL_INTEGER = /^-?\d+$/;
+const BIGINT_MIN = -(2n ** 63n);
+const BIGINT_MAX = 2n ** 63n - 1n;
 
 /** Projects a column whose JSON form, a number or a string, is what its `fromWire` reads. */
 const identityJsonProjection = (expression: ProjectionExpr): ProjectionExpr => expression;
@@ -179,7 +181,13 @@ export class MysqlBigintCodec extends CodecImpl<
   bigint
 > {
   async toWire(value: bigint, _ctx: CodecCallContext): Promise<string> {
-    if (typeof value !== 'bigint') return encodeFailed(MYSQL_BIGINT_CODEC_ID, 'a bigint', value);
+    if (typeof value !== 'bigint' || value < BIGINT_MIN || value > BIGINT_MAX) {
+      return encodeFailed(
+        MYSQL_BIGINT_CODEC_ID,
+        `a bigint from ${BIGINT_MIN} to ${BIGINT_MAX}`,
+        value,
+      );
+    }
     return value.toString();
   }
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<bigint> {

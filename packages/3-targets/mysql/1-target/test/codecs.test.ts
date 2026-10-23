@@ -122,3 +122,18 @@ describe('MySQL codec descriptors', () => {
     ).toThrow(/Duplicate MySQL codec descriptor id 'mysql\/int@1'/);
   });
 });
+
+describe('the MySQL bigint codec', () => {
+  it('writes every value a signed bigint column holds, and refuses one outside that range', async () => {
+    const codec = mysqlBigintDescriptor.factory()(instance);
+    expect([
+      await codec.toWire(2n ** 63n - 1n, ctx),
+      await codec.toWire(-(2n ** 63n), ctx),
+    ]).toEqual(['9223372036854775807', '-9223372036854775808']);
+    for (const value of [2n ** 63n, -(2n ** 63n) - 1n, 2n ** 64n - 1n]) {
+      await expect(codec.toWire(value, ctx)).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+      });
+    }
+  });
+});
