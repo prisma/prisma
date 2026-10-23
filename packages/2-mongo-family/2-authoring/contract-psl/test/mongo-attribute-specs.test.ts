@@ -116,7 +116,7 @@ function contexts(): { model: AttributeSpecContext; field: FieldAttributeSpecCon
   };
   return {
     model: modelContext,
-    field: { ...modelContext, field, typeResolution: undefined, typeConstructor: undefined },
+    field: { ...modelContext, field, typeResolution: undefined, contributedType: undefined },
   };
 }
 

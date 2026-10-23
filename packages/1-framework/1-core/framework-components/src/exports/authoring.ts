@@ -1,4 +1,29 @@
 export type {
+  AuthoringTypeChoiceArgument,
+  AuthoringTypeChoiceDescriptor,
+  AuthoringTypeChoiceOption,
+  AuthoringTypeChoicePassedArgument,
+  AuthoringTypeChoiceRow,
+  ResolvedAuthoringTypeChoice,
+} from '../shared/authoring-type-choice';
+export {
+  assertTypeChoicesValid,
+  collectScalarTypeConstructors,
+  getAuthoringTypeChoice,
+  instantiateAuthoringTypeCall,
+  isAuthoringTypeChoiceOption,
+  resolveAuthoringTypeChoice,
+  typeChoiceArgumentsFromObject,
+  typeChoiceCombinationText,
+  typeConstructorLookup,
+  unknownTypeChoiceArgumentMessage,
+} from '../shared/authoring-type-choice';
+export type {
+  AuthoringTypeChoiceCall,
+  AuthoringTypeChoiceCallArgument,
+} from '../shared/authoring-type-choice-call';
+export { findAuthoringTypeChoiceCall } from '../shared/authoring-type-choice-call';
+export type {
   AuthoringTypeConstructorCall,
   AuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
@@ -80,6 +105,7 @@ export type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeConstructorEntityRef,
   AuthoringTypeNamespace,
+  AuthoringTypeNamespaceMember,
   AuthoringTypeParamsIssue,
   AuthoringValueArgument,
   AuthoringWarning,
@@ -94,7 +120,6 @@ export {
   assertResolvableTypeConstructorTemplates,
   assertTypeAliasesValid,
   classifyEnumMemberType,
-  collectScalarTypeConstructors,
   flushAuthoringWarnings,
   getAuthoringTypeConstructor,
   instantiateAuthoringEntityType,
@@ -109,6 +134,7 @@ export {
   isAuthoringPslBlockDescriptor,
   isAuthoringSelectRef,
   isAuthoringTypeAliasDescriptor,
+  isAuthoringTypeChoiceDescriptor,
   isAuthoringTypeConstructorDescriptor,
   isAuthoringTypeDescriptor,
   mergeAuthoringNamespaces,
@@ -116,6 +142,7 @@ export {
   resolveEnumCodecId,
   resolveTypeAliasGenerators,
   validateAuthoringHelperArguments,
+  validateAuthoringTypeChoiceParams,
   validateAuthoringTypeParams,
 } from '../shared/framework-authoring';
 export type { AuthoringOption } from '../shared/option-descriptor';

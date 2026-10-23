@@ -1,8 +1,12 @@
 import {
   type AuthoringArgumentDescriptor,
   type AuthoringPslBlockDescriptorNamespace,
+  type AuthoringTypeChoiceDescriptor,
+  type AuthoringTypeChoiceOption,
+  type AuthoringTypeChoiceRow,
   type DataTypeSupport,
   describeAdmittedForms,
+  isAuthoringTypeChoiceOption,
 } from '@internal/framework-components/authoring';
 import { dataTypeId } from '@internal/framework-components/codec';
 import type {
@@ -144,7 +148,31 @@ function renderContributedTypeContent(
   const fence = ['```prisma', renderContributedTypeLabel(symbol, dataTypes), '```'].join('\n');
   const documentation =
     symbol.descriptor.kind === 'fieldPreset' ? undefined : symbol.descriptor.documentation;
-  return withDocumentation(fence, documentation);
+  const content = withDocumentation(fence, documentation);
+  return symbol.descriptor.kind === 'typeChoice'
+    ? `${content}\n\n${renderTypeChoices(symbol.descriptor)}`
+    : content;
+}
+
+/** Each combination of a type choice's options, as written, and the explicit type it becomes. */
+function renderTypeChoices(descriptor: AuthoringTypeChoiceDescriptor): string {
+  const options = descriptor.args.filter(isAuthoringTypeChoiceOption);
+  const cell = (value: string | undefined, option: AuthoringTypeChoiceOption) =>
+    value === option.default ? `${value} (default)` : (value ?? '');
+  const becomes = (row: AuthoringTypeChoiceRow) => {
+    const defaults = Object.entries(row.defaults ?? {}).map(
+      ([name, value]) => `${name}: ${JSON.stringify(value)}`,
+    );
+    return `\`${row.type}${defaults.length === 0 ? '' : `(${defaults.join(', ')})`}\``;
+  };
+  return [
+    `| ${[...options.map((option) => option.name), 'Becomes'].join(' | ')} |`,
+    `| ${[...options, undefined].map(() => '---').join(' | ')} |`,
+    ...descriptor.choices.map(
+      (row) =>
+        `| ${[...options.map((option) => cell(row.when[option.name], option)), becomes(row)].join(' | ')} |`,
+    ),
+  ].join('\n');
 }
 
 function renderParameterContent(symbol: ParameterSymbol): string {
@@ -180,16 +208,20 @@ function renderContributedTypeLabel(
   if (args.length === 0) return path;
   const labels = args.map((arg, index) => {
     const key = arg.name ?? `arg${index + 1}`;
-    return `${key}${arg.optional === true ? '?' : ''}: ${argumentTypeLabel(arg, dataTypes)}`;
+    return `${key}${arg.optional === true ? '?' : ''}: ${argumentTypeLabel(arg, dataTypes, descriptor.kind === 'typeChoice')}`;
   });
   return `${path}(${labels.join(', ')})`;
 }
 
-function argumentTypeLabel(arg: AuthoringArgumentDescriptor, dataTypes: DataTypeSupport): string {
+function argumentTypeLabel(
+  arg: AuthoringArgumentDescriptor,
+  dataTypes: DataTypeSupport,
+  optionsWrittenBare: boolean,
+): string {
   if (arg.kind === 'value') return describeAdmittedForms(dataTypes, dataTypeId(arg.dataType));
   if (arg.kind === 'number') return 'number';
   if (arg.kind === 'object') return 'object';
-  return arg.values.map((value) => `'${value}'`).join(' | ');
+  return arg.values.map((value) => (optionsWrittenBare ? value : `'${value}'`)).join(' | ');
 }
 
 function blockKeywordDocumentationAt(

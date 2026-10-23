@@ -170,27 +170,15 @@ export const postgresAuthoringTypes = {
   temporal: postgresTemporalTypeAliases(),
 } as const satisfies AuthoringTypeNamespace;
 
+/**
+ * The created-at and updated-at aliases, on the type bare `DateTime` becomes: a `timestamptz(3)` column read as a JavaScript `Date` (ADR 279).
+ */
 /* @__NO_SIDE_EFFECTS__ */
 function postgresTemporalTypeAliases() {
-  const temporal = temporalTypeAliases(
-    { codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID },
-    'a Temporal.Instant',
-  );
-  const string = temporalTypeAliases(
-    { codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID },
-    'a string, the timestamp as Postgres writes it, such as 2024-01-02 03:04:05+00',
-  );
-  const jsDate = temporalTypeAliases(
-    { codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID },
+  return temporalTypeAliases(
+    { codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID, typeParams: { precision: 3 } },
     'a JavaScript Date',
   );
-  return {
-    ...temporal,
-    CreatedAtString: string.CreatedAt,
-    UpdatedAtString: string.UpdatedAt,
-    CreatedAtJsDate: jsDate.CreatedAt,
-    UpdatedAtJsDate: jsDate.UpdatedAt,
-  } as const;
 }
 
 const policyTargetParam = {
@@ -930,6 +918,7 @@ export const postgresAuthoringFieldPresets = {
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_DATE_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMPTZ_DATE_CODEC_ID],
     }),
     .../* @__PURE__ */ temporalAuthoringPresets({
       codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
@@ -943,11 +932,13 @@ export const postgresAuthoringFieldPresets = {
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMP_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMP_TEMPORAL_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMP_TEMPORAL_CODEC_ID],
     }),
     timestamptz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       sizeType: PG_SIZE_TYPE,
       codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID],
     }),
     timestampString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       sizeType: PG_SIZE_TYPE,

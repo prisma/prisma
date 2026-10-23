@@ -179,7 +179,8 @@ stamped ${field}
     {
       name: 'a quoted option value (one spelling only)',
       field: 'temporal.timestamp(onCreate: "now")',
-      message: /cannot parse named argument "onCreate" for descriptor kind "option"/,
+      message:
+        /preset "temporal\.timestamp" named argument "onCreate" is "now", but argument "onCreate" takes one of these names, written without quotes: now\./,
     },
     {
       name: 'a duplicate named argument',

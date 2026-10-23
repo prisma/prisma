@@ -10,7 +10,7 @@ import {
   type SqlPslBuildContext,
 } from '@internal/family-sql/control';
 import type { ColumnTypeOf } from '@internal/family-sql/psl-build';
-import { type Codec, codecForRef } from '@internal/framework-components/codec';
+import { type Codec, codecForRef, type DataTypeValue } from '@internal/framework-components/codec';
 import type { SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { isInternalError } from '@internal/utils/internal-error';
 import { pgJson, pgJsonb } from '../data-types';
@@ -89,8 +89,32 @@ export async function readDefaultWithCodec(
   if (JSON_TYPES.has(codec.dataType.id) && !bodiesOf(reported.literal).every(jsonBodyIsExact)) {
     return rawExpression;
   }
+  if (!bodiesOf(reported.literal).every((body) => codecHoldsExactly(codec, body))) {
+    return rawExpression;
+  }
   const read = await readReportedDefault(codec, reported.literal, raw);
   return 'resolvedDefault' in read ? read.resolvedDefault : rawExpression;
+}
+
+/**
+ * Whether the codec's application value holds `body` exactly, as `contract emit` asks of a written default: the codec's `fromDataTypeValue` refuses a value it cannot hold exactly, such as a `Date` codec a time with digits below a millisecond. A body the data type does not read as text is left to the codec's wire reading.
+ */
+function codecHoldsExactly(codec: Codec, body: ReportedBody | null): boolean {
+  if (typeof body !== 'string') return true;
+  let value: DataTypeValue;
+  try {
+    value = codec.dataType.valueFrom(body, {});
+  } catch (error) {
+    if (isInternalError(error)) throw error;
+    return true;
+  }
+  try {
+    codec.fromDataTypeValue(value);
+    return true;
+  } catch (error) {
+    if (isInternalError(error)) throw error;
+    return false;
+  }
 }
 
 const JSON_TYPES: ReadonlySet<string> = new Set([pgJson.id, pgJsonb.id]);
@@ -122,7 +146,7 @@ function codecOf(
   context: SqlPslBuildContext,
 ) {
   try {
-    const ref = inferredCodecRef(context, isEnum ? { path: [] } : pslType(), isEnum);
+    const ref = inferredCodecRef(context, isEnum ? { path: [] } : pslType().explicit, isEnum);
     return ref === undefined ? undefined : codecForRef(context.codecLookup, ref);
   } catch (error) {
     if (isInternalError(error)) throw error;

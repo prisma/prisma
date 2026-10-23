@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { collectScalarTypeConstructors } from '../src/shared/authoring-type-choice';
 import type {
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
@@ -8,7 +9,6 @@ import type {
 import {
   assertNoCrossRegistryCollisions,
   classifyEnumMemberType,
-  collectScalarTypeConstructors,
   instantiateAuthoringFieldPreset,
   instantiateAuthoringTypeConstructor,
   isAuthoringArgRef,

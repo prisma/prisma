@@ -188,15 +188,15 @@ const parityCases: readonly ParityCase[] = [
     expected: { dataType: 'pg/timestamptz', codecId: 'pg/timestamptz-temporal@1', typeParams: {} },
   },
   {
-    title: 'Time(3)',
-    bare: 'Time(3)',
-    alias: 'Time(3)',
+    title: 'TimeTemporal(3)',
+    bare: 'TimeTemporal(3)',
+    alias: 'TimeTemporal(3)',
     expected: { dataType: 'pg/time', codecId: 'pg/time-temporal@1', typeParams: { precision: 3 } },
   },
   {
-    title: 'Time — bare',
-    bare: 'Time',
-    alias: 'Time',
+    title: 'TimeTemporal — bare',
+    bare: 'TimeTemporal',
+    alias: 'TimeTemporal',
     expected: { dataType: 'pg/time', codecId: 'pg/time-temporal@1', typeParams: {} },
   },
   // The representation-explicit spellings, which must carry precision exactly as their unsuffixed
@@ -294,9 +294,9 @@ const parityCases: readonly ParityCase[] = [
     expected: { dataType: 'pg/float4', codecId: 'pg/float4@1', typeParams: {} },
   },
   {
-    title: 'Date — bare',
-    bare: 'Date',
-    alias: 'Date',
+    title: 'DateTemporal — bare',
+    bare: 'DateTemporal',
+    alias: 'DateTemporal',
     expected: { dataType: 'pg/date', codecId: 'pg/date-temporal@1', typeParams: {} },
   },
 ];
