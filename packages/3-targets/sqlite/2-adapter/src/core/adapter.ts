@@ -492,13 +492,23 @@ function renderOperation(expr: OperationExpr, ctx: SqliteRenderContext): string 
   const self = renderExpr(expr.self, ctx);
   const args = expr.args.map((arg) => renderExpr(arg, ctx));
 
-  let result = expr.lowering.template;
-  result = result.replace(/\{\{self\}\}/g, self);
-  for (let i = 0; i < args.length; i++) {
-    result = result.replace(new RegExp(`\\{\\{arg${i}\\}\\}`, 'g'), args[i] ?? '');
-  }
-
-  return result;
+  return expr.lowering.template.replace(
+    /\{\{self\}\}|\{\{arg(\d+)\}\}/g,
+    (token, argIndex: string | undefined) => {
+      if (token === '{{self}}') {
+        return self;
+      }
+      const arg = args[Number(argIndex)];
+      if (arg === undefined) {
+        throw structuredError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
+          `Operation lowering template for "${expr.method}" referenced missing argument {{arg${argIndex}}}; template has ${args.length} arg(s)`,
+          { meta: { method: expr.method } },
+        );
+      }
+      return arg;
+    },
+  );
 }
 
 function renderSubqueryExpr(expr: SubqueryExpr, ctx: SqliteRenderContext): string {

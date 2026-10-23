@@ -305,6 +305,25 @@ describe('Postgres adapter', () => {
     );
   });
 
+  it('writes an operation literal argument containing replacement patterns unchanged', () => {
+    const ast = SelectAst.from(TableSource.named('user')).withProjection([
+      ProjectionItem.of(
+        'value',
+        new OperationExpr({
+          method: 'join',
+          self: ColumnRef.of('user', 'email'),
+          args: [LiteralExpr.of("-$&-$'-$$-")],
+          returns: { codecId: 'pg/text@1', nullable: false },
+          lowering: { targetFamily: 'sql', template: '{{self}} || {{arg0}}' },
+        }),
+      ),
+    ]);
+
+    expect(adapter.lower(ast, { contract }).sql).toBe(
+      `SELECT "user"."email" || '-$&-$''-$$-' AS "value" FROM "user"`,
+    );
+  });
+
   it('binds a parameter inside an ON CONFLICT DO UPDATE SET expression', () => {
     const user = table(TableSource.named('user'), {
       id: { codecId: 'pg/int4@1', nullable: false },
