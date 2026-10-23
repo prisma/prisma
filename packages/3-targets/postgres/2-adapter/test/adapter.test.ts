@@ -343,6 +343,7 @@ describe('Postgres adapter', () => {
       .build();
 
     expect(adapter.lower(ast, { contract })).toEqual({
+      containsCallerSql: false,
       sql: 'INSERT INTO "user" ("id", "email") VALUES ($1, $2) ON CONFLICT ("email") DO UPDATE SET "email" = excluded."email" || $3',
       params: litParams(1, 'a@example.com', '!'),
     });
