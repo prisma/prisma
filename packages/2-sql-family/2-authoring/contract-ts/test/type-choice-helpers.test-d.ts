@@ -68,3 +68,23 @@ test('positional arguments do not compile', () => {
   // @ts-expect-error a type choice takes one object
   type.Moment({}, {});
 });
+
+test('an arguments object from a variable compiles when written as const', () => {
+  const options = { as: 'string', storage: 'local' } as const;
+  expectTypeOf(type.Moment(options)).toEqualTypeOf(type.TimestampString());
+});
+
+test('an arguments object from a variable with a widened option value does not compile', () => {
+  const widened = { as: 'string', storage: 'local' };
+  // @ts-expect-error as is typed string, so no overload can say which explicit type the call is
+  type.Moment(widened);
+  const union: { as: 'temporal' | 'string'; storage: 'local' } = { as: 'string', storage: 'local' };
+  // @ts-expect-error as is typed 'temporal' | 'string', which two rows share, so no overload takes it
+  type.Moment(union);
+});
+
+test('a key the type choice has no argument for does not compile through a variable', () => {
+  const extra = { storage: 'local', bogus: 1 } as const;
+  // @ts-expect-error Moment has no argument bogus
+  type.Moment(extra);
+});
