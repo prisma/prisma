@@ -1425,8 +1425,8 @@ function readField(args: ReadFieldArgs): void {
             dataType: sqlDataTypeOfCodec(resolved.descriptor.codecId, typeLookups).id,
             typeParams: resolved.descriptor.typeParams,
           }),
-          refusedLiteralDefault: (stored) =>
-            binding.refusedLiteralDefault(stored, {
+          literalDefaultExpression: (stored) =>
+            binding.literalDefaultExpression(stored, {
               codecId: resolved.descriptor.codecId,
               dataType: sqlDataTypeOfCodec(resolved.descriptor.codecId, typeLookups).id,
               typeParams: resolved.descriptor.typeParams,

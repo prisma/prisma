@@ -133,15 +133,15 @@ describe('a Prisma 7 default a Date cannot hold, migrated by Prisma 8', {
         typeParams: { precision: 6 },
       };
       const expressions = {
-        bc: prisma7PostgresBinding.refusedLiteralDefault(
+        bc: prisma7PostgresBinding.literalDefaultExpression(
           '-000043-03-15T00:00:00.123456',
           timestamp,
         ),
-        late: prisma7PostgresBinding.refusedLiteralDefault(
+        late: prisma7PostgresBinding.literalDefaultExpression(
           '+010000-01-01T00:00:00.123456Z',
           timestamptz,
         ),
-        list: prisma7PostgresBinding.refusedLiteralDefault(
+        list: prisma7PostgresBinding.literalDefaultExpression(
           ['-000043-03-15T00:00:00.123456', null],
           timestamp,
         ),

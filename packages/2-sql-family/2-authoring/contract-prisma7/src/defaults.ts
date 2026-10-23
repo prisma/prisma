@@ -58,8 +58,8 @@ export interface LowerPrisma7DefaultInput {
   readonly nativeTypeName: string | undefined;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly literalForm: Prisma7LiteralDefaultForm | undefined;
-  /** The SQL expression of a default whose value the column's codec cannot hold exactly; see `Prisma7TargetBinding.refusedLiteralDefault`. */
-  readonly refusedLiteralDefault: (stored: JsonValue) => string;
+  /** The SQL expression of a default whose value the column's codec cannot hold exactly; see `Prisma7TargetBinding.literalDefaultExpression`. */
+  readonly literalDefaultExpression: (stored: JsonValue) => string;
   /** Storage value per member name when the field is typed by a Prisma 7 enum. */
   readonly enumMembers: ReadonlyMap<string, string> | undefined;
   readonly controlMutationDefaults: ControlMutationDefaults;
@@ -183,7 +183,7 @@ function scalarLiteral(
   if (read.ok) return { value: read.value };
   const { refusal } = read;
   if (refusal.kind === 'refused-by-codec') {
-    return { kind: 'function', expression: input.refusedLiteralDefault(refusal.stored) };
+    return { kind: 'function', expression: input.literalDefaultExpression(refusal.stored) };
   }
   return unknown(refusalReason(refusal), span);
 }

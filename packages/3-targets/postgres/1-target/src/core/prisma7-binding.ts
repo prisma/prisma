@@ -20,7 +20,7 @@ import { postgresYearText } from './postgres-year-text';
 import { prisma7TemporalStored, prisma7TemporalTagBody } from './prisma7-temporal-defaults';
 import { prisma7PostgresTypeMap } from './prisma7-type-map';
 import { junctionRelationFieldNames } from './psl-infer/junction-relation-field-names';
-import { escapeLiteral } from './sql-utils';
+import { inlineLiteral } from './sql-utils';
 
 /** The date and time types a Prisma 7 `DateTime` default can be written on. */
 const DATE_TIME_TYPES: ReadonlySet<string> = new Set([
@@ -62,8 +62,8 @@ function writtenTypeName(
   return renderSqlTypeName(type, typeParams ?? {});
 }
 
-/** A default's SQL: a quoted literal cast to the column type, or for a list an array of them cast to an array of it. A date or time is written with the year text PostgreSQL reads. */
-function refusedLiteralDefault(
+/** The SQL expression of a literal default, written as DDL writes the value: one literal, or for a list an array of them cast to an array of the column type. A date or time is written with the year text PostgreSQL reads. */
+function literalDefaultExpression(
   stored: JsonValue,
   column: {
     readonly dataType: string;
@@ -71,13 +71,13 @@ function refusedLiteralDefault(
   },
 ): string {
   const typeName = writtenTypeName(column.dataType, column.typeParams);
-  const text = (value: string) =>
-    DATE_TIME_TYPES.has(column.dataType) ? postgresYearText(value) : value;
-  const quoted = (value: JsonValue) =>
-    value === null ? 'NULL' : `'${escapeLiteral(text(String(value)))}'`;
+  const text = (value: JsonValue) =>
+    typeof value === 'string' && DATE_TIME_TYPES.has(column.dataType)
+      ? postgresYearText(value)
+      : value;
   return Array.isArray(stored)
-    ? `ARRAY[${stored.map(quoted).join(', ')}]::${typeName}[]`
-    : `${quoted(stored)}::${typeName}`;
+    ? inlineLiteral(stored.map(text), `${typeName}[]`)
+    : inlineLiteral(text(stored), typeName);
 }
 
 /**
@@ -105,7 +105,7 @@ export const prisma7PostgresBinding = {
   identifierMaxBytes: 63,
   defaultConstraintNames: { primaryKey: defaultPrimaryKeyName, foreignKey: defaultForeignKeyName },
   junctionRelationFieldNames,
-  refusedLiteralDefault,
+  literalDefaultExpression,
   literalDefaultForm: ({
     dataType,
     typeParams,
