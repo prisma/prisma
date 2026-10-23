@@ -19,7 +19,7 @@ examples/prisma-8-demo-mysql/
 ```text
 $ cd examples/prisma-8-demo-mysql
 $ pnpm emit                 # prisma contract emit
-$ pnpm migration:plan       # prisma migration plan --name init (committed)
+$ pnpm migration:plan --name init   # prisma migration plan (committed)
 $ pnpm db:migrate           # prisma db migrate
 $ pnpm db:verify            # prisma db verify
 $ pnpm test                 # the same, end to end, against a fresh database

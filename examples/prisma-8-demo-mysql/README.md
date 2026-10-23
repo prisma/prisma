@@ -35,7 +35,7 @@ which contract the database is at.
 | --- | --- | --- |
 | `emit` | `prisma contract emit` | Writes `src/prisma/contract.json` and `contract.d.ts` from `prisma/contract.prisma` |
 | `emit:check` | `emit`, then `git diff` | Fails when the committed contract is out of date |
-| `migration:plan` | `prisma migration plan --name init` | Writes a new migration under `migrations/app/` when the contract has changed |
+| `migration:plan` | `prisma migration plan` | Writes a new migration under `migrations/app/` when the contract has changed; name it with `pnpm migration:plan --name <name>` |
 | `db:migrate` | `prisma db migrate` | Applies the migrations the database does not have yet |
 | `db:verify` | `prisma db verify` | Checks the database's marker and schema against the contract |
 | `db:sign` | `prisma db sign` | Signs a database whose schema satisfies the contract |

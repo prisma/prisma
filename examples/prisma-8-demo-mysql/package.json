@@ -8,7 +8,7 @@
   "scripts": {
     "emit": "prisma contract emit",
     "emit:check": "pnpm emit && git diff --exit-code src/prisma/contract.json src/prisma/contract.d.ts",
-    "migration:plan": "prisma migration plan --name init",
+    "migration:plan": "prisma migration plan",
     "db:migrate": "prisma db migrate",
     "db:verify": "prisma db verify",
     "db:sign": "prisma db sign",
