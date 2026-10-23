@@ -130,6 +130,38 @@ describe('integration/integer representation types', () => {
   );
 
   it(
+    'compares a max or sum over an UnboundedInt column with a number or a bigint in having',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        await setupTables(runtime);
+        const meters = createMeters(runtime);
+        await meters.create({ id: 1, peak: 1, lifetime: 10n });
+        await meters.create({ id: 2, peak: 2, lifetime: 20n });
+
+        const byMax = await meters
+          .groupBy('id')
+          .having((h) => h.max('lifetime').gt(15))
+          .aggregate((agg) => ({ top: agg.max('lifetime') }));
+        const bySum = await meters
+          .groupBy('id')
+          .having((h) => h.sum('lifetime').gt(15n))
+          .aggregate((agg) => ({ total: agg.sum('lifetime') }));
+        expect({ byMax, bySum }).toEqual({
+          byMax: [{ id: 2, top: 20n }],
+          bySum: [{ id: 2, total: 20n }],
+        });
+        expect(() => meters.groupBy('id').having((h) => h.max('lifetime').gt(1.5))).toThrow(
+          expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }),
+        );
+        expect(() => meters.groupBy('id').having((h) => h.max('lifetime').gt(2 ** 60))).toThrow(
+          expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }),
+        );
+      }, contract);
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
     'reading a stored value past the safe range through BigIntNumber raises RUNTIME.DECODE_FAILED',
     async () => {
       await withCollectionRuntime(async (runtime) => {

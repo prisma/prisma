@@ -10,6 +10,7 @@ import {
   AggregateExpr,
   type AnyExpression,
   type BinaryOp,
+  type Codec,
   isAggregateFn,
   type OrderByItem,
   ParamRef,
@@ -145,6 +146,7 @@ export class GroupedCollection<
     const havingExpr = predicate(
       createHavingBuilder<TContract, ModelName, NsId>(
         this.contract,
+        (codecId) => this.ctx.context.contractCodecs.forCodecRef({ codecId }),
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
@@ -359,6 +361,7 @@ function createHavingBuilder<
   NsId extends string = never,
 >(
   contract: TContract,
+  codecFor: (codecId: string) => Codec,
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
@@ -390,6 +393,7 @@ function createHavingBuilder<
       );
       return createHavingComparisonMethods(
         metric,
+        codecFor,
         () =>
           resolveAggregate({
             aggregates,
@@ -408,8 +412,32 @@ function createHavingBuilder<
   >(builder);
 }
 
-function createHavingComparisonMethods<T extends number | null>(
+/**
+ * A literal comparand as the aggregate's output codec takes it. A codec that takes a bigint, as `max` and `sum` over a bigint column have, gets a safe-integer number as a bigint; any other number it refuses. Whether the codec takes a bigint is the codec's own answer: the application value it gives for the integer 0.
+ */
+function havingComparand(value: unknown, codec: Codec): unknown {
+  if (typeof value !== 'number' || !takesBigint(codec)) return value;
+  if (!Number.isSafeInteger(value)) {
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      `A having comparand for the bigint codec ${codec.id} must be a bigint or a safe integer, got ${value}`,
+      { meta: { codecId: codec.id, received: String(value) } },
+    );
+  }
+  return BigInt(value);
+}
+
+function takesBigint(codec: Codec): boolean {
+  try {
+    return typeof codec.fromDataTypeValue(codec.toDataTypeValue(0)) === 'bigint';
+  } catch {
+    return false;
+  }
+}
+
+function createHavingComparisonMethods<T extends number | bigint | null>(
   metric: AggregateExpr,
+  codecFor: (codecId: string) => Codec,
   outputCodecId: () => string,
 ): HavingComparisonMethods<T> {
   const buildBinaryExpr = (op: BinaryOp, value: unknown): AnyExpression => {
@@ -427,7 +455,10 @@ function createHavingComparisonMethods<T extends number | null>(
     return predicateComparison(
       op,
       metric,
-      expression ?? ParamRef.of(value, { codec: { codecId: outputCodecId() } }),
+      expression ??
+        ParamRef.of(havingComparand(value, codecFor(outputCodecId())), {
+          codec: { codecId: outputCodecId() },
+        }),
     );
   };
 
