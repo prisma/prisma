@@ -192,3 +192,7 @@ Reproduction: emit a PSL contract with a `namespace public` block and a `namespa
 **Found:** second whole-PR review of the namespace statements, fix round (2026-10-22).
 
 `db update --delete billing` against a database whose marker hash has no local snapshot fails with `CLI.CONSENT_UNUSED`: the planner has no origin contract, so it reports no removed namespace, and the namespace's tables stay. Nothing is lost, which is the right outcome, but the message does not say why. `--rename` in the same situation fails with `MIGRATION.STATEMENT_ORIGIN_UNKNOWN`, which names the hash and the snapshot directory. A namespace `--delete` that matches no question should say the same when the origin contract is unknown.
+
+## Column value-set references are not checked against storage
+
+A column's `valueSet: { plane: 'storage', entityKind: 'valueSet', entityName }` is not checked to name an existing `storage.namespaces.<ns>.entries.valueSet` entry, in either family. A hand-edited or corrupt `contract.json` with a dangling reference passes validation and fails later. PR 3 of the remaining-nouns slice adds the check for value object members only. Found in the review of that PR, 2026-10-23.
