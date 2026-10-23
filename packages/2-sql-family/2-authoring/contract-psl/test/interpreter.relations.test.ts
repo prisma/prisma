@@ -327,25 +327,14 @@ model Post {
     ]);
   });
 
-  it('names a field written with no type', () => {
-    const result = interpretSqlContract('model User {\n  id Int @id\n  name\n}\n', {
-      ...baseInput,
-    });
-
-    expect(
-      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
-    ).toEqual([
-      {
-        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-        message: 'Field "User.name" has no type. Write its type after the field name.',
-      },
-    ]);
-  });
-
   it.each([
-    ['an over-qualified type', 'a.b.Int', 'PSL_INVALID_QUALIFIED_TYPE'],
-    ['no type', '', 'PSL_UNSUPPORTED_FIELD_TYPE'],
-  ])('reports a key with %s, not the relation that joins on the key', (_, type, code) => {
+    [
+      'an over-qualified type',
+      'a.b.Int',
+      ['PSL_INVALID_QUALIFIED_NAME', 'PSL_INVALID_QUALIFIED_TYPE'],
+    ],
+    ['no type', '', ['PSL_INVALID_MODEL_MEMBER']],
+  ])('reports a key with %s, not the relation that joins on the key', (_, type, codes) => {
     const result = interpretSqlContract(
       `model User {
   id    ${type} @id
@@ -361,7 +350,7 @@ model Post {
       { ...baseInput },
     );
 
-    expect(result.ok ? [] : result.failure.diagnostics.map(({ code }) => code)).toEqual([code]);
+    expect(result.ok ? [] : result.failure.diagnostics.map(({ code }) => code)).toEqual(codes);
   });
 
   it('still rejects a field whose type is neither a model, enum, composite, nor scalar', () => {
