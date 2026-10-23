@@ -16,7 +16,7 @@ One thing intentionally falls outside the scopes: the private example/app/test p
 
 ## The published surface
 
-19 packages publish, all in lockstep at the workspace version:
+18 packages publish, all in lockstep at the workspace version:
 
 - **4 database facades** — `@prisma/orm-postgres`, `@prisma/orm-sqlite`, `@prisma/orm-mysql`, `@prisma/orm-mongo`. An application depends on exactly one; everything else arrives as its exact-pinned dependencies.
 - **6 extension packs** — `@prisma/orm-extension-{postgis,pgvector,paradedb,supabase,arktype-json,middleware-cache}`, peer-depending on their target package.
