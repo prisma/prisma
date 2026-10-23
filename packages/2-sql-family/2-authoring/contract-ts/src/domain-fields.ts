@@ -1,4 +1,8 @@
-import type { ContractField, ContractValueObjectField } from '@internal/contract/types';
+import type {
+  ContractField,
+  ContractValueObjectField,
+  EntityCoordinate,
+} from '@internal/contract/types';
 import { nonEmptyTypeParams } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 import {
@@ -10,6 +14,19 @@ import { type EnumValueSetRefs, enumValueSetRefs } from './enum-members';
 
 type Member = ScalarMemberNode | ValueObjectMemberNode;
 
+/** The storage coordinate of a value object. Value objects are all in the default namespace. */
+export function valueObjectReference(
+  valueObjectName: string,
+  defaultNamespaceId: string,
+): EntityCoordinate<'storage', 'valueObject'> {
+  return {
+    plane: 'storage',
+    namespaceId: defaultNamespaceId,
+    entityKind: 'valueObject',
+    entityName: valueObjectName,
+  };
+}
+
 function fieldWithoutValueSet(
   field: Member,
   defaultNamespaceId: string,
@@ -19,10 +36,7 @@ function fieldWithoutValueSet(
     return {
       type: {
         kind: 'valueObject',
-        plane: 'storage',
-        namespaceId: defaultNamespaceId,
-        entityKind: 'valueObject',
-        entityName: field.valueObjectName,
+        ...valueObjectReference(field.valueObjectName, defaultNamespaceId),
       },
       nullable: field.nullable,
       many,

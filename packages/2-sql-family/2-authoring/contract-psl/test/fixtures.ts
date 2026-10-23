@@ -35,6 +35,7 @@ import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import type { DocumentAst, PslSources, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
 import { bindPslSchema } from '@internal/psl-parser/test';
+import type { CheckExpressionInput } from '@internal/sql-contract/check-expressions';
 import type { SqlNamespaceBase, SqlNamespaceInput } from '@internal/sql-contract/types';
 import { type EnumTypeHandle, enumType } from '@internal/sql-contract-ts/contract-builder';
 import type { Result } from '@internal/utils/result';
@@ -128,13 +129,7 @@ export const sqliteEnumInferenceCodecs = {
  * fixture without one emits no checks at all and every assertion about checks
  * would hold vacuously — the PSL/TS parity test in particular.
  */
-export function testRenderCheckExpressions(input: {
-  readonly tableName: string;
-  readonly columnName: string;
-  readonly many: boolean;
-  readonly elementNullable: boolean;
-  readonly memberValues: readonly (string | number)[] | undefined;
-}): ReadonlyArray<{
+export function testRenderCheckExpressions(input: CheckExpressionInput): ReadonlyArray<{
   readonly kind: 'membership' | 'elementNotNull';
   readonly columnName: string;
   readonly expression: string;
@@ -160,7 +155,7 @@ export function testRenderCheckExpressions(input: {
         : `${column} IN (${members})`,
     });
   }
-  if (input.many && !input.elementNullable) {
+  if (input.many !== false && !input.many.elementNullable) {
     candidates.push({
       kind: 'elementNotNull',
       columnName: input.columnName,

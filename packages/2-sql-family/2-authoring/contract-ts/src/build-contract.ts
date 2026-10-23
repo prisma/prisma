@@ -12,6 +12,8 @@ import {
   coreHash,
   crossRef,
   type ExecutionMutationDefault,
+  effectiveControlPolicy,
+  type StorageBase,
   type StorageHashBase,
 } from '@internal/contract/types';
 import { encodeEnumTypeMembers } from '@internal/contract-authoring';
@@ -27,10 +29,12 @@ import type {
 import { mergeCapabilityMatrices } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { sqlContractCanonicalizationHooks } from '@internal/sql-contract/canonicalization-hooks';
+import type { CheckExpressionRenderer } from '@internal/sql-contract/check-expressions';
 import { sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import { validateIndexTypes } from '@internal/sql-contract/index-type-validation';
 import { type IndexTypeRegistry, indexTypeRegistryOf } from '@internal/sql-contract/index-types';
 import {
+  CheckConstraint,
   type SqlNamespaceInput,
   SqlStorage,
   type SqlStorageInput,
@@ -47,7 +51,8 @@ import { contractError } from './contract-errors';
 import { describeModel, type ModelDescription } from './describe-model';
 import { describeTableNode } from './describe-table-node';
 import { buildValueObjectMember } from './domain-fields';
-import { lowerTable, type TableLoweringContext } from './lower-table';
+import { lowerRenderedChecks } from './lower-column';
+import { inCanonicalOrder, lowerTable, type TableLoweringContext } from './lower-table';
 import { mergeTables } from './merge-tables';
 import { modelLookupsOf, modelNamespaceId } from './model-references';
 import { namespaceIdOrDefault } from './namespace-id';
@@ -175,6 +180,29 @@ function storageValueObjects(
   );
 }
 
+/** The value objects and value sets storage will hold, in the shape storage readers take. */
+function valueObjectStorageOf(
+  defaultNamespaceId: string,
+  valueObjects: Record<string, ContractValueObject> | undefined,
+  storageValueSetsByNs: Readonly<Record<string, Record<string, StorageValueSetInput>>>,
+): Pick<StorageBase, 'namespaces'> {
+  const namespaceIds = new Set([defaultNamespaceId, ...Object.keys(storageValueSetsByNs)]);
+  return {
+    namespaces: Object.fromEntries(
+      [...namespaceIds].map((id) => [
+        id,
+        {
+          id,
+          entries: {
+            valueSet: storageValueSetsByNs[id] ?? {},
+            ...(id === defaultNamespaceId ? { valueObject: valueObjects ?? {} } : {}),
+          },
+        },
+      ]),
+    ),
+  };
+}
+
 /**
  * Writes the value set of each discriminator, keyed `<Base>.<field>` in the base table's namespace and holding the variants' values as the column stores them, sorted, and points the discriminator column at it (ADR 278). A column an enum types keeps the enum's value set. An enum with the same name in the same namespace is refused, since the two value sets would share one entry.
  */
@@ -182,6 +210,7 @@ function writeDiscriminatorValueSets(
   definition: ContractDefinition,
   tablesByNamespace: Record<string, Record<string, StorageTableInput>>,
   storageValueSetsByNs: Record<string, Record<string, StorageValueSetInput>>,
+  checkRendererFor: (table: StorageTableInput) => CheckExpressionRenderer | undefined,
 ): void {
   const defaultNamespaceId = definition.target.defaultNamespaceId;
   for (const model of definition.models) {
@@ -211,11 +240,34 @@ function writeDiscriminatorValueSets(
         },
       );
     }
-    namespaceValueSets[valueSetName] = { kind: 'valueSet', values: Object.keys(variants).sort() };
+    const values = Object.keys(variants).sort();
+    namespaceValueSets[valueSetName] = { kind: 'valueSet', values };
     storageValueSetsByNs[namespaceId] = namespaceValueSets;
+    const render = checkRendererFor(table);
+    const derivedChecks =
+      render === undefined
+        ? []
+        : lowerRenderedChecks(
+            model.tableName,
+            render({
+              tableName: model.tableName,
+              columnName,
+              many: false,
+              memberValues: values,
+              valueObjectField: undefined,
+            }),
+          );
     const namespaceTables = tablesByNamespace[namespaceId] ?? {};
     namespaceTables[model.tableName] = {
       ...table,
+      ...(derivedChecks.length > 0
+        ? {
+            checks: inCanonicalOrder([
+              ...(table.checks ?? []).map((check) => CheckConstraint.from(check)),
+              ...derivedChecks,
+            ]),
+          }
+        : {}),
       columns: {
         ...table.columns,
         [columnName]: {
@@ -308,11 +360,18 @@ export function buildSqlContractFromDefinition(
   // producer's) and flush once, threshold-batched by code.
   const authoringWarnings: AuthoringWarning[] = [...(definition.warnings ?? [])];
   const collectedColumnEntities: CollectedColumnEntities = {};
+  const valueObjects = storageValueObjects(definition, defaultNamespaceId);
+  const renderCheckExpressions = resolveCheckExpressionRenderer(definition.target);
   const tableLoweringContext: TableLoweringContext = {
     lookups,
     defaultNamespaceId,
     qualifyColumnType,
-    renderCheckExpressions: resolveCheckExpressionRenderer(definition.target),
+    renderCheckExpressions,
+    valueObjectStorage: valueObjectStorageOf(
+      defaultNamespaceId,
+      valueObjects,
+      storageValueSetsByNs,
+    ),
     collectedColumnEntities,
     defaultControlPolicy: definition.defaultControlPolicy,
     indexTypeRegistry,
@@ -327,8 +386,12 @@ export function buildSqlContractFromDefinition(
     namespaceTables[table.tableName] = lowerTable(table, tableLoweringContext);
     tablesByNamespace[table.namespaceId] = namespaceTables;
   }
-  writeDiscriminatorValueSets(definition, tablesByNamespace, storageValueSetsByNs);
-  const valueObjects = storageValueObjects(definition, defaultNamespaceId);
+  writeDiscriminatorValueSets(definition, tablesByNamespace, storageValueSetsByNs, (table) =>
+    renderCheckExpressions !== undefined &&
+    effectiveControlPolicy(table.control, definition.defaultControlPolicy) === 'managed'
+      ? renderCheckExpressions
+      : undefined,
+  );
 
   const executionDefaults: ExecutionMutationDefault[] = components.flatMap(
     (c) => c.domain.executionDefaults,

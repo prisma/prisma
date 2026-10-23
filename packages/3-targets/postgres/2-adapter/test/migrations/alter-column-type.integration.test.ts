@@ -51,6 +51,7 @@ function elementChecks(): CheckConstraint[] {
     columnName: 'tags',
     many: { elementNullable: false },
     memberValues: undefined,
+    valueObjectField: undefined,
   }).map(
     (candidate) =>
       new CheckConstraint({

@@ -97,6 +97,7 @@
     "./family-contract": "./dist/family-contract.mjs",
     "./family-contract/authored-check-naming": "./dist/family-contract__authored-check-naming.mjs",
     "./family-contract/canonicalization-hooks": "./dist/family-contract__canonicalization-hooks.mjs",
+    "./family-contract/check-expressions": "./dist/family-contract__check-expressions.mjs",
     "./family-contract/contract-view": "./dist/family-contract__contract-view.mjs",
     "./family-contract/data-type": "./dist/family-contract__data-type.mjs",
     "./family-contract/data-type-support": "./dist/family-contract__data-type-support.mjs",

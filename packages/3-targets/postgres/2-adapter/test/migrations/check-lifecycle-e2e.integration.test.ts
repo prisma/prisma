@@ -108,6 +108,7 @@ function checksForColumn(
     columnName,
     many: options.many,
     memberValues: options.memberValues,
+    valueObjectField: undefined,
   }).map(
     (candidate) =>
       new CheckConstraint({

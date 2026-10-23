@@ -1,4 +1,4 @@
-import type { ControlPolicy } from '@internal/contract/types';
+import type { ControlPolicy, EntityCoordinate } from '@internal/contract/types';
 import type { EnumTypeHandle } from '@internal/contract-authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type { ForeignKeyAuthoringInput } from '@internal/sql-contract/foreign-key-materialization';
@@ -20,7 +20,14 @@ export interface ColumnDescription {
   readonly default: AuthoredColumnDefault | undefined;
   /** The `enumType()` handle that types the column, which gives it a storage value set and a membership check. */
   readonly enumTypeHandle: EnumTypeHandle | undefined;
+  /** The value object the column holds, and whether the field is a list of them, stored as one JSON array. */
+  readonly valueObject: ColumnValueObject | undefined;
   readonly site: ColumnSite;
+}
+
+export interface ColumnValueObject {
+  readonly reference: EntityCoordinate<'storage', 'valueObject'>;
+  readonly many: false | { readonly elementNullable: boolean };
 }
 
 /** One table, before lowering. It holds every table-level property a model or table node can state, and its foreign keys already name their target tables. */

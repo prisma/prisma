@@ -3,6 +3,7 @@ import { defineConfig } from '@repo/tsdown';
 export default defineConfig({
   entry: [
     'src/exports/authored-check-naming.ts',
+    'src/exports/check-expressions.ts',
     'src/exports/contract-view.ts',
     'src/exports/data-type.ts',
     'src/exports/data-type-support.ts',
