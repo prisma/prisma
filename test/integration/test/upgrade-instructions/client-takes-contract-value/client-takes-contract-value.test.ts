@@ -92,7 +92,7 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
     expect(run(fixtureTree('shapes', 'before'), audience)).toEqual({
       status: 0,
       stdout:
-        moved(['src/comment.ts', 'src/default-as.ts']) +
+        moved(['src/accessor.ts', 'src/comment.ts', 'src/default-as.ts']) +
         notExported('src/default-export.ts') +
         notExported('src/default-reexport.ts') +
         moved(['src/members.ts', 'src/nested-object.ts', 'src/value-with-comma.ts']),

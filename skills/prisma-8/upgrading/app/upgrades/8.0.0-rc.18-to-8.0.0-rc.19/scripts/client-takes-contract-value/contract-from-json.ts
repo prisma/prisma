@@ -153,7 +153,10 @@ function isReference(ts: typeof TS, identifier: TS.Identifier): boolean {
   return !(
     ((ts.isPropertyAccessExpression(parent) || ts.isQualifiedName(parent)) &&
       parent.name === identifier) ||
-    ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent)) &&
+    ((ts.isPropertyAssignment(parent) ||
+      ts.isMethodDeclaration(parent) ||
+      ts.isGetAccessorDeclaration(parent) ||
+      ts.isSetAccessorDeclaration(parent)) &&
       parent.name === identifier)
   );
 }

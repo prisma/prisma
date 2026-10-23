@@ -89,6 +89,11 @@
         }
       }
     },
+    // An after tree records the upgrade script's output exactly as it writes it.
+    {
+      "includes": ["**/upgrade-instructions/client-takes-contract-value/fixtures/*/after/**"],
+      "formatter": { "enabled": false }
+    },
     // An upgrade script keeps the import order of each migration.ts it rewrites.
     {
       "includes": ["**/upgrade-instructions/*/fixtures/**/migration.ts"],
