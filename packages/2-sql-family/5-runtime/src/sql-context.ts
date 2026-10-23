@@ -12,17 +12,16 @@ import {
   checkContractComponentRequirements,
   mergeCapabilityMatrices,
 } from '@internal/framework-components/components';
-import {
-  createExecutionStack,
-  type ExecutionStack,
-  type RuntimeAdapterDescriptor,
-  type RuntimeAdapterInstance,
-  type RuntimeDriverDescriptor,
-  type RuntimeDriverInstance,
-  type RuntimeExtensionDescriptor,
-  type RuntimeExtensionInstance,
-  type RuntimeTargetDescriptor,
-  type RuntimeTargetInstance,
+import type {
+  ExecutionStack,
+  RuntimeAdapterDescriptor,
+  RuntimeAdapterInstance,
+  RuntimeDriverDescriptor,
+  RuntimeDriverInstance,
+  RuntimeExtensionDescriptor,
+  RuntimeExtensionInstance,
+  RuntimeTargetDescriptor,
+  RuntimeTargetInstance,
 } from '@internal/framework-components/execution';
 import {
   applyMutationDefaults,
@@ -121,9 +120,12 @@ export type SqlExecutionStackWithDriver<TTargetId extends string = string> = Omi
 > & {
   readonly target: SqlRuntimeTargetDescriptor<TTargetId>;
   readonly adapter: SqlRuntimeAdapterDescriptor<TTargetId, SqlRuntimeAdapterInstance<TTargetId>>;
-  readonly driver:
-    | RuntimeDriverDescriptor<'sql', TTargetId, unknown, SqlRuntimeDriverInstance<TTargetId>>
-    | undefined;
+  readonly driver: RuntimeDriverDescriptor<
+    'sql',
+    TTargetId,
+    unknown,
+    SqlRuntimeDriverInstance<TTargetId>
+  >;
   readonly extensions: readonly SqlRuntimeExtensionDescriptor<TTargetId>[];
 };
 
@@ -145,20 +147,32 @@ export type SqlRuntimeDriverInstance<TTargetId extends string = string> = Runtim
 > &
   SqlDriver<unknown>;
 
-export function createSqlExecutionStack<TTargetId extends string>(options: {
+interface SqlExecutionStackOptions<TTargetId extends string> {
   readonly target: SqlRuntimeTargetDescriptor<TTargetId>;
   readonly adapter: SqlRuntimeAdapterDescriptor<TTargetId>;
-  readonly driver?:
-    | RuntimeDriverDescriptor<'sql', TTargetId, unknown, SqlRuntimeDriverInstance<TTargetId>>
-    | undefined;
   readonly extensions?: readonly SqlRuntimeExtensionDescriptor<TTargetId>[] | undefined;
-}): SqlExecutionStackWithDriver<TTargetId> {
-  return createExecutionStack({
+}
+
+/** Builds the stack a client connects with when given a driver, and the stack that builds the query surface and `toSql` without one. */
+export function createSqlExecutionStack<TTargetId extends string>(
+  options: SqlExecutionStackOptions<TTargetId> & {
+    readonly driver: SqlExecutionStackWithDriver<TTargetId>['driver'];
+  },
+): SqlExecutionStackWithDriver<TTargetId>;
+export function createSqlExecutionStack<TTargetId extends string>(
+  options: SqlExecutionStackOptions<TTargetId>,
+): SqlExecutionStack<TTargetId>;
+export function createSqlExecutionStack<TTargetId extends string>(
+  options: SqlExecutionStackOptions<TTargetId> & {
+    readonly driver?: SqlExecutionStackWithDriver<TTargetId>['driver'];
+  },
+): SqlExecutionStack<TTargetId> | SqlExecutionStackWithDriver<TTargetId> {
+  const stack = {
     target: options.target,
     adapter: options.adapter,
-    driver: options.driver,
-    extensions: options.extensions,
-  });
+    extensions: options.extensions ?? [],
+  };
+  return options.driver === undefined ? stack : { ...stack, driver: options.driver };
 }
 
 export type { ExecutionContext };
