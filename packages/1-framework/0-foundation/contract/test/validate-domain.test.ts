@@ -777,6 +777,21 @@ describe('validateContractDomain()', () => {
       );
     });
 
+    it('refuses a reference by name, the old shape, and says to re-emit', () => {
+      const contract = makeValidContract({
+        roots: { users: crossRef('User') },
+        models: {
+          User: makeMinimalModel({
+            fields: { addr: { nullable: false, type: { kind: 'valueObject', name: 'Address' } } },
+          }),
+        },
+        valueObjects: { Address: address },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        'Model "__unbound__:User" field "addr" refers to value object "Address" by name; contracts no longer do: a field refers to its value object by the coordinate of a storage entity under storage.namespaces.<namespace>.entries.valueObject, so re-emit the contract from its source',
+      );
+    });
+
     it('accepts a value object whose field refers to another value object', () => {
       const contract = makeValidContract({
         roots: { users: crossRef('User') },
