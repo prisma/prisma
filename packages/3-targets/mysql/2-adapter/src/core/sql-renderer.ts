@@ -478,7 +478,7 @@ function renderJsonElementText(projection: AnyJsonValueProjection, ctx: RenderCo
 }
 
 /**
- * `JSON_ARRAYAGG` takes no `ORDER BY`, and MySQL drops a derived table's `ORDER BY` when the outer query aggregates, so an ordered array is built as text with `GROUP_CONCAT`, which keeps its own order, and cast to JSON. The statement raises `group_concat_max_len` past any result a connection can send (see `GROUP_CONCAT_HINT`), so `GROUP_CONCAT` never cuts the text short. Text longer than `max_allowed_packet` makes `CONCAT` return NULL with only a warning, which would read as an empty include; so an empty array is written only when there are no rows, and a NULL text with rows is replaced by text that is not JSON, which fails the cast and the statement. `JSON_ARRAYAGG` fails on its own when its result exceeds a packet. An empty array is `JSON_ARRAY()`, so the column stays JSON and a nested include stays an array.
+ * `JSON_ARRAYAGG` takes no `ORDER BY`, and MySQL drops a derived table's `ORDER BY` when the outer query aggregates, so an ordered array is built as text with `GROUP_CONCAT`, which keeps its own order, and cast to JSON. The statement raises `group_concat_max_len` past any result a connection can send (see `GROUP_CONCAT_HINT`), so `GROUP_CONCAT` never cuts the text short. Text longer than `max_allowed_packet` makes `CONCAT` return NULL with only a warning, which would read as an empty include; so an empty array is written only when there are no rows, and a NULL text with rows is replaced by text that is not JSON, which fails the cast and the statement with MySQL's invalid-JSON error. `JSON_ARRAYAGG` fails on its own when its result exceeds a packet. An empty array is `JSON_ARRAY()`, so the column stays JSON and a nested include stays an array.
  */
 function renderJsonArrayAgg(expr: JsonArrayAggExpr, ctx: RenderContext): string {
   if (expr.orderBy === undefined) {
@@ -491,7 +491,7 @@ function renderJsonArrayAgg(expr: JsonArrayAggExpr, ctx: RenderContext): string 
   return `CASE WHEN COUNT(*) = 0 THEN ${empty} ELSE CAST(COALESCE(${text}, ${OVERSIZED_ARRAY_TEXT}) AS JSON) END`;
 }
 
-/** Text that is not JSON, written in place of an array MySQL could not build because it is larger than a packet. It counts the rows, so MySQL evaluates it only when it is reached. */
+/** Text that is not JSON, written in place of an array MySQL could not build because it is larger than a packet, so the cast fails. MySQL's error does not show this text: the user sees `Invalid JSON text in argument 1 to function cast_as_json`, which names neither the include nor the packet size. The text counts the rows only so that MySQL evaluates it when it is reached, not while preparing the statement. */
 const OVERSIZED_ARRAY_TEXT = "CONCAT('array larger than max_allowed_packet: ', COUNT(*), ' rows')";
 
 const ORDER_DIRECTION: Readonly<Record<OrderByItem['dir'], string>> = { asc: 'ASC', desc: 'DESC' };
