@@ -16,6 +16,7 @@ import {
 import { defaultForeignKeyName, defaultPrimaryKeyName } from './default-constraint-names';
 import { postgresTargetDescriptorMeta } from './descriptor-meta';
 import { postgresCreateNamespace } from './postgres-schema';
+import { postgresYearText } from './postgres-year-text';
 import { prisma7TemporalStored, prisma7TemporalTagBody } from './prisma7-temporal-defaults';
 import { prisma7PostgresTypeMap } from './prisma7-type-map';
 import { junctionRelationFieldNames } from './psl-infer/junction-relation-field-names';
@@ -61,11 +62,7 @@ function writtenTypeName(
   return renderSqlTypeName(type, typeParams ?? {});
 }
 
-function quotedLiteral(value: JsonValue): string {
-  return value === null ? 'NULL' : `'${escapeLiteral(String(value))}'`;
-}
-
-/** A default's SQL: a quoted literal cast to the column type, or for a list an array of them cast to an array of it. */
+/** A default's SQL: a quoted literal cast to the column type, or for a list an array of them cast to an array of it. A date or time is written with the year text PostgreSQL reads. */
 function refusedLiteralDefault(
   stored: JsonValue,
   column: {
@@ -74,9 +71,13 @@ function refusedLiteralDefault(
   },
 ): string {
   const typeName = writtenTypeName(column.dataType, column.typeParams);
+  const text = (value: string) =>
+    DATE_TIME_TYPES.has(column.dataType) ? postgresYearText(value) : value;
+  const quoted = (value: JsonValue) =>
+    value === null ? 'NULL' : `'${escapeLiteral(text(String(value)))}'`;
   return Array.isArray(stored)
-    ? `ARRAY[${stored.map(quotedLiteral).join(', ')}]::${typeName}[]`
-    : `${quotedLiteral(stored)}::${typeName}`;
+    ? `ARRAY[${stored.map(quoted).join(', ')}]::${typeName}[]`
+    : `${quoted(stored)}::${typeName}`;
 }
 
 /**

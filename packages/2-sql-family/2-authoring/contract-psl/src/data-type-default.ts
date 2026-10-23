@@ -325,7 +325,19 @@ export function readDataTypeDefault(input: {
         elements.push(element.refusal.stored);
         continue;
       }
-      if (!element.ok) return element;
+      if (!element.ok) {
+        return codecRefusal === undefined
+          ? element
+          : refused(
+              {
+                kind: 'refused-by-column',
+                codecId: codecRefusal.codecId,
+                message: codecRefusal.message,
+                elementIndex: codecRefusal.elementIndex,
+              },
+              suggestedTypes,
+            );
+      }
       elements.push(element.value);
     }
     return codecRefusal === undefined

@@ -39,6 +39,19 @@ describe('a default with digits below a millisecond on a field read as a Date', 
     });
   });
 
+  it('in a list, is reported at that element, though a later element is refused too', async () => {
+    const authored = await authorSqlContractFromPsl(`model Event {
+  id Int                      @id
+  at DateTime(precision: 6)[] @default([timestamptz\`2024-01-01T01:00:00.123Z\`, timestamptz\`${MICROSECONDS}\`, "soon"])
+}`);
+    expect(authored.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_INVALID_DEFAULT_LITERAL',
+        message: expect.stringMatching(/^Field "Event\.at" at element 2: .*TimestamptzString/),
+      }),
+    ]);
+  });
+
   it('is accepted at a millisecond', async () => {
     const authored = await authorSqlContractFromPsl(`model Event {
   id Int                    @id

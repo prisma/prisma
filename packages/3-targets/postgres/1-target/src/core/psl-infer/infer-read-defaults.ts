@@ -13,6 +13,7 @@ import type { ColumnTypeOf } from '@internal/family-sql/psl-build';
 import { type Codec, codecForRef } from '@internal/framework-components/codec';
 import type { SqlColumnIR, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { isInternalError } from '@internal/utils/internal-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import {
   pgJson,
   pgJsonb,
@@ -123,8 +124,18 @@ function readsEveryDigit(
   const value = read.kind === 'literal' ? read.value : undefined;
   const values = literal.kind === 'value' ? [value] : Array.isArray(value) ? value : [];
   return bodiesOf(literal).every(
-    (body, index) => typeof body !== 'string' || storedText(body) === values[index],
+    (body, index) => typeof body !== 'string' || storedTextOf(storedText, body) === values[index],
   );
+}
+
+/** The value the column holds for `body`, or `undefined` when its type does not read it. */
+function storedTextOf(storedText: (text: string) => string, body: string): string | undefined {
+  try {
+    return storedText(body);
+  } catch (error) {
+    if (isStructuredError(error)) return undefined;
+    throw error;
+  }
 }
 
 const JSON_TYPES: ReadonlySet<string> = new Set([pgJson.id, pgJsonb.id]);

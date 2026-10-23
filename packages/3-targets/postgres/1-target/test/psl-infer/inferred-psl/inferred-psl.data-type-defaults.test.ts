@@ -1,9 +1,12 @@
 import { inferredTypeConstructors } from '@internal/family-sql/psl-build';
+import type { Codec } from '@internal/framework-components/codec';
 import { type SqlColumnIRInput, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
+import { pgTimestamp } from '../../../src/core/data-types';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
+import { readDefaultWithCodec } from '../../../src/core/psl-infer/infer-read-defaults';
 import { inferBuildContext, printPslFromFlat } from '../fixtures';
 
 /** The backtick fencing a tagged literal, as an escape so no quoted string in this file holds one. */
@@ -183,6 +186,23 @@ describe('printPsl writes each default as the literal the column data type takes
       milli:
         '@default([timestamptz`2024-01-01T01:00:00.123Z`, timestamptz`2024-01-01T01:00:00.5Z`])',
     });
+  });
+
+  it('prints the raw expression when the column type does not read a body its codec read', async () => {
+    const codec = {
+      id: 'test/lenient-timestamp@1',
+      dataType: pgTimestamp,
+      fromWire: async () => new Date('2024-01-01T00:00:00Z'),
+      toDataTypeValue: () => pgTimestamp.valueFrom('2024-01-01T00:00:00', {}),
+      fromDataTypeValue: () => new Date('2024-01-01T00:00:00Z'),
+      toWire: async () => '',
+    } as unknown as Codec;
+    expect(await readDefaultWithCodec("'soon'::timestamp without time zone", false, codec)).toEqual(
+      {
+        kind: 'function',
+        expression: "'soon'::timestamp without time zone",
+      },
+    );
   });
 
   it('prints a timestamp default written with an offset as the instant, when a Date holds it', async () => {
