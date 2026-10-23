@@ -154,6 +154,19 @@ describe('findAuthoringTypeChoiceCall', () => {
     });
   });
 
+  it('passes over a type choice that names the constructor but cannot reproduce the call', () => {
+    const fixed = {
+      kind: 'typeChoice',
+      args: [{ kind: 'option', name: 'value', values: ['date'], default: 'date', optional: true }],
+      choices: [{ when: { value: 'date' }, type: 'WideDate', defaults: { precision: 6 } }],
+    } as const;
+    expect(find(['WideDate'], [3], { ...constructors, Fixed: fixed, Moment: moment })).toEqual({
+      path: ['Moment'],
+      args: [],
+      becomes: { path: ['WideDate'], args: [3] },
+    });
+  });
+
   it('writes a type choice of the same sub-namespace as the constructor', () => {
     expect(find(['pg', 'NarrowDate'], [], { pg: namespace })).toEqual({
       path: ['pg', 'Moment'],

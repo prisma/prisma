@@ -45,22 +45,21 @@ function namespaceLevel(
   return level;
 }
 
-function firstChoiceNaming(
+interface ChoiceNaming {
+  readonly name: string;
+  readonly descriptor: AuthoringTypeChoiceDescriptor;
+  readonly when: Readonly<Record<string, string>>;
+}
+
+function choicesNaming(
   level: AuthoringTypeNamespace,
   constructorName: string,
-):
-  | {
-      readonly name: string;
-      readonly descriptor: AuthoringTypeChoiceDescriptor;
-      readonly when: Readonly<Record<string, string>>;
-    }
-  | undefined {
-  for (const [name, member] of Object.entries(level)) {
-    if (!isAuthoringTypeChoiceDescriptor(member)) continue;
+): readonly ChoiceNaming[] {
+  return Object.entries(level).flatMap(([name, member]) => {
+    if (!isAuthoringTypeChoiceDescriptor(member)) return [];
     const row = member.choices.find((candidate) => candidate.type === constructorName);
-    if (row !== undefined) return { name, descriptor: member, when: row.when };
-  }
-  return undefined;
+    return row === undefined ? [] : [{ name, descriptor: member, when: row.when }];
+  });
 }
 
 function outputOf(produce: () => AuthoringTypeConstructorOutput) {
@@ -73,7 +72,7 @@ function outputOf(produce: () => AuthoringTypeConstructorOutput) {
 }
 
 /**
- * The call to a type choice that becomes the type constructor call `call`: the first type choice, in namespace order at the constructor's level, with a row naming the constructor. Its options come from that row and its passed-on arguments from the call, and every argument whose omission still gives the same output is left out. `sameOutput` decides what counts as the same output; by default the codec and type parameters must be exactly equal. `undefined` when no type choice names the constructor or no call to it gives the same output.
+ * The call to a type choice that becomes the type constructor call `call`: of the type choices at the constructor's level with a row naming the constructor, the first in namespace order whose call gives the same output. Its options come from that row and its passed-on arguments from the call, and every argument whose omission still gives the same output is left out. `sameOutput` decides what counts as the same output; by default the codec and type parameters must be exactly equal. `undefined` when no type choice names the constructor or no call to one gives the same output.
  */
 export function findAuthoringTypeChoiceCall(input: {
   readonly namespace: AuthoringTypeNamespace;
@@ -90,20 +89,42 @@ export function findAuthoringTypeChoiceCall(input: {
   const level = namespaceLevel(input.namespace, prefix);
   if (level === undefined || constructorName === undefined) return undefined;
   const explicit = typeConstructorLookup(level)(constructorName);
-  const choice = explicit && firstChoiceNaming(level, constructorName);
   const wanted =
     explicit && outputOf(() => instantiateAuthoringTypeConstructor(explicit, call.args));
-  if (explicit === undefined || choice === undefined || wanted === undefined) return undefined;
+  if (explicit === undefined || wanted === undefined) return undefined;
 
   const passedValue = (name: string) =>
     call.args[(explicit.args ?? []).findIndex((parameter) => parameter.name === name)];
+  for (const choice of choicesNaming(level, constructorName)) {
+    const found = choiceCallReproducing({
+      level,
+      prefix,
+      choice,
+      passedValue,
+      reproduces: (produced) => sameOutput(produced, wanted),
+    });
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function choiceCallReproducing(input: {
+  readonly level: AuthoringTypeNamespace;
+  readonly prefix: readonly string[];
+  readonly choice: ChoiceNaming;
+  readonly passedValue: (name: string) => unknown;
+  readonly reproduces: (produced: AuthoringTypeConstructorOutput) => boolean;
+}): AuthoringTypeChoiceCall | undefined {
+  const { level, prefix, choice } = input;
   const reproduces = (args: readonly unknown[]) => {
     const produced = outputOf(() => instantiateAuthoringTypeCall(level, choice.name, args));
-    return produced !== undefined && sameOutput(produced, wanted);
+    return produced !== undefined && input.reproduces(produced);
   };
 
   const args: unknown[] = choice.descriptor.args.map((argument) =>
-    isAuthoringTypeChoiceOption(argument) ? choice.when[argument.name] : passedValue(argument.name),
+    isAuthoringTypeChoiceOption(argument)
+      ? choice.when[argument.name]
+      : input.passedValue(argument.name),
   );
   if (!reproduces(args)) return undefined;
   for (const index of args.keys()) {
