@@ -1126,7 +1126,7 @@ A contract value is validated once, however many clients are built from it. A co
 
 ### Run the script
 
-Run `node <guide>/scripts/client-takes-contract-value/contract-from-json.ts <project root>`. The script reads source files with the TypeScript compiler from the project's `typescript` package; if the project has none, it changes nothing, says so and exits 1. In each source file that passes `contractJson` to a client, static entry or `mongoQuery`, it:
+Run `node <guide>/scripts/client-takes-contract-value/contract-from-json.ts <project root>`. The script reads source files with the TypeScript compiler from the project's `typescript` package; if the project has none, it changes nothing, says so and exits 1. It skips `node_modules`, `dist`, `build` and every directory whose name starts with a dot, such as `.git`, `.agents` or `.claude`; move a client in such a directory by hand. In each source file that passes `contractJson` to a client, static entry or `mongoQuery`, it:
 
 - adds `import { contractFromJson } from '<facade>/static';`, or adds `contractFromJson` to an existing import of that entry, in the file's quote, semicolon and line-ending style;
 - declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports. In a module with a default export, such as a Worker entry, it declares `const contract` without `export` and prints a note: a Worker treats every named export of its entry module as an entrypoint, so a module that needs the value gets it from a separate module (see step 2 below);

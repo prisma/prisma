@@ -12,7 +12,8 @@
 // each file that passes `contractJson` to a client but that it did not move: a test file, a file
 // that already has a binding named `contract`, a file whose clients use different contracts, or
 // a call it cannot read. It exits 1 when it printed such a file, and changes nothing and exits 1
-// when TypeScript is not installed.
+// when TypeScript is not installed. It skips node_modules, dist, build and every directory whose
+// name starts with a dot, such as .git, .agents or .claude.
 
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -22,7 +23,7 @@ import type * as TS from 'typescript';
 const SOURCE_FILE = /\.(?:ts|tsx|mts|cts)$/;
 const TEST_FILE = /\.(?:test|spec)(?:-d)?\.[cm]?tsx?$/;
 const TEST_DIRECTORIES = new Set(['test', 'tests', '__tests__']);
-const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', '.git', '.next', '.turbo']);
+const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build']);
 const FACADE_ENTRY =
   /^@prisma\/orm-(postgres|sqlite|mongo)\/(?:runtime|serverless|static|query-builder)$/;
 const SUPABASE_ENTRY = '@prisma/orm-extension-supabase/runtime';
@@ -116,21 +117,28 @@ function bindingNames(ts: typeof TS, name: TS.BindingName): string[] {
   );
 }
 
-function bindsAnywhere(ts: typeof TS, node: TS.Node, wanted: string): boolean {
-  if (
-    (ts.isVariableDeclaration(node) || ts.isParameter(node)) &&
-    bindingNames(ts, node.name).includes(wanted)
-  )
-    return true;
-  if (
-    (ts.isFunctionDeclaration(node) ||
+function bindingOf(ts: typeof TS, node: TS.Node, wanted: string): TS.Node | undefined {
+  const named =
+    ((ts.isVariableDeclaration(node) || ts.isParameter(node)) &&
+      bindingNames(ts, node.name).includes(wanted)) ||
+    ((ts.isFunctionDeclaration(node) ||
       ts.isFunctionExpression(node) ||
       ts.isClassDeclaration(node) ||
-      ts.isClassExpression(node)) &&
-    node.name?.text === wanted
-  )
-    return true;
-  return ts.forEachChild(node, (child) => bindsAnywhere(ts, child, wanted) || undefined) ?? false;
+      ts.isClassExpression(node) ||
+      ts.isEnumDeclaration(node) ||
+      ts.isModuleDeclaration(node) ||
+      ts.isImportEqualsDeclaration(node)) &&
+      node.name !== undefined &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === wanted) ||
+    ((ts.isExportSpecifier(node) ||
+      ts.isNamespaceExport(node) ||
+      ts.isImportSpecifier(node) ||
+      ts.isNamespaceImport(node)) &&
+      node.name.text === wanted) ||
+    (ts.isImportClause(node) && node.name?.text === wanted);
+  if (named) return node;
+  return ts.forEachChild(node, (child) => bindingOf(ts, child, wanted));
 }
 
 function identifiersIn(ts: typeof TS, node: TS.Node): string[] {
@@ -273,11 +281,12 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
     };
   }
   const names = topLevelNames(ts, sourceFile);
-  if (names.imported.has('contract') || bindsAnywhere(ts, sourceFile, 'contract')) {
+  const binding = bindingOf(ts, sourceFile, 'contract');
+  if (binding !== undefined) {
+    const line = sourceFile.getLineAndCharacterOfPosition(binding.getStart(sourceFile)).line + 1;
     return {
       kind: 'refused',
-      reason:
-        'it already has a binding named contract; rename that binding and run the script again',
+      reason: `it already has a binding named contract (line ${line}); rename that binding and run the script again`,
     };
   }
   const local = first.jsonNames.find((name) => names.declared.has(name));
@@ -342,10 +351,11 @@ function isTestPath(path: string): boolean {
 function sourceFiles(directory: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(directory)) {
-    if (SKIPPED_DIRECTORIES.has(entry) || entry.startsWith('.')) continue;
     const path = join(directory, entry);
-    if (statSync(path).isDirectory()) files.push(...sourceFiles(path));
-    else if (SOURCE_FILE.test(entry) && !entry.endsWith('.d.ts')) files.push(path);
+    if (statSync(path).isDirectory()) {
+      if (!SKIPPED_DIRECTORIES.has(entry) && !entry.startsWith('.'))
+        files.push(...sourceFiles(path));
+    } else if (SOURCE_FILE.test(entry) && !entry.endsWith('.d.ts')) files.push(path);
   }
   return files;
 }

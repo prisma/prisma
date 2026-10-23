@@ -95,7 +95,7 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
         moved(['src/comment.ts', 'src/default-as.ts']) +
         notExported('src/default-export.ts') +
         notExported('src/default-reexport.ts') +
-        moved(['src/nested-object.ts', 'src/value-with-comma.ts']),
+        moved(['src/members.ts', 'src/nested-object.ts', 'src/value-with-comma.ts']),
       stderr: '',
       tree: fixtureTree('shapes', 'after'),
     });
@@ -126,10 +126,15 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
       status: 1,
       stdout: '',
       stderr: [
-        'src/binding.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
-        'src/destructured.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
-        'src/inner-binding.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
-        'src/json-named-contract.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
+        'src/array-hole.ts: not moved, because it already has a binding named contract (line 6); rename that binding and run the script again',
+        'src/binding.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
+        'src/destructured.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
+        'src/enum.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
+        'src/import-equals.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
+        'src/inner-binding.ts: not moved, because it already has a binding named contract (line 6); rename that binding and run the script again',
+        'src/json-named-contract.ts: not moved, because it already has a binding named contract (line 3); rename that binding and run the script again',
+        'src/parameter.ts: not moved, because it already has a binding named contract (line 7); rename that binding and run the script again',
+        'src/reexport.ts: not moved, because it already has a binding named contract (line 5); rename that binding and run the script again',
         'src/two-contracts.ts: not moved, because its clients use different contracts; give each its own contractFromJson value',
         'src/unreadable.ts: not moved, because it passes contractJson to a client in a form the script cannot read',
         'src/value-uses-local.ts: not moved, because its contractJson value uses contractPath, which the file declares after its imports; declare the contract value after contractPath by hand',
