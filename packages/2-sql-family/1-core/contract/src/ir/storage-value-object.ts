@@ -1,10 +1,10 @@
-import type { ContractField } from '@internal/contract/types';
+import type { ContractValueObjectField } from '@internal/contract/types';
 import { freezeNode } from '@internal/framework-components/ir';
 import { SqlNode } from './sql-node';
 
 /** Hydration / construction input shape for {@link StorageValueObject}; mirrors the stored JSON. */
 export interface StorageValueObjectInput {
-  readonly fields: Readonly<Record<string, ContractField>>;
+  readonly fields: Readonly<Record<string, ContractValueObjectField>>;
 }
 
 /**
@@ -13,7 +13,7 @@ export interface StorageValueObjectInput {
  * The entry's name is not on the class: value objects are keyed by name in the parent namespace's `valueObject` map.
  */
 export class StorageValueObject extends SqlNode {
-  readonly fields: Readonly<Record<string, ContractField>>;
+  readonly fields: Readonly<Record<string, ContractValueObjectField>>;
 
   constructor(input: StorageValueObjectInput) {
     super();

@@ -32,6 +32,7 @@ export type {
   ContractToManyRelation,
   ContractToOneRelation,
   ContractValueObject,
+  ContractValueObjectField,
   EmbedRelationKeys,
   ModelStorageBase,
   ReferenceRelationKeys,

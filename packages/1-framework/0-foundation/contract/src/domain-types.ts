@@ -93,8 +93,15 @@ export type ContractDiscriminator = {
   readonly field: string;
 };
 
+/**
+ * A field of a value object, which is a storage entity (ADR 278). Storage never refers to the domain plane, so a member an enum types refers to the enum's storage value set.
+ */
+export interface ContractValueObjectField extends Omit<ContractField, 'valueSet'> {
+  readonly valueSet?: EntityCoordinate<'storage', 'valueSet'> & { readonly spaceId?: string };
+}
+
 export type ContractValueObject = {
-  readonly fields: Record<string, ContractField>;
+  readonly fields: Record<string, ContractValueObjectField>;
 };
 
 export type ModelStorageBase = Readonly<Record<string, unknown>>;

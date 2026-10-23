@@ -1,9 +1,9 @@
-import type { ContractField } from '@internal/contract/types';
+import type { ContractValueObjectField } from '@internal/contract/types';
 import { freezeNode, IRNodeBase } from '@internal/framework-components/ir';
 
 /** Hydration / construction input shape for {@link MongoValueObject}; mirrors the stored JSON. */
 export interface MongoValueObjectInput {
-  readonly fields: Readonly<Record<string, ContractField>>;
+  readonly fields: Readonly<Record<string, ContractValueObjectField>>;
 }
 
 /**
@@ -11,7 +11,7 @@ export interface MongoValueObjectInput {
  */
 export class MongoValueObject extends IRNodeBase {
   declare readonly kind: 'mongo-value-object';
-  readonly fields: Readonly<Record<string, ContractField>>;
+  readonly fields: Readonly<Record<string, ContractValueObjectField>>;
 
   constructor(input: MongoValueObjectInput) {
     super();

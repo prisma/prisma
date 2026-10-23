@@ -160,18 +160,6 @@ describe('mongoContractRefusalsOf', () => {
     ).toEqual([]);
   });
 
-  it('refuses an enum a validator cannot list, used in a value object of a validated collection', () => {
-    expect(
-      refusals({
-        enums: { Big: unlistableEnums.Big },
-        valueObjects: { Sizing: { fields: { size: enumField('mongo/int64@1', 'Big') } } },
-        models: {
-          Job: model({ sizing: voField('Sizing') }, { storage: { collection: 'jobs' } }),
-        },
-      }),
-    ).toEqual([expect.objectContaining({ kind: 'enumNotListable', enumName: 'Big' })]);
-  });
-
   it('refuses an enum a validator cannot list, used by a value object member through its storage value set', () => {
     expect(
       refusals({

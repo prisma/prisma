@@ -4,9 +4,9 @@ import {
   type ContractModel,
   type ContractReferenceRelation,
   type ContractValueObject,
+  type ContractValueObjectField,
   type CrossReference,
   crossRef,
-  type ValueSetRef,
 } from '@internal/contract/types';
 import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import { type MongoModelStorage, unsupportedStoredNameReason } from '@internal/mongo-contract';
@@ -38,39 +38,59 @@ export function storedFieldNameIn(fields: readonly FieldNode[], fieldName: strin
   return field === undefined ? fieldName : storedNameOf(field);
 }
 
-/**
- * A field as the contract holds it. A model field refers to its enum in the domain plane; a value object member is a storage entity's field, and storage never refers to the domain, so it refers to the enum's storage value set.
- */
-function buildContractField(
-  field: FieldNode,
-  namespaceId: string,
-  plane: 'domain' | 'storage',
-): ContractField {
-  const valueSet: ValueSetRef | undefined =
-    field.enumName === undefined
-      ? undefined
-      : {
-          plane,
-          entityKind: plane === 'domain' ? 'enum' : 'valueSet',
-          namespaceId,
-          entityName: field.enumName,
-        };
-
-  return {
-    type: field.type,
-    nullable: field.nullable,
-    many: field.many,
-    ...ifDefined('valueSet', valueSet),
-  };
+function fieldWithoutValueSet(field: FieldNode): Omit<ContractField, 'valueSet'> {
+  return { type: field.type, nullable: field.nullable, many: field.many };
 }
 
+/** A model's fields. A field an enum types refers to the domain enum. */
 function buildFields(
   fields: readonly FieldNode[],
   namespaceId: string,
-  plane: 'domain' | 'storage' = 'domain',
 ): Record<string, ContractField> {
   return Object.fromEntries(
-    fields.map((field) => [field.fieldName, buildContractField(field, namespaceId, plane)]),
+    fields.map((field) => [
+      field.fieldName,
+      {
+        ...fieldWithoutValueSet(field),
+        ...ifDefined(
+          'valueSet',
+          field.enumName === undefined
+            ? undefined
+            : ({
+                plane: 'domain',
+                entityKind: 'enum',
+                namespaceId,
+                entityName: field.enumName,
+              } as const),
+        ),
+      },
+    ]),
+  );
+}
+
+/** A value object's members. A value object is a storage entity, and storage never refers to the domain plane, so a member an enum types refers to the enum's storage value set. */
+function buildValueObjectMembers(
+  fields: readonly FieldNode[],
+  namespaceId: string,
+): Record<string, ContractValueObjectField> {
+  return Object.fromEntries(
+    fields.map((field) => [
+      field.fieldName,
+      {
+        ...fieldWithoutValueSet(field),
+        ...ifDefined(
+          'valueSet',
+          field.enumName === undefined
+            ? undefined
+            : ({
+                plane: 'storage',
+                entityKind: 'valueSet',
+                namespaceId,
+                entityName: field.enumName,
+              } as const),
+        ),
+      },
+    ]),
   );
 }
 
@@ -179,7 +199,7 @@ export function buildValueObjects(
       }
     }
     builtValueObjects[valueObject.name] = {
-      fields: buildFields(valueObject.fields, namespaceId, 'storage'),
+      fields: buildValueObjectMembers(valueObject.fields, namespaceId),
     };
   }
 
