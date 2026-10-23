@@ -330,7 +330,7 @@ describe('value objects', () => {
     );
   });
 
-  it('refuses a value-object member whose value set no enum derives', () => {
+  it('refuses a value set no enum derives, in the namespace that holds it', () => {
     expect(
       printing(
         withCountryMembers(
@@ -339,6 +339,16 @@ describe('value objects', () => {
         ),
       ),
     ).toThrow(refusal({ namespaceId: 'public', name: 'Label' }));
+  });
+
+  it('refuses a value-object member whose value set is not the one the enum of its name derives', () => {
+    expect(
+      printing(
+        withCountryMembers({
+          country: { ...TEXT_FIELD, valueSet: { ...countryValueSet, spaceId: 'other' } },
+        }),
+      ),
+    ).toThrow(refusal({ coordinate: '"public".Address.country' }));
   });
 
   it('refuses a value-object member typed by a domain enum that also has type parameters', () => {
