@@ -32,11 +32,7 @@ import type {
   LoweredStatement,
   SelectAst,
 } from '@internal/sql-relational-core/ast';
-import {
-  RawQueryAst,
-  SelectAst as SelectAstCtor,
-  TableSource,
-} from '@internal/sql-relational-core/ast';
+import { SelectAst as SelectAstCtor, TableSource } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -500,7 +496,7 @@ export function createStubAdapter(): StubAdapter {
           ? ({ kind: 'bind' as const, name: ref.name } as const)
           : ({ kind: 'literal' as const, value: ref.value } as const),
       );
-      return Object.freeze({ containsRawSql: ast instanceof RawQueryAst, sql: sqlText, params });
+      return Object.freeze({ sql: sqlText, params });
     },
   };
 }

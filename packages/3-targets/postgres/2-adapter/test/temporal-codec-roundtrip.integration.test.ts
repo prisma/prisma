@@ -160,7 +160,7 @@ describe('Temporal codecs round-trip through PostgreSQL', () => {
     session = driver;
     runtime = createTestRuntime({ stackInstance, context, driver, verifyMarker: false });
 
-    await driver.execute({ containsRawSql: false, sql: "SET TimeZone TO 'UTC'" });
+    await driver.execute({ containsRawSql: true, sql: "SET TimeZone TO 'UTC'" });
     await driver.execute({
       containsRawSql: false,
       sql: `CREATE TABLE "Moments" (
@@ -253,7 +253,7 @@ describe('Temporal codecs round-trip through PostgreSQL', () => {
     const zones = ['Asia/Tokyo', 'Asia/Kolkata', 'Pacific/Chatham', 'UTC'];
     const read1 = [];
     for (const zone of zones) {
-      await session!.execute({ containsRawSql: false, sql: `SET TimeZone TO '${zone}'` });
+      await session!.execute({ containsRawSql: true, sql: `SET TimeZone TO '${zone}'` });
       read1.push((await read(1)).tstz.toString());
     }
 
@@ -309,14 +309,14 @@ describe('Temporal codecs round-trip through PostgreSQL', () => {
   it('rejects a non-ISO DateStyle rendering rather than guessing at it', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
-    await session!.execute({ containsRawSql: false, sql: "SET DateStyle TO 'German, DMY'" });
+    await session!.execute({ containsRawSql: true, sql: "SET DateStyle TO 'German, DMY'" });
     try {
       await expect(readRaw(1)).rejects.toMatchObject({
         code: 'RUNTIME.DECODE_FAILED',
         meta: { value: '02.01.2026', stringType: 'DateString' },
       });
     } finally {
-      await session!.execute({ containsRawSql: false, sql: "SET DateStyle TO 'ISO, MDY'" });
+      await session!.execute({ containsRawSql: true, sql: "SET DateStyle TO 'ISO, MDY'" });
     }
   });
 

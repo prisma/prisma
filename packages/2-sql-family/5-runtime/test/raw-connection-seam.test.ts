@@ -369,7 +369,7 @@ describe('acquireRawConnection', () => {
     const raw = await runtime.acquireRawConn();
 
     for await (const row of raw.query({
-      containsRawSql: false,
+      containsRawSql: true,
       sql: 'SET LOCAL role = $1',
       params: ['viewer'],
     })) {
