@@ -215,11 +215,11 @@ Handles the translation between JavaScript values and database values. When you 
 
 ### Convenience type
 
-A PSL type named for what a field means in the application, such as `DateTime`, `Date`, `Time` or `Duration`, that becomes exactly one explicit type. Optional arguments choose which, with defaults. The contract stores only the explicit type. See ADR 279.
+A type, in PSL or the TypeScript builder (`type.DateTime(...)`), named for what a field means in the application, such as `DateTime`, `Date`, `Time` or `Duration`, that becomes exactly one explicit type. Optional arguments choose which, with defaults. The contract stores only the explicit type. See ADR 279.
 
 ### Explicit type
 
-A PSL type that fixes one codec, so it fixes both the column type and the value the application reads. It is named after the database, with a suffix for the kind of value when a column type has several codecs: `TimestamptzTemporal`, `TimestamptzJsDate`, `DateString`. See ADR 257 and ADR 279.
+A type, in PSL or the TypeScript builder, that fixes one codec, so it fixes both the column type and the value the application reads. It is named after the database, with a suffix for the kind of value when a column type has several codecs: `TimestamptzTemporal`, `TimestamptzJsDate`, `DateString`. See ADR 257 and ADR 279.
 
 ### Marker
 
