@@ -90,12 +90,20 @@ export function renderMysqlSql(
   });
   const ctx: RenderContext = { contract, codecs, placeholderNumbers, uses: { groupConcat: false } };
   const rendered = renderStatement(ast, ctx);
-  const sql =
-    ast.kind === 'select' && ctx.uses.groupConcat
-      ? rendered.replace(/^SELECT /, `SELECT ${GROUP_CONCAT_HINT} `)
-      : rendered;
+  const sql = ctx.uses.groupConcat ? withGroupConcatHint(ast, rendered) : rendered;
   assertPlaceholdersMatchParams(sql, params.length);
   return Object.freeze({ sql, params });
+}
+
+/** Puts `GROUP_CONCAT_HINT` on the outermost `SELECT`; a statement without one would leave `GROUP_CONCAT` at the session's limit, which can cut an array after an element and still read as JSON, so it is refused. */
+function withGroupConcatHint(ast: AnyQueryAst, rendered: string): string {
+  if (ast.kind !== 'select' || !rendered.startsWith('SELECT ')) {
+    throw unsupported(
+      'ordered-array-outside-select',
+      'MySQL can build an ordered JSON array only in a SELECT statement, whose outermost SELECT carries the hint that raises group_concat_max_len',
+    );
+  }
+  return `SELECT ${GROUP_CONCAT_HINT} ${rendered.slice('SELECT '.length)}`;
 }
 
 function renderStatement(ast: AnyQueryAst, ctx: RenderContext): string {

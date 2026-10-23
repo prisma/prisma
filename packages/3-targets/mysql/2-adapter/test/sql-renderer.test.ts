@@ -471,6 +471,15 @@ describe('MySQL lowering of JSON for includes', () => {
     );
   });
 
+  it('refuses an ordered array in a statement whose outermost SELECT cannot carry the length hint', () => {
+    const ordered = JsonArrayAggExpr.of(new NativeJsonValueProjection(rows('title')), 'null', [
+      OrderByItem.asc(rows('title')),
+    ]);
+    expect(() => sqlOf(RawQueryAst.affectedCount(['DO ', ordered]))).toThrow(
+      expect.objectContaining({ code: 'RUNTIME.AST_UNSUPPORTED' }),
+    );
+  });
+
   it('aggregates an unordered array with JSON_ARRAYAGG', () => {
     expect(projectionOf(JsonArrayAggExpr.of(new JsonDocumentProjection(object)))).toBe(
       `SELECT JSON_ARRAYAGG(${objectSql}) AS \`v\``,
