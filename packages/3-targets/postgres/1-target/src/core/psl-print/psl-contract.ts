@@ -18,6 +18,10 @@ import {
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
 } from '@internal/framework-components/psl-ast';
+import {
+  type ResolvedValueObjectField,
+  resolveValueObject,
+} from '@internal/sql-contract/check-expressions';
 import type { ForeignKey, SqlModelStorage, SqlStorage } from '@internal/sql-contract/types';
 import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
@@ -25,6 +29,7 @@ import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresNativeEnum } from '../postgres-native-enum';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import {
+  discriminatorValueSetOf,
   indexContractModels,
   type ModelWithTable,
   modelCoordinate,
@@ -102,13 +107,41 @@ function nativeEnumsOf(
   return nativeEnums;
 }
 
-/** The value sets the PSL source derives for a namespace from the enum blocks written for it. */
+/** The value object field each column of a table holds, over the fields of every model the table stores. */
+function valueObjectFieldsOf(
+  contract: Contract<SqlStorage>,
+  entries: readonly ModelWithTable[],
+): ReadonlyMap<string, ResolvedValueObjectField> {
+  const fields = new Map<string, ResolvedValueObjectField>();
+  for (const entry of entries) {
+    for (const [fieldName, field] of Object.entries(entry.model.fields)) {
+      const columnName = entry.storage.fields[fieldName]?.column;
+      if (field.type.kind !== 'valueObject' || columnName === undefined) continue;
+      fields.set(columnName, {
+        nullable: field.nullable,
+        many: field.many ?? false,
+        type: {
+          kind: 'valueObject',
+          valueObject: resolveValueObject(contract.storage, field.type),
+        },
+      });
+    }
+  }
+  return fields;
+}
+
+/** The value sets the PSL source derives for a namespace from the enum blocks written for it and from its discriminators. */
 function derivedValueSetsOf(
   namespaceId: string,
   enums: NativeEnumEmission,
   defaultDomainEnums: Readonly<Record<string, ContractEnum>>,
+  namespaceModels: readonly ModelWithTable[],
 ): ReadonlyMap<string, readonly unknown[]> {
   const derived = new Map<string, readonly unknown[]>(enums.derivedValueSets);
+  for (const entry of namespaceModels) {
+    const valueSet = discriminatorValueSetOf(entry);
+    if (valueSet !== undefined) derived.set(valueSet.name, valueSet.values);
+  }
   if (namespaceId !== DEFAULT_NAMESPACE_ID) return derived;
   for (const [name, domainEnum] of Object.entries(defaultDomainEnums)) {
     if (derived.has(name)) refuseEnumAndNativeEnumSharingName(namespaceId, name);
@@ -171,12 +204,20 @@ function buildModel(
     }
   }
   refuseUntravelledForeignKeys(entry, variant, travelledForeignKeys);
+  const discriminatorValueSet = discriminatorValueSetOf(entry);
   const checks = derivedChecks({
     table: entry.table,
     tableName: entry.tableName,
     managed:
       effectiveControlPolicy(entry.table.control, all.contract.defaultControlPolicy) === 'managed',
-    domainEnumValues: all.domainEnumValues,
+    memberValueSets:
+      discriminatorValueSet === undefined
+        ? all.domainEnumValues
+        : new Map([
+            ...all.domainEnumValues,
+            [discriminatorValueSet.name, discriminatorValueSet.values],
+          ]),
+    valueObjectFields: valueObjectFieldsOf(all.contract, [entry, ...singleTableVariants]),
   });
   if (variant?.singleTable !== true) refuseUnderivedChecks(entry, checks);
   return {
@@ -222,13 +263,14 @@ function buildNamespace(
   refuseUnderivedValueSets({
     namespaceId,
     actual: valueSets,
-    derived: derivedValueSetsOf(namespaceId, enums, all.defaultDomainEnums),
+    derived: derivedValueSetsOf(
+      namespaceId,
+      enums,
+      all.defaultDomainEnums,
+      models.filter((entry) => entry.namespaceId === namespaceId),
+    ),
   });
 
-  const rlsTables = rlsEnabledTables(namespaceId, namespace.entries['rls']);
-  const namespaceModels = models
-    .filter((entry) => entry.namespaceId === namespaceId)
-    .map((entry) => buildModel(all, entry, enums, rlsTables));
   const compositeTypes = buildCompositeTypes({
     contract,
     namespaceId,
@@ -237,6 +279,10 @@ function buildNamespace(
     enumBlockNames: enums.blockNamesByTypeName,
     domainEnums: all.defaultDomainEnums,
   });
+  const rlsTables = rlsEnabledTables(namespaceId, namespace.entries['rls']);
+  const namespaceModels = models
+    .filter((entry) => entry.namespaceId === namespaceId)
+    .map((entry) => buildModel(all, entry, enums, rlsTables));
   const modelNameForTable = (tableName: string): string | undefined =>
     models.find(
       (entry) =>

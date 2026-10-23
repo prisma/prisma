@@ -51,6 +51,16 @@ function loadContract(relativePath: string): Contract<SqlStorage> {
  */
 const pslCases: ReadonlyArray<{ readonly name: string; readonly schema: string }> = [
   {
+    name: 'value objects with nested, list, enum and self-referring members, and a discriminator, each with its derived check',
+    schema: readFileSync(
+      join(
+        repoRoot,
+        'test/integration/test/sql-orm-client/fixtures/value-object-checks/contract.prisma',
+      ),
+      'utf-8',
+    ).replace('// use prisma-8\n', ''),
+  },
+  {
     name: 'a model control policy',
     schema: `model Ledger {
   id Int @id

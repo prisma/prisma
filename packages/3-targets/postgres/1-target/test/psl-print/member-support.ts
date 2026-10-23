@@ -1,11 +1,15 @@
 import type { ContractField } from '@internal/contract/types';
 import { deserialize, widgetContract } from './refusal-support';
 
+/** A table that derives no checks, so these contracts need not carry the value object check of `address`. */
+const UNCHECKED_TABLE = { control: 'external' } as const;
+
 /** A contract whose one value object, `Address`, has the one member `street`. */
 export function addressContract(field: ContractField) {
   return deserialize(
     widgetContract({
       columns: { address: { dataType: 'pg/jsonb', codecId: 'pg/jsonb@1', nullable: false } },
+      table: UNCHECKED_TABLE,
       fields: {
         address: {
           nullable: false,
@@ -41,6 +45,7 @@ export function withCountryMembers(
   return deserialize(
     widgetContract({
       columns: { address: { dataType: 'pg/jsonb', codecId: 'pg/jsonb@1', nullable: false } },
+      table: UNCHECKED_TABLE,
       fields: {
         address: {
           nullable: false,

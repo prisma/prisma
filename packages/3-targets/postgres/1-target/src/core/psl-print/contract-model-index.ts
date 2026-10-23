@@ -142,3 +142,19 @@ export function isVariantLinkForeignKey(fk: ForeignKey, variant: VariantInfo | u
     fk.onUpdate === undefined
   );
 }
+
+/**
+ * The value set the PSL source writes for a discriminator, keyed `<Base>.<field>` and holding the variants' values, sorted. A discriminator an enum types keeps the enum's value set, so it writes none.
+ */
+export function discriminatorValueSetOf(
+  entry: ModelWithTable,
+): { readonly name: string; readonly values: readonly string[] } | undefined {
+  const { discriminator, variants } = entry.model;
+  if (discriminator === undefined || variants === undefined) return undefined;
+  const name = `${entry.name}.${discriminator.field}`;
+  const columnName = entry.storage.fields[discriminator.field]?.column;
+  const valueSet = columnName === undefined ? undefined : entry.table.columns[columnName]?.valueSet;
+  return valueSet?.entityName === name && valueSet.namespaceId === entry.namespaceId
+    ? { name, values: Object.keys(variants).sort() }
+    : undefined;
+}
