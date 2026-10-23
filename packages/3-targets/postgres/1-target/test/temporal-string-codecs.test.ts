@@ -190,8 +190,8 @@ describe('the string date and time codecs', () => {
           async (wire) => {
             await expect(codec.fromWire(wire, callCtx)).rejects.toMatchObject({
               code: 'RUNTIME.DATE_STYLE_NOT_ISO',
-              message: expect.stringContaining('DateStyle'),
-              fix: expect.stringContaining('DateStyle=ISO'),
+              message: expect.stringContaining('the driver could not ensure'),
+              fix: expect.stringContaining('DateStyle'),
               meta: { codecId: id, received: wire },
             });
           },
