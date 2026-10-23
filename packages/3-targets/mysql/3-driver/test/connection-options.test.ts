@@ -80,8 +80,19 @@ describe('mysqlPoolSettings', () => {
     });
   });
 
-  it('refuses a pool setting that is not a positive integer', () => {
-    for (const parameter of ['connectionLimit=0', 'poolTimeout=soon', 'statementCacheSize=-1']) {
+  it('accepts a statement cache of up to 1000', () => {
+    expect(mysqlPoolSettings('mysql://root@localhost/app?statementCacheSize=1000')).toMatchObject({
+      statementCacheSize: 1000,
+    });
+  });
+
+  it('refuses a pool setting that is not a positive integer, and a statement cache above 1000', () => {
+    for (const parameter of [
+      'connectionLimit=0',
+      'poolTimeout=soon',
+      'statementCacheSize=-1',
+      'statementCacheSize=1001',
+    ]) {
       expect(() => mysqlPoolSettings(`mysql://root@localhost/app?${parameter}`)).toThrow(
         expect.objectContaining({ code: 'RUNTIME.BINDING_INVALID' }),
       );

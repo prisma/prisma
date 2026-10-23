@@ -24,6 +24,9 @@ const DEFAULT_POOL_TIMEOUT_MS = 10_000;
 /** Prepared statements each connection keeps open, as the Prisma engines' MySQL connector does. MySQL caps open statements server-wide (16,382 by default), and mysql2's own default of 16,000 per connection would let two connections reach it. */
 const DEFAULT_STATEMENT_CACHE_SIZE = 100;
 
+/** The largest statement cache a URL may ask for: at mysql2's default of 10 connections, 1,000 each keeps one process at 10,000 open statements, under MySQL's server-wide default of 16,382. */
+const MAX_STATEMENT_CACHE_SIZE = 1000;
+
 /** The connection's character set. The renderer writes literal text into the SQL, which mysql2 encodes in this charset; a narrower one, such as latin1 or sjis, can turn a character of it into a quote or a backslash after escaping. */
 const CHARSET = 'UTF8MB4_UNICODE_CI';
 
@@ -115,6 +118,17 @@ function positiveInteger(name: string, text: string | undefined): number | undef
   return value;
 }
 
+function statementCacheSize(text: string | undefined): number {
+  const size = positiveInteger('statementCacheSize', text) ?? DEFAULT_STATEMENT_CACHE_SIZE;
+  if (size > MAX_STATEMENT_CACHE_SIZE) {
+    throw invalidBinding(
+      `statementCacheSize must be at most ${MAX_STATEMENT_CACHE_SIZE}, so a process's connections stay under MySQL's server-wide limit on open prepared statements`,
+      `statementCacheSize=${text}`,
+    );
+  }
+  return size;
+}
+
 /** The pool settings a connection URL gives: `connectionLimit`; `poolTimeout` in milliseconds, ten seconds unless the URL says otherwise; and `statementCacheSize`, 100 unless it says otherwise. */
 export function mysqlPoolSettings(url: string): MysqlPoolSettings {
   const parameters = urlParameters(new URL(url));
@@ -122,8 +136,6 @@ export function mysqlPoolSettings(url: string): MysqlPoolSettings {
     connectionLimit: positiveInteger('connectionLimit', parameters.get('connectionLimit')),
     poolTimeoutMs:
       positiveInteger('poolTimeout', parameters.get('poolTimeout')) ?? DEFAULT_POOL_TIMEOUT_MS,
-    statementCacheSize:
-      positiveInteger('statementCacheSize', parameters.get('statementCacheSize')) ??
-      DEFAULT_STATEMENT_CACHE_SIZE,
+    statementCacheSize: statementCacheSize(parameters.get('statementCacheSize')),
   };
 }

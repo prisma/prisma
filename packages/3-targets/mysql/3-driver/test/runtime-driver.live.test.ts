@@ -280,6 +280,16 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     });
   });
 
+  it('refuses a LIMIT value that is not an integer with RUNTIME.ARGUMENT_INVALID', async (test) => {
+    await withMysqlDatabase(test, ({ url }) =>
+      withDriver(url, async (driver) => {
+        await expect(
+          collect(driver.query({ sql: 'SELECT 1 AS n FROM DUAL LIMIT ?1', params: [1.5] })),
+        ).rejects.toMatchObject({ code: 'RUNTIME.ARGUMENT_INVALID' });
+      }),
+    );
+  });
+
   it('sets up every connection: no backslash escapes mode and UTC', async (test) => {
     await withMysqlDatabase(test, ({ url }) =>
       withDriver(url, async (driver) => {

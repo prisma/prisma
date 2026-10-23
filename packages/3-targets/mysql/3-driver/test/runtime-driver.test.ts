@@ -6,6 +6,7 @@ import mysqlRuntimeDriver from '../src/core/runtime/runtime-driver';
 class FakeConnection extends EventEmitter {
   readonly release = vi.fn();
   readonly destroy = vi.fn();
+  prepareError: unknown;
 
   query(_sql: unknown, callback: (error: unknown, result: unknown) => void) {
     queueMicrotask(() => callback(null, { affectedRows: 0 }));
@@ -13,7 +14,7 @@ class FakeConnection extends EventEmitter {
   }
 
   prepare(_sql: unknown, callback: (error: unknown, statement: unknown) => void) {
-    queueMicrotask(() => callback(null, { parameters: [] }));
+    queueMicrotask(() => callback(this.prepareError ?? null, { parameters: [] }));
   }
 
   execute(_options: unknown) {
@@ -56,5 +57,27 @@ describe('MySQL runtime driver with a fatal stream error', () => {
       destroyed: connection.destroy.mock.calls.length,
       released: connection.release.mock.calls.length,
     }).toEqual({ destroyed: 1, released: 0 });
+  });
+});
+
+describe('MySQL runtime driver at the server limit on prepared statements', () => {
+  it('names statementCacheSize and connectionLimit when MySQL refuses to prepare another statement', async () => {
+    connection.prepareError = Object.assign(
+      new Error("Can't create more than max_prepared_stmt_count statements"),
+      {
+        errno: 1461,
+        sqlState: '42000',
+      },
+    );
+    try {
+      const driver = mysqlRuntimeDriver.create();
+      await driver.connect({ kind: 'url', url: 'mysql://root@localhost/db' });
+      await expect(driver.execute({ sql: 'SELECT 1' })).rejects.toMatchObject({
+        code: 'DRIVER.PREPARE_FAILED',
+        fix: expect.stringContaining('statementCacheSize'),
+      });
+    } finally {
+      connection.prepareError = undefined;
+    }
   });
 });
