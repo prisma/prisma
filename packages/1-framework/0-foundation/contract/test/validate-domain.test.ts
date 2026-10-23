@@ -878,6 +878,42 @@ describe('validateContractDomain()', () => {
       expect(() => validateContractDomain(contract)).not.toThrow();
     });
 
+    it('refuses a value object member whose storage value set storage does not have', () => {
+      const member = (entityName: string) => ({
+        nullable: false,
+        type: { kind: 'scalar', codecId: 'pg/text@1' },
+        valueSet: {
+          plane: 'storage',
+          entityKind: 'valueSet',
+          namespaceId: UNBOUND_DOMAIN_NAMESPACE_ID,
+          entityName,
+        },
+      });
+      const contract = makeValidContract({
+        roots: {},
+        models: {},
+        valueObjects: { Tagged: { fields: { role: member('Role'), kind: member('Kind') } } },
+      });
+      const storage = contract.storage.namespaces[UNBOUND_DOMAIN_NAMESPACE_ID];
+      const withRole = {
+        ...contract,
+        storage: {
+          namespaces: {
+            [UNBOUND_DOMAIN_NAMESPACE_ID]: {
+              id: UNBOUND_DOMAIN_NAMESPACE_ID,
+              entries: {
+                ...storage?.entries,
+                valueSet: { Role: { kind: 'valueSet', values: ['a'] } },
+              },
+            },
+          },
+        },
+      };
+      expect(() => validateContractDomain(withRole)).toThrow(
+        'Contract domain validation failed:\n- Value object "__unbound__:Tagged" field "kind" refers to value set "Kind" in storage namespace "__unbound__", which storage.namespaces.__unbound__.entries.valueSet does not have',
+      );
+    });
+
     it('refuses value objects in the domain plane, and says where they live now', () => {
       const contract = makeValidContract({
         domain: {

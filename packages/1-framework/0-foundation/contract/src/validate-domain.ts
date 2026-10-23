@@ -312,6 +312,7 @@ interface FieldTypeLike {
 
 interface FieldLike {
   readonly type?: FieldTypeLike;
+  readonly valueSet?: { readonly namespaceId?: string; readonly entityName?: string };
   readonly many?: unknown;
   readonly elementNullable?: unknown;
   readonly dict?: boolean;
@@ -373,12 +374,28 @@ function validateValueObjectReferences(contract: DomainContractShape, errors: st
   }
   for (const { namespaceId, name, valueObject } of storageValueObjects(contract)) {
     for (const [fieldName, field] of Object.entries(valueObject.fields)) {
-      checkType(
-        fieldLike(field)?.type,
-        `Value object "${namespaceId}:${name}" field "${fieldName}"`,
-      );
+      const location = `Value object "${namespaceId}:${name}" field "${fieldName}"`;
+      checkType(fieldLike(field)?.type, location);
+      const problem = missingValueSetProblem(contract, fieldLike(field)?.valueSet);
+      if (problem !== undefined) errors.push(`${location} ${problem}`);
     }
   }
+}
+
+/** The problem with a value object member's storage value set when storage does not have it. */
+function missingValueSetProblem(
+  contract: DomainContractShape,
+  valueSet: FieldLike['valueSet'],
+): string | undefined {
+  if (valueSet === undefined) return undefined;
+  const namespaceId = valueSet.namespaceId ?? '';
+  const entityName = valueSet.entityName ?? '';
+  const slot = Object.hasOwn(contract.storage.namespaces, namespaceId)
+    ? contract.storage.namespaces[namespaceId]?.entries?.['valueSet']
+    : undefined;
+  return isPlainRecord(slot) && Object.hasOwn(slot, entityName)
+    ? undefined
+    : `refers to value set "${entityName}" in storage namespace "${namespaceId}", which storage.namespaces.${namespaceId}.entries.valueSet does not have`;
 }
 
 function validateFieldModifiers(
