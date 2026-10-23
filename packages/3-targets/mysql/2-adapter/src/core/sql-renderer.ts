@@ -78,7 +78,7 @@ function unsupported(feature: string, message: string): Error {
 }
 
 /**
- * Lowers a query AST to MySQL SQL. Each param is written as `?N`, N being its position in `collectOrderedParamRefs`, the order the runtime encodes and middleware edits params in; a param written twice is bound once. The driver fills the placeholders. The statement records whether it holds caller-written SQL, which the driver needs to restore its session settings after it.
+ * Lowers a query AST to MySQL SQL. Each param is written as `?N`, N being its position in `collectOrderedParamRefs`, the order the runtime encodes and middleware edits params in; a param written twice is bound once. The driver fills the placeholders.
  */
 export function renderMysqlSql(
   ast: AnyQueryAst,

@@ -271,7 +271,7 @@ describe('MySQL runtime driver', { timeout: timeouts.databaseOperation }, () => 
     );
   });
 
-  it('restores the session settings after a statement that holds caller-written SQL', async (test) => {
+  it('restores the session settings after a statement that holds raw SQL', async (test) => {
     await withMysqlDatabase(test, async ({ url }) => {
       const single = new URL(url);
       single.searchParams.set('connectionLimit', '1');
