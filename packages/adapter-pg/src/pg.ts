@@ -37,7 +37,9 @@ const debug = Debug('prisma:driver-adapter:pg')
  */
 type StdClient = {
   options: pg.PoolConfig
-  connect(callback?: (err: Error, client: pg.PoolClient, done: (release?: unknown) => void) => void): Promise<pg.PoolClient>
+  connect(
+    callback?: (err: Error, client: pg.PoolClient, done: (release?: unknown) => void) => void,
+  ): Promise<pg.PoolClient>
   query(
     queryConfig: pg.QueryArrayConfig | pg.QueryConfig | string,
     values?: unknown[],

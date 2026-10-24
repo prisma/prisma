@@ -19,9 +19,9 @@ class CompatiblePool {
     port: 5432,
   }
 
-  readonly query = vi.fn(async () => ({ rows: [], fields: [], rowCount: 0 }))
-  readonly connect = vi.fn(async () => ({}))
-  readonly end = vi.fn(async () => undefined)
+  readonly query = vi.fn(() => Promise.resolve({ command: '', rows: [], fields: [], rowCount: 0, oid: 0 }))
+  readonly connect = vi.fn(() => Promise.resolve({} as pg.PoolClient))
+  readonly end = vi.fn(() => Promise.resolve())
   readonly on = vi.fn(() => this)
   readonly removeListener = vi.fn(() => this)
   readonly emit = vi.fn(() => true)
@@ -31,7 +31,7 @@ class CompatiblePool {
 describe('PrismaPgAdapterFactory with a pg-compatible pool', () => {
   it('accepts a pool that structurally matches pg.Pool but is not an instance of it', async () => {
     const pool = new CompatiblePool()
-    const factory = new PrismaPgAdapterFactory(pool as unknown as pg.Pool)
+    const factory = new PrismaPgAdapterFactory(pool)
     const adapter = await factory.connect()
 
     // The externally provided fork pool must be used as-is, instead of being
@@ -50,12 +50,15 @@ describe('PrismaPgAdapterFactory with a pg-compatible pool', () => {
     // would be adopted as the pool and crash when the adapter attaches the
     // `error` listener (it has no EventEmitter surface).
     const configLike = {
-      query: vi.fn(async () => ({ rows: [], fields: [], rowCount: 0 })),
-      connect: vi.fn(async () => ({})),
-      end: vi.fn(async () => undefined),
-      options: { host: 'localhost', port: 5432 },
+      host: 'localhost',
+      port: 5432,
+      query: vi.fn(() => Promise.resolve({ rows: [], fields: [], rowCount: 0 })),
+      connect: vi.fn(() => Promise.resolve({})),
+      end: vi.fn(() => Promise.resolve()),
+      // A real PoolConfig carries `options` as a Postgres command-line string.
+      options: '-c search_path=public',
     }
-    const factory = new PrismaPgAdapterFactory(configLike as unknown as pg.Pool)
+    const factory = new PrismaPgAdapterFactory(configLike)
     const adapter = await factory.connect()
 
     // A fresh internal `pg.Pool` must be created from the config, not the
