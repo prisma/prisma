@@ -25,6 +25,8 @@ export * from './nullTypes'
  *
  * https://github.com/prisma/prisma/issues/29882
  */
+const MAX_EXACT_INTEGER_DIGITS = 10_000
+
 export class Decimal extends DecimalJS {
   [Symbol.toPrimitive](hint: 'default' | 'number' | 'string'): number | bigint | string {
     if (hint === 'number') {
@@ -35,7 +37,12 @@ export class Decimal extends DecimalJS {
       // Infinity). For those integers return an exact BigInt instead — JS
       // relational operators compare Number/BigInt operands exactly, so
       // `<`/`>`/`<=`/`>=` stay correct for large values too.
-      if (this.isInteger() && !Number.isSafeInteger(numeric)) {
+      //
+      // The BigInt path is capped at MAX_EXACT_INTEGER_DIGITS: decimal.js allows
+      // exponents up to 9e15, and expanding such a value with toFixed(0) would
+      // build a string of that many digits. Larger values keep the
+      // (Infinity-valued) double and should be ordered with Decimal methods.
+      if (this.isInteger() && !Number.isSafeInteger(numeric) && this.e < MAX_EXACT_INTEGER_DIGITS) {
         return BigInt(this.toFixed(0))
       }
       return numeric

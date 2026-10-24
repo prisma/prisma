@@ -26,6 +26,16 @@ describe('Decimal relational operators', () => {
     expect(Number.isFinite(Number(d('1e1000')))).toBe(false)
   })
 
+  it('does not expand integers with huge exponents into BigInt', () => {
+    const d = (value: string) => new Decimal(value)
+
+    // decimal.js accepts exponents up to 9e15. Past the exact-integer digit cap
+    // the numeric hint falls back to the double, so this does not try to build
+    // a 9e15-digit string.
+    expect(d('1e9000000000000000') > d('1')).toBe(true)
+    expect(d('-1e9000000000000000') < d('1')).toBe(true)
+  })
+
   it('keeps Number() coercion numeric', () => {
     expect(Number(new Decimal('10.5'))).toBe(10.5)
     expect(+new Decimal('10.5')).toBe(10.5)
